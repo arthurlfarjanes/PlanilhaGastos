@@ -1,0 +1,386 @@
+/* src/App.css */
+
+/* Variáveis CSS para a paleta de cores */
+:root {
+  --color-primary: #4caf50; /* Verde Suave */
+  --color-secondary-bg: #eceff1; /* Azul-Cinza Claro */
+  --color-text-primary: #37474f; /* Cinza Escuro */
+  --color-text-secondary: #607d8b; /* Cinza Médio */
+  --color-background-warm: #fbfbfb; /* Branco Quente */
+  --color-revenue: #66bb6a; /* Verde Positivo para receita */
+  --color-expense: #e57373; /* Vermelho Alerta para despesa */
+  --color-border: #cfd8dc; /* Cinza Claro para bordas */
+}
+
+/* Estilos Globais e Reset Básico */
+body {
+  margin: 0;
+  font-family: "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell",
+    "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--color-background-warm);
+  color: var(--color-text-primary);
+  line-height: 1.6;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* Garante que o App ocupe a altura total da tela */
+}
+
+.App {
+  max-width: 900px; /* Largura máxima para o conteúdo principal */
+  margin: 0 auto; /* Centraliza o conteúdo */
+  padding: 20px;
+  flex-grow: 1; /* Permite que o conteúdo ocupe o espaço restante */
+}
+
+/* Estilos de Títulos */
+h1,
+h2,
+h3,
+h4 {
+  color: var(--color-text-primary);
+  margin-bottom: 15px;
+}
+
+h1 {
+  font-size: 2.5em;
+  text-align: center;
+  color: var(--color-primary); /* Título principal com a cor primária */
+  margin-top: 30px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+h2 {
+  font-size: 1.8em;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 10px;
+  margin-top: 30px;
+}
+
+h3 {
+  font-size: 1.4em;
+  margin-top: 25px;
+}
+
+/* Estilos de Botões */
+button {
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+button:hover {
+  background-color: #43a047; /* Um tom um pouco mais escuro de verde */
+  transform: translateY(-2px);
+}
+
+button:active {
+  background-color: #388e3c;
+  transform: translateY(0);
+}
+
+/* Estilos de Formulários e Inputs */
+form div {
+  margin-bottom: 15px;
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--color-text-secondary);
+  font-weight: bold;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="date"],
+input[type="password"] {
+  width: calc(100% - 22px); /* 100% menos padding e border */
+  padding: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  font-size: 1em;
+  color: var(--color-text-primary);
+  background-color: white;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  font-size: 1em;
+  color: var(--color-text-primary);
+  background-color: white;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="date"]:focus,
+input[type="password"]:focus,
+select:focus {
+  border-color: var(--color-primary);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2); /* Sombra suave no foco */
+}
+
+/* Estilos de Listas */
+ul {
+  list-style: none; /* Remove bolinhas padrão */
+  padding: 0;
+  margin: 0;
+}
+
+li {
+  background-color: white;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+li button {
+  background-color: var(
+    --color-expense
+  ); /* Botão de excluir com cor de despesa */
+  padding: 8px 15px;
+  font-size: 0.9em;
+}
+
+li button:hover {
+  background-color: #d32f2f; /* Um vermelho mais escuro */
+}
+
+/* Estilos para mensagens de erro/sucesso */
+p.error {
+  color: var(--color-expense);
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+p.success {
+  color: var(--color-primary);
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+/* Estilos para o componente Comparativo */
+.comparativo-card {
+  background-color: white;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 30px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  margin-top: 30px;
+  text-align: center;
+}
+
+.comparativo-card h2 {
+  color: var(--color-primary);
+  font-size: 2em;
+  margin-bottom: 20px;
+  border-bottom: none;
+}
+
+.comparativo-card p {
+  font-size: 1.2em;
+  margin-bottom: 10px;
+}
+
+.comparativo-card hr {
+  border: none;
+  border-top: 1px dashed var(--color-border);
+  margin: 25px 0;
+}
+
+.balanco-positivo {
+  color: var(--color-revenue);
+  font-weight: bold;
+  font-size: 1.8em;
+}
+
+.balanco-negativo {
+  color: var(--color-expense);
+  font-weight: bold;
+  font-size: 1.8em;
+}
+
+/* Estilos do Header (Navegação) */
+header {
+  background-color: var(
+    --color-text-primary
+  ) !important; /* Fundo mais escuro para o cabeçalho */
+  color: white;
+  padding: 15px 20px !important;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+header a {
+  color: white;
+  text-decoration: none;
+  margin-right: 20px;
+  font-weight: bold;
+  transition: color 0.3s ease;
+}
+
+header a:hover {
+  color: var(--color-primary);
+}
+
+header span {
+  font-weight: bold;
+  margin-right: 15px;
+}
+
+header button {
+  background-color: transparent;
+  border: 1px solid white;
+  color: white;
+  padding: 8px 15px;
+  border-radius: 5px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+header button:hover {
+  background-color: white;
+  color: var(--color-text-primary);
+  transform: translateY(0); /* Remove o efeito de hover de botões normais */
+}
+
+/* Estilos para login/registro */
+.auth-container {
+  max-width: 400px;
+  margin: 50px auto;
+  padding: 30px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  background-color: white;
+}
+
+.auth-container h2 {
+  text-align: center;
+  color: var(--color-primary);
+  margin-bottom: 25px;
+}
+
+.auth-container input {
+  width: 90%;
+  padding: 12px;
+  margin-bottom: 15px;
+}
+
+.auth-container button {
+  width: 100%;
+  padding: 12px;
+  font-size: 1.1em;
+}
+
+.auth-container p {
+  text-align: center;
+  margin-top: 15px;
+}
+
+.auth-container p.error {
+  margin-bottom: 15px;
+}
+
+.App > hr {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: 40px 0;
+}
+
+.transacoes-table-container {
+  margin-top: 40px;
+  background-color: white;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.transacoes-table-container h3 {
+  text-align: center;
+  margin-bottom: 25px;
+  color: var(--color-text-primary);
+  font-size: 1.6em;
+}
+
+.transacoes-table {
+  width: 100%;
+  border-collapse: collapse; /* Remove espaçamento entre bordas de células */
+  margin-top: 20px;
+}
+
+.transacoes-table th,
+.transacoes-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.transacoes-table th {
+  background-color: var(--color-secondary-bg);
+  color: var(--color-text-primary);
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 0.9em;
+}
+
+.transacoes-table tbody tr:last-child td {
+  border-bottom: none; /* Remove a borda da última linha */
+}
+
+.transacoes-table tbody tr:hover {
+  background-color: #f5f7f8; /* Efeito de hover nas linhas */
+}
+
+.align-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 20px;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+.spinner {
+  border: 2.5px solid var(--color-revenue);
+  border-top: 2.5px solid var(--color-border);
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  animation: spin 0.9s linear infinite;
+  padding: 0;
+  margin: 0;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

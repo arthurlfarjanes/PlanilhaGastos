@@ -1,0 +1,25 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+/*==== PALETA DE CORES ====*/
+:root {
+  --escuro: #040c25;
+  --vinho: #86091a;
+  --vermelho: #c80102;
+  --rosa-claro: #f7b6e3;
+  --rosa-mais-claro: #f7b6e4be;
+  --claro: #d0e0f5;
+  --mais-claro: #f5f5f5;
+  --verde-wpp: #25d366;
+}
+
+/*======== ÍCONES ========*/
+.medium-icon {
+  width: 40px;
+}
+
+.small-icon {
+  width: 22px;
+}
