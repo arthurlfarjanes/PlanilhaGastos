@@ -9,6 +9,8 @@ function Register() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
   const { API_URL } = useContext(AuthContext);
   const navigate = useNavigate();
 
@@ -36,7 +38,6 @@ function Register() {
       setMessage(
         "Usuário registrado com sucesso! Você pode fazer login agora."
       );
-      // Opcional: Redirecionar para o login após o registro
       setTimeout(() => {
         navigate("/login");
       }, 1500);
@@ -62,24 +63,36 @@ function Register() {
             required
           />
         </div>
+
+        {/* Estrutura ajustada para o campo de senha */}
         <div>
           <label>Senha:</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <button disabled={loading} type="submit">
-        {loading ? (
-          <div className="align-spinner">
-            <div className="spinner" />
+          <div className="password-input-wrapper">
+            <input
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            <button
+              type="button"
+              className="password-toggle-btn"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? "Ocultar" : "Mostrar"}
+            </button>
           </div>
-        ) : (
-          "Registrar"
-        )}
-      </button>
+        </div>
+
+        <button disabled={loading} type="submit" className="auth-submit-btn">
+          {loading ? (
+            <div className="align-spinner">
+              <div className="spinner" />
+            </div>
+          ) : (
+            "Registrar"
+          )}
+        </button>
       </form>
     </div>
   );

@@ -9,7 +9,7 @@
   --color-text-secondary: #607d8b;
   --color-background-warm: #fbfbfb;
   --color-revenue: #66bb6a;
-  --color-expense: #ef5350; /* Um pouco mais suave */
+  --color-expense: #ef5350;
   --color-border: #e0e0e0;
   --color-white: #ffffff;
   --color-blue: #2196f3;
@@ -54,7 +54,7 @@ header {
   align-items: center;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   height: 60px;
-  position: relative; /* Necessário para o posicionamento do menu mobile */
+  position: relative;
 }
 
 header .logo a {
@@ -64,7 +64,6 @@ header .logo a {
   text-decoration: none;
 }
 
-/* O container do menu que agrupa a navegação e a área do usuário */
 .menu-container {
   display: flex;
   align-items: center;
@@ -115,9 +114,8 @@ header nav a:hover {
   color: var(--color-white);
 }
 
-/* Botão Hambúrguer - inicialmente escondido */
 .menu-hamburger {
-  display: none; /* Escondido em telas grandes */
+  display: none;
   flex-direction: column;
   justify-content: space-around;
   width: 30px;
@@ -136,7 +134,7 @@ header nav a:hover {
   transition: all 0.3s linear;
 }
 
-/* --- ESTILOS DE OUTROS COMPONENTES (SEM ALTERAÇÃO) --- */
+/* --- ESTILOS DE OUTROS COMPONENTES --- */
 button {
   background-color: var(--color-primary);
   color: white;
@@ -369,6 +367,7 @@ select {
 .comparativo-item strong {
   font-size: 1.2em;
   font-weight: 600;
+  white-space: nowrap;
 }
 .valor-receita {
   color: var(--color-revenue);
@@ -415,72 +414,150 @@ select {
   padding: 10px;
   border-radius: 5px;
 }
-.error {
-  color: var(--color-expense);
-  background-color: #ffcdd2;
+.error,
+.success {
   padding: 10px;
   border-radius: 4px;
   text-align: center;
+  margin-bottom: 15px;
+}
+.error {
+  color: #721c24;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+}
+.success {
+  color: #155724;
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+}
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.password-input-wrapper input {
+  padding-right: 85px;
+}
+.password-toggle-btn {
+  position: absolute;
+  right: 1px;
+  height: calc(100% - 2px);
+  top: 1px;
+  background: var(--color-secondary-bg);
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  padding: 0 15px;
+  font-size: 0.9em;
+  font-weight: 600;
+  border-radius: 0 5px 5px 0;
+  border-left: 1px solid var(--color-border);
+}
+.password-toggle-btn:hover {
+  background: #e8eaf6;
+}
+.auth-submit-btn {
+  width: 100%;
+  margin-top: 10px;
+}
+.auth-container {
+  max-width: 400px;
+  margin: 50px auto;
+  padding: 30px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  background-color: white;
+}
+.auth-container h2 {
+  text-align: center;
+  color: var(--color-primary);
 }
 
-/* ================================================================= */
-/* ** ESTILOS DE RESPONSIVIDADE PARA O MENU (ADICIONADOS) ** */
-/* ================================================================= */
+/* ** ESTILOS DE RESPONSIVIDADE ** */
 @media (max-width: 768px) {
   .menu-container {
-    /* Esconde o menu por padrão em telas pequenas */
     display: none;
-
-    /* Transforma em menu vertical */
     flex-direction: column;
     align-items: flex-start;
     gap: 0;
-
-    /* Posiciona abaixo do header */
     position: absolute;
-    top: 60px; /* Altura do header */
+    top: 60px;
     left: 0;
     width: 100%;
-
-    /* Estilo visual */
     background-color: var(--color-white);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     padding: 10px 0;
   }
-
-  /* Mostra o menu quando a classe 'aberto' está presente */
   .menu-container.aberto {
     display: flex;
   }
-
   header nav {
     flex-direction: column;
     width: 100%;
   }
-
   header nav a {
     width: 100%;
     padding: 15px 20px;
     border-bottom: 1px solid var(--color-secondary-bg);
   }
-
   .user-area {
     flex-direction: column;
     width: 100%;
     padding: 15px 20px;
     gap: 10px;
-    align-items: stretch; /* Faz os botões ocuparem 100% da largura */
+    align-items: stretch;
   }
-
   .user-area .btn-login,
   .user-area .btn-register,
   .user-area .btn-sair {
     width: 100%;
     text-align: center;
   }
-
-  /* Mostra o botão hambúrguer */
   .menu-hamburger {
     display: flex;
+  }
+
+  /* ** AQUI ESTÁ O AJUSTE PARA OS ITENS DO COMPARATIVO ** */
+  .comparativo-item {
+    flex-direction: column;
+    align-items: flex-start; /* Alinha o texto à esquerda */
+    gap: 5px;
+  }
+  .comparativo-item strong {
+    align-self: flex-end; /* Alinha o valor à direita */
+    font-size: 1.4em; /* Levemente maior para destaque */
+  }
+  .comparativo-item.balanco {
+    align-items: center; /* Centraliza o balanço */
+  }
+}
+
+/* Spinner para botões de loading */
+.align-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 20px;
+  margin: 0;
+  padding: 0;
+}
+.spinner {
+  border: 2.5px solid rgba(255, 255, 255, 0.3);
+  border-top: 2.5px solid var(--color-white);
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  animation: spin 0.9s linear infinite;
+  margin: 0;
+  padding: 0;
+}
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
   }
 }

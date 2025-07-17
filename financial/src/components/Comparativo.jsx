@@ -130,11 +130,12 @@ function Comparativo() {
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                outerRadius={100}
+                outerRadius={80} /* Raio um pouco menor para dar mais espaço */
                 fill="#8884d8"
                 dataKey="value"
                 nameKey="name"
-                label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
+                // ** AQUI ESTÁ O AJUSTE DO RÓTULO **
+                label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
               >
                 {comparativo.gastosPorCategoria.map((entry, index) => (
                   <Cell

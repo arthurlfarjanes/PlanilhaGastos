@@ -1,20 +1,22 @@
 // src/components/Login.js
 import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { AuthContext } from "../App"; // Importa o contexto de autenticação
+import { AuthContext } from "../App";
 
 function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { login, API_URL } = useContext(AuthContext); // Pega a função login e API_URL do contexto
+  const [showPassword, setShowPassword] = useState(false);
+
+  const { login, API_URL } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError(""); // Limpa erros anteriores
+    setError("");
 
     try {
       const response = await fetch(`${API_URL}/login`, {
@@ -31,8 +33,8 @@ function Login() {
         throw new Error(data.error || "Erro ao fazer login.");
       }
 
-      login(data.token, username); // Chama a função login do contexto
-      navigate("/"); // Redireciona para a página inicial após o login
+      login(data.token, username);
+      navigate("/");
     } catch (err) {
       console.error("Erro de login:", err);
       setError(err.message || "Falha no login. Verifique suas credenciais.");
@@ -54,16 +56,28 @@ function Login() {
             required
           />
         </div>
+
+        {/* Estrutura ajustada para o campo de senha */}
         <div>
           <label>Senha:</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <div className="password-input-wrapper">
+            <input
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            <button
+              type="button"
+              className="password-toggle-btn"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? "Ocultar" : "Mostrar"}
+            </button>
+          </div>
         </div>
-        <button disabled={loading} type="submit">
+
+        <button disabled={loading} type="submit" className="auth-submit-btn">
           {loading ? (
             <div className="align-spinner">
               <div className="spinner" />
