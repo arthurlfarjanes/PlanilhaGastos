@@ -1,10 +1,19 @@
-// src/components/Comparativo.js
+// src/components/Comparativo.jsx
 import React, { useEffect, useState, useContext } from "react";
 import { AuthContext } from "../App";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+
+const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
 function Comparativo() {
-  const [transacoes, setTransacoes] = useState([]); // Agora vamos buscar todas as transações
-  const [comparativo, setComparativo] = useState(null); // O resumo ainda será calculado
+  const [comparativo, setComparativo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const { token, API_URL } = useContext(AuthContext);
@@ -18,56 +27,23 @@ function Comparativo() {
 
       setLoading(true);
       setError("");
-      setTransacoes([]); // Limpa as transações anteriores
-      setComparativo(null); // Limpa o comparativo anterior
+      setComparativo(null);
 
       try {
-        // 1. Buscar todas as transações do usuário
-        const transacoesResponse = await fetch(`${API_URL}/transacoes`, {
+        const response = await fetch(`${API_URL}/transacoes/comparativo`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
-        const transacoesData = await transacoesResponse.json();
+        const data = await response.json();
 
-        if (!transacoesResponse.ok) {
+        if (!response.ok) {
           throw new Error(
-            transacoesData.error ||
-              `Erro HTTP! status: ${transacoesResponse.status}`
+            data.error || `Erro HTTP! status: ${response.status}`
           );
         }
-
-        // Ordenar as transações por data (cronológica)
-        const sortedTransacoes = transacoesData.sort((a, b) => {
-          // Converte as datas para objetos Date para comparação
-          const dateA = new Date(a.data);
-          const dateB = new Date(b.data);
-          return dateA - dateB; // Ordem crescente (mais antiga primeiro)
-        });
-
-        setTransacoes(sortedTransacoes);
-
-        // 2. Calcular o comparativo de receitas e despesas a partir das transações buscadas
-        let totalReceitas = 0;
-        let totalDespesas = 0;
-
-        sortedTransacoes.forEach((transacao) => {
-          const valor = parseFloat(transacao.valor);
-          if (transacao.tipo === "receita") {
-            totalReceitas += valor;
-          } else if (transacao.tipo === "despesa") {
-            totalDespesas += valor;
-          }
-        });
-
-        const balanco = totalReceitas - totalDespesas;
-
-        setComparativo({
-          totalReceitas: totalReceitas.toFixed(2),
-          totalDespesas: totalDespesas.toFixed(2),
-          balanco: balanco.toFixed(2),
-        });
+        setComparativo(data);
       } catch (err) {
         console.error("Erro ao buscar dados do comparativo:", err);
         setError(
@@ -79,9 +55,9 @@ function Comparativo() {
     };
 
     fetchDadosComparativo();
-  }, [token, API_URL]); // Depende do token e API_URL
+  }, [token, API_URL]);
 
-  if (loading) return <p>Carregando comparativo e transações...</p>;
+  if (loading) return <p>Carregando comparativo...</p>;
   if (error) return <p style={{ color: "red" }}>{error}</p>;
   if (!comparativo) return <p>Nenhum dado para o comparativo ainda.</p>;
 
@@ -89,6 +65,9 @@ function Comparativo() {
     parseFloat(comparativo.balanco) >= 0
       ? "balanco-positivo"
       : "balanco-negativo";
+
+  const hasGastos =
+    comparativo.gastosPorCategoria && comparativo.gastosPorCategoria.length > 0;
 
   return (
     <div className="comparativo-card">
@@ -120,53 +99,37 @@ function Comparativo() {
         </p>
       )}
 
-      {/* Nova seção da Tabela de Transações */}
-      {transacoes.length > 0 && (
-        <div className="transacoes-table-container">
-          <h3>Todas as Transações</h3>
-          <table className="transacoes-table">
-            <thead>
-              <tr>
-                <th>Data</th>
-                <th>Tipo</th>
-                <th>Descrição</th>
-                <th>Valor</th>
-              </tr>
-            </thead>
-            <tbody>
-              {transacoes.map((transacao) => (
-                <tr key={transacao.id}>
-                  <td>
-                    {new Date(transacao.data + "T00:00:00Z").toLocaleDateString(
-                      "pt-BR",
-                      { timeZone: "UTC" }
-                    )}
-                  </td>
-                  <td
-                    style={{
-                      color:
-                        transacao.tipo === "receita"
-                          ? "var(--color-revenue)"
-                          : "var(--color-expense)",
-                    }}
-                  >
-                    {transacao.tipo === "receita" ? "Receita" : "Despesa"}
-                  </td>
-                  <td>{transacao.descricao}</td>
-                  <td
-                    style={{
-                      color:
-                        transacao.tipo === "receita"
-                          ? "var(--color-revenue)"
-                          : "var(--color-expense)",
-                    }}
-                  >
-                    R$ {parseFloat(transacao.valor).toFixed(2)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {hasGastos && (
+        <div className="grafico-container" style={{ marginTop: "40px" }}>
+          <h3>Distribuição de Despesas por Categoria</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={comparativo.gastosPorCategoria}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                outerRadius={80}
+                fill="#8884d8"
+                dataKey="value"
+                nameKey="name"
+                label={({ name, percent }) =>
+                  `${name} ${(percent * 100).toFixed(0)}%`
+                }
+              >
+                {comparativo.gastosPorCategoria.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={COLORS[index % COLORS.length]}
+                  />
+                ))}
+              </Pie>
+              <Tooltip
+                formatter={(value) => `R$ ${parseFloat(value).toFixed(2)}`}
+              />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
         </div>
       )}
     </div>

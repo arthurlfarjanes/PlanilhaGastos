@@ -1,4 +1,4 @@
-// src/components/ListaTransacoes.js
+// src/components/ListaTransacoes.jsx
 import React, { useEffect, useState, useContext } from "react";
 import { AuthContext } from "../App";
 
@@ -6,13 +6,11 @@ function ListaTransacoes() {
   const [transacoes, setTransacoes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const { token, API_URL } = useContext(AuthContext); // Pega o token e API_URL do contexto
+  const { token, API_URL } = useContext(AuthContext);
 
-  // Função para buscar as transações do backend
   useEffect(() => {
     const fetchTransacoes = async () => {
       if (!token) {
-        // Não tenta buscar se não houver token
         setLoading(false);
         return;
       }
@@ -23,7 +21,7 @@ function ListaTransacoes() {
       try {
         const response = await fetch(`${API_URL}/transacoes`, {
           headers: {
-            Authorization: `Bearer ${token}`, // Envia o token JWT no cabeçalho
+            Authorization: `Bearer ${token}`,
           },
         });
 
@@ -47,23 +45,19 @@ function ListaTransacoes() {
     };
 
     fetchTransacoes();
-  }, [token, API_URL]); // Depende do token e API_URL
+  }, [token, API_URL]);
 
-  // Função para lidar com a exclusão de uma transação
   const handleDelete = async (id) => {
     if (!window.confirm("Tem certeza que deseja deletar esta transação?")) {
       return;
     }
     try {
-      const response = await fetch(
-        `${API_URL}/transacoes/${id}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`, // Envia o token
-          },
-        }
-      );
+      const response = await fetch(`${API_URL}/transacoes/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -72,7 +66,6 @@ function ListaTransacoes() {
         );
       }
 
-      // Remove a transação da lista local após a exclusão bem-sucedida
       setTransacoes(transacoes.filter((transacao) => transacao.id !== id));
       alert("Transação deletada com sucesso!");
     } catch (err) {
@@ -98,16 +91,25 @@ function ListaTransacoes() {
           {transacoes.map((transacao) => (
             <li
               key={transacao.id}
-              style={{ fontWeight: "bold", color: transacao.tipo === "receita" ? "var(--color-revenue)" : "var(--color-expense)" }}
+              style={{
+                fontWeight: "bold",
+                color:
+                  transacao.tipo === "receita"
+                    ? "var(--color-revenue)"
+                    : "var(--color-expense)",
+              }}
             >
-              {transacao.tipo === "receita" ? "Receita" : "Despesa"}:{" "}
-              {transacao.descricao} - R${" "}
-              {parseFloat(transacao.valor).toFixed(2)} (
-              {new Date(transacao.data + "T00:00:00Z").toLocaleDateString(
-                "pt-BR",
-                { timeZone: "UTC" }
-              )}
-              )
+              <span>
+                {transacao.tipo === "receita" ? "Receita" : "Despesa"}:{" "}
+                {transacao.descricao}
+                {transacao.tipo === "despesa" && ` - ${transacao.categoria}`}-
+                R$ {parseFloat(transacao.valor).toFixed(2)} (
+                {new Date(transacao.data + "T00:00:00Z").toLocaleDateString(
+                  "pt-BR",
+                  { timeZone: "UTC" }
+                )}
+                )
+              </span>
               <button
                 onClick={() => handleDelete(transacao.id)}
                 style={{ marginLeft: "10px" }}

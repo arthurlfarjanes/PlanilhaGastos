@@ -1,12 +1,16 @@
-// src/components/FormularioTransacao.js
+// src/components/FormTransacao.jsx
 import React, { useState, useContext } from "react";
 import { AuthContext } from "../App";
 
 function FormularioTransacao({ onTransacaoAdicionada }) {
   const [descricao, setDescricao] = useState("");
   const [valor, setValor] = useState("");
-  const [tipo, setTipo] = useState("despesa"); // Padrão para despesa
+  const [tipo, setTipo] = useState("despesa");
   const [data, setData] = useState("");
+  const [categoria, setCategoria] = useState("Lazer"); // Categoria padrão
+  const [ehParcelado, setEhParcelado] = useState(false); // Novo estado
+  const [parcelas, setParcelas] = useState(2); // Novo estado
+
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -17,31 +21,49 @@ function FormularioTransacao({ onTransacaoAdicionada }) {
     setLoading(true);
     setError("");
 
-    // Validação
-    if (!descricao || !valor || !tipo || !data) {
-      setError("Por favor, preencha todos os campos!");
+    if (
+      !descricao ||
+      !valor ||
+      !tipo ||
+      !data ||
+      (tipo === "despesa" && !categoria)
+    ) {
+      setError("Por favor, preencha todos os campos obrigatórios!");
+      setLoading(false);
       return;
     }
     if (isNaN(parseFloat(valor)) || parseFloat(valor) <= 0) {
       setError("O valor deve ser um número positivo!");
+      setLoading(false);
+      return;
+    }
+    if (ehParcelado && (isNaN(parseInt(parcelas)) || parseInt(parcelas) <= 1)) {
+      setError("O número de parcelas deve ser maior que 1.");
+      setLoading(false);
       return;
     }
 
-    const novaTransacao = {
+    const endpoint = ehParcelado
+      ? `${API_URL}/transacoes/parcelada`
+      : `${API_URL}/transacoes`;
+
+    const transacaoData = {
       descricao,
       valor: parseFloat(valor),
       tipo,
       data,
+      ...(tipo === "despesa" && { categoria }), // Adiciona categoria se for despesa
+      ...(ehParcelado && { parcelas: parseInt(parcelas) }), // Adiciona parcelas se for compra parcelada
     };
 
     try {
-      const response = await fetch(`${API_URL}/transacoes`, {
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // Envia o token JWT
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(novaTransacao),
+        body: JSON.stringify(transacaoData),
       });
 
       const dataAdicionada = await response.json();
@@ -52,7 +74,7 @@ function FormularioTransacao({ onTransacaoAdicionada }) {
         );
       }
 
-      onTransacaoAdicionada(dataAdicionada); // Chama a função para atualizar a lista
+      onTransacaoAdicionada(dataAdicionada);
       alert("Transação adicionada com sucesso!");
 
       // Limpa o formulário
@@ -60,6 +82,9 @@ function FormularioTransacao({ onTransacaoAdicionada }) {
       setValor("");
       setTipo("despesa");
       setData("");
+      setCategoria("Lazer");
+      setEhParcelado(false);
+      setParcelas(2);
     } catch (err) {
       console.error("Erro ao adicionar transação:", err);
       setError(
@@ -84,7 +109,7 @@ function FormularioTransacao({ onTransacaoAdicionada }) {
         />
       </div>
       <div>
-        <label>Valor:</label>
+        <label>Valor (Total):</label>
         <input
           type="number"
           step="0.01"
@@ -100,8 +125,52 @@ function FormularioTransacao({ onTransacaoAdicionada }) {
           <option value="receita">Receita</option>
         </select>
       </div>
+
+      {tipo === "despesa" && (
+        <>
+          <div>
+            <label>Categoria:</label>
+            <select
+              value={categoria}
+              onChange={(e) => setCategoria(e.target.value)}
+              required
+            >
+              <option value="Lazer">Lazer</option>
+              <option value="Casa">Casa</option>
+              <option value="Alimentação">Alimentação</option>
+              <option value="Transporte">Transporte</option>
+            </select>
+          </div>
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <input
+              type="checkbox"
+              id="parcelado"
+              checked={ehParcelado}
+              onChange={(e) => setEhParcelado(e.target.checked)}
+              style={{ width: "auto", marginRight: "10px" }}
+            />
+            <label htmlFor="parcelado" style={{ marginBottom: "0" }}>
+              Compra Parcelada?
+            </label>
+          </div>
+
+          {ehParcelado && (
+            <div>
+              <label>Número de Parcelas:</label>
+              <input
+                type="number"
+                min="2"
+                value={parcelas}
+                onChange={(e) => setParcelas(e.target.value)}
+                required
+              />
+            </div>
+          )}
+        </>
+      )}
+
       <div>
-        <label>Data:</label>
+        <label>Data da Transação/Primeira Parcela:</label>
         <input
           type="date"
           value={data}
@@ -115,7 +184,7 @@ function FormularioTransacao({ onTransacaoAdicionada }) {
             <div className="spinner" />
           </div>
         ) : (
-          "Adicionar Transição"
+          "Adicionar Transação"
         )}
       </button>
     </form>
