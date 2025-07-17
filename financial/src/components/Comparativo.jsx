@@ -9,16 +9,28 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-// Cores para o gráfico de pizza
+// Função para formatar os valores em Reais (R$)
+const formatCurrency = (value) => {
+  const numberValue = parseFloat(value);
+  if (isNaN(numberValue)) {
+    return "R$ 0,00";
+  }
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(numberValue);
+};
+
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#AF19FF"];
 
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
     return (
       <div className="custom-tooltip">
-        <p className="label">{`${
-          payload[0].name
-        } : R$ ${payload[0].value.toFixed(2)}`}</p>
+        {/* ** APLICA A FORMATAÇÃO DE MOEDA AQUI ** */}
+        <p className="label">{`${payload[0].name} : ${formatCurrency(
+          payload[0].value
+        )}`}</p>
       </div>
     );
   }
@@ -88,15 +100,17 @@ function Comparativo() {
 
         <div className="comparativo-item">
           <span>Total de Receitas</span>
+          {/* ** APLICA A FORMATAÇÃO DE MOEDA AQUI ** */}
           <strong className="valor-receita">
-            R$ {comparativo.totalReceitas}
+            {formatCurrency(comparativo.totalReceitas)}
           </strong>
         </div>
 
         <div className="comparativo-item">
           <span>Total de Despesas</span>
+          {/* ** APLICA A FORMATAÇÃO DE MOEDA AQUI ** */}
           <strong className="valor-despesa">
-            R$ {comparativo.totalDespesas}
+            {formatCurrency(comparativo.totalDespesas)}
           </strong>
         </div>
 
@@ -104,8 +118,9 @@ function Comparativo() {
 
         <div className="comparativo-item balanco">
           <h3>Balanço Atual</h3>
+          {/* ** APLICA A FORMATAÇÃO DE MOEDA AQUI ** */}
           <strong className={balancoColorClass}>
-            R$ {comparativo.balanco}
+            {formatCurrency(comparativo.balanco)}
           </strong>
         </div>
 
@@ -130,11 +145,10 @@ function Comparativo() {
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                outerRadius={80} /* Raio um pouco menor para dar mais espaço */
+                outerRadius={80}
                 fill="#8884d8"
                 dataKey="value"
                 nameKey="name"
-                // ** AQUI ESTÁ O AJUSTE DO RÓTULO **
                 label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
               >
                 {comparativo.gastosPorCategoria.map((entry, index) => (

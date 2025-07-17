@@ -1,7 +1,8 @@
 import React, { useState, useContext } from "react";
 import { AuthContext } from "../App";
 
-function GerenciarCategorias({ categorias, onCategoriaChange }) {
+function GerenciarCategorias({ categorias, onCategoriaChange, onEdit }) {
+  // Adicionado onEdit
   const [novaCategoria, setNovaCategoria] = useState("");
   const { token, API_URL } = useContext(AuthContext);
 
@@ -64,12 +65,18 @@ function GerenciarCategorias({ categorias, onCategoriaChange }) {
         {categorias.map((cat) => (
           <li key={cat.id}>
             <span>{cat.nome}</span>
-            <button
-              onClick={() => handleDelete(cat.id)}
-              className="btn-excluir-cat"
-            >
-              Excluir
-            </button>
+            <div className="categoria-acoes">
+              {/* Botão de editar chama a função onEdit */}
+              <button onClick={() => onEdit(cat)} className="btn-editar-cat">
+                Editar
+              </button>
+              <button
+                onClick={() => handleDelete(cat.id)}
+                className="btn-excluir-cat"
+              >
+                Excluir
+              </button>
+            </div>
           </li>
         ))}
       </ul>

@@ -6,13 +6,18 @@ import ListaTransacoes from "./ListaTransacoes";
 import FiltroTransacoes from "./FiltroTransacoes";
 import GerenciarCategorias from "./GerenciarCategorias";
 import ModalEditar from "./ModalEditar";
+import ModalEditarCategoria from "./ModalEditarCategoria"; // Importa o novo modal
 
 function Dashboard() {
   const [transacoes, setTransacoes] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // Estados para os modais
   const [transacaoParaEditar, setTransacaoParaEditar] = useState(null);
+  const [categoriaParaEditar, setCategoriaParaEditar] = useState(null); // Novo estado
+
   const [filtros, setFiltros] = useState({
     descricao: "",
     tipo: "",
@@ -74,27 +79,24 @@ function Dashboard() {
   }, [token, filtros]);
 
   const handleSave = () => {
-    fetchTransacoes(); // Recarrega a lista após adicionar ou editar
+    fetchTransacoes();
   };
 
-  const handleSaveEdit = (transacaoAtualizada) => {
-    setTransacoes((prev) =>
-      prev.map((t) =>
-        t.id === transacaoAtualizada.id ? transacaoAtualizada : t
-      )
-    );
+  // Função para atualizar a lista de categorias e transações após editar uma categoria
+  const handleCategoriaSaved = () => {
+    fetchCategorias();
+    fetchTransacoes();
   };
 
   const handleDelete = async (id) => {
     if (!window.confirm("Tem certeza que deseja deletar esta transação?"))
       return;
     try {
-      const response = await fetch(`${API_URL}/transacoes/${id}`, {
+      await fetch(`${API_URL}/transacoes/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!response.ok) throw new Error("Erro ao deletar transação");
-      fetchTransacoes(); // Recarrega a lista
+      fetchTransacoes();
       alert("Transação deletada com sucesso!");
     } catch (err) {
       alert(err.message);
@@ -112,6 +114,7 @@ function Dashboard() {
         <GerenciarCategorias
           categorias={categorias}
           onCategoriaChange={fetchCategorias}
+          onEdit={setCategoriaParaEditar} // Passa a função para abrir o modal
         />
       </div>
       <div className="coluna-transacoes">
@@ -134,8 +137,16 @@ function Dashboard() {
         <ModalEditar
           transacao={transacaoParaEditar}
           onClose={() => setTransacaoParaEditar(null)}
-          onSave={handleSaveEdit}
+          onSave={handleSave}
           categorias={categorias}
+        />
+      )}
+      {/* Renderiza o novo modal se uma categoria for selecionada para edição */}
+      {categoriaParaEditar && (
+        <ModalEditarCategoria
+          categoria={categoriaParaEditar}
+          onClose={() => setCategoriaParaEditar(null)}
+          onSave={handleCategoriaSaved}
         />
       )}
     </div>

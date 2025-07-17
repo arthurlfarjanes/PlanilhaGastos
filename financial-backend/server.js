@@ -9,9 +9,28 @@ const jwt = require("jsonwebtoken");
 const app = express();
 const port = process.env.PORT || 3001;
 
-const JWT_SECRET =
-  process.env.JWT_SECRET || "sua_chave_secreta_padrao_muito_segura";
+const JWT_SECRET = process.env.JWT_SECRET;
 const DATABASE_URL = process.env.DATABASE_URL;
+// const FRONTEND_DEV_URL = process.env.FRONTEND_DEV_URL;
+const FRONTEND_PROD_URL = process.env.FRONTEND_PROD_URL;
+
+if (!JWT_SECRET || !DATABASE_URL || !FRONTEND_PROD_URL) {
+  console.error(
+    "ERRO: Variáveis de ambiente essenciais (JWT_SECRET, DATABASE_URL, FRONTEND_URL) não estão definidas."
+  );
+}
+
+const corsOptions = {
+  origin: FRONTEND_PROD_URL,
+  optionsSuccessStatus: 200,
+};
+
+app.use(cors(corsOptions));
+app.use(express.json());
+
+app.get("/", (req, res) => {
+  res.json({ message: "API MeFinance está online e funcionando!" });
+});
 
 const pool = new Pool({
   connectionString: DATABASE_URL,
@@ -30,9 +49,6 @@ pool
     console.error("Erro ao conectar ao PostgreSQL:", err.message || err);
     process.exit(1);
   });
-
-app.use(cors());
-app.use(express.json());
 
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers["authorization"];
@@ -70,12 +86,10 @@ app.post("/register", async (req, res) => {
       "INSERT INTO usuarios (username, password_hash) VALUES ($1, $2) RETURNING id, username",
       [username, hashedPassword]
     );
-    res
-      .status(201)
-      .json({
-        message: "Usuário registrado com sucesso!",
-        user: result.rows[0],
-      });
+    res.status(201).json({
+      message: "Usuário registrado com sucesso!",
+      user: result.rows[0],
+    });
   } catch (err) {
     if (err.code === "23505") {
       return res.status(409).json({ error: "Nome de usuário já existe." });
@@ -127,7 +141,7 @@ app.post("/login", async (req, res) => {
   }
 });
 
-// --- Rotas de Categorias ---
+// --- Rotas de Categorias (COM ATUALIZAÇÃO) ---
 app.use("/categorias", authenticateToken);
 
 app.get("/categorias", async (req, res) => {
@@ -158,6 +172,32 @@ app.post("/categorias", async (req, res) => {
     res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error("Erro ao adicionar categoria:", err);
+    res.status(500).json({ error: "Erro interno do servidor." });
+  }
+});
+
+// **NOVA ROTA PARA EDITAR CATEGORIA**
+app.put("/categorias/:id", async (req, res) => {
+  const { id } = req.params;
+  const { nome } = req.body;
+  if (!nome) {
+    return res
+      .status(400)
+      .json({ error: "O nome da categoria é obrigatório." });
+  }
+  try {
+    const result = await pool.query(
+      "UPDATE categorias SET nome = $1 WHERE id = $2 AND user_id = $3 RETURNING *",
+      [nome, id, req.user.userId]
+    );
+    if (result.rowCount === 0) {
+      return res
+        .status(404)
+        .json({ error: "Categoria não encontrada ou não autorizada." });
+    }
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error("Erro ao editar categoria:", err);
     res.status(500).json({ error: "Erro interno do servidor." });
   }
 });
@@ -261,17 +301,14 @@ app.post("/transacoes", async (req, res) => {
   }
 });
 
-// ** ROTA DE COMPRA PARCELADA (RE-ADICIONADA) **
 app.post("/transacoes/parcelada", authenticateToken, async (req, res) => {
   const { descricao, valor, categoria_id, data, parcelas } = req.body;
   const userId = req.user.userId;
 
   if (!descricao || !valor || !categoria_id || !data || !parcelas) {
-    return res
-      .status(400)
-      .json({
-        error: "Todos os campos são obrigatórios para compra parcelada.",
-      });
+    return res.status(400).json({
+      error: "Todos os campos são obrigatórios para compra parcelada.",
+    });
   }
   if (isNaN(parseInt(parcelas)) || parseInt(parcelas) <= 1) {
     return res
@@ -306,20 +343,16 @@ app.post("/transacoes/parcelada", authenticateToken, async (req, res) => {
       insertedTransactions.push(result.rows[0]);
     }
     await client.query("COMMIT");
-    res
-      .status(201)
-      .json({
-        message: "Compra parcelada registrada com sucesso!",
-        transacoes: insertedTransactions,
-      });
+    res.status(201).json({
+      message: "Compra parcelada registrada com sucesso!",
+      transacoes: insertedTransactions,
+    });
   } catch (err) {
     await client.query("ROLLBACK");
     console.error("Erro ao adicionar compra parcelada:", err);
-    res
-      .status(500)
-      .json({
-        error: "Erro interno do servidor ao adicionar compra parcelada.",
-      });
+    res.status(500).json({
+      error: "Erro interno do servidor ao adicionar compra parcelada.",
+    });
   } finally {
     client.release();
   }
@@ -386,12 +419,10 @@ app.delete("/transacoes/:id", authenticateToken, async (req, res) => {
       [id, userId]
     );
     if (result.rowCount === 0) {
-      return res
-        .status(404)
-        .json({
-          error:
-            "Transação não encontrada ou você não tem permissão para deletá-la.",
-        });
+      return res.status(404).json({
+        error:
+          "Transação não encontrada ou você não tem permissão para deletá-la.",
+      });
     }
     res.status(204).send();
   } catch (err) {
@@ -402,7 +433,6 @@ app.delete("/transacoes/:id", authenticateToken, async (req, res) => {
   }
 });
 
-// ** ROTA COMPARATIVO ATUALIZADA COM DADOS DO GRÁFICO **
 app.get("/transacoes/comparativo", authenticateToken, async (req, res) => {
   const userId = req.user.userId;
   try {

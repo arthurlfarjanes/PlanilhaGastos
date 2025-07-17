@@ -1,5 +1,17 @@
 import React from "react";
 
+// Função para formatar os valores em Reais (R$)
+const formatCurrency = (value) => {
+  const numberValue = parseFloat(value);
+  if (isNaN(numberValue)) {
+    return "R$ 0,00";
+  }
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(numberValue);
+};
+
 function ListaTransacoes({ transacoes, onEdit, onDelete }) {
   if (transacoes.length === 0) {
     return (
@@ -28,9 +40,9 @@ function ListaTransacoes({ transacoes, onEdit, onDelete }) {
               </span>
             </div>
             <div className="transacao-valor-acoes">
+              {/* ** APLICA A FORMATAÇÃO DE MOEDA AQUI ** */}
               <span className={`transacao-valor ${transacao.tipo}`}>
-                {transacao.tipo === "despesa" ? "-" : "+"} R${" "}
-                {parseFloat(transacao.valor).toFixed(2)}
+                {formatCurrency(transacao.valor)}
               </span>
               <div className="transacao-acoes">
                 <button
