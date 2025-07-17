@@ -1,4 +1,3 @@
-// src/App.js
 import React, { useState, createContext, useContext, useEffect } from "react";
 import {
   BrowserRouter as Router,
@@ -6,33 +5,30 @@ import {
   Route,
   Link,
   useNavigate,
+  useLocation, // Importar o useLocation
 } from "react-router-dom";
-import ListaTransacoes from "./components/ListaTransacoes";
-import FormTransacao from "./components/FormTransacao";
 import Login from "./components/Login";
 import Register from "./components/Register";
-import Comparativo from "./components/Comparativo"; // Novo componente
-import "./App.css"; // Mantenha ou remova se não for usar estilos
+import Dashboard from "./components/Dashboard";
+import Comparativo from "./components/Comparativo";
+import "./App.css";
+import "./components/Modal.css";
 
-// --- Contexto de Autenticação ---
-// Usaremos um contexto para compartilhar o estado de autenticação entre componentes
 export const AuthContext = createContext(null);
 
 const API_URL = import.meta.env.VITE_BACKEND_URL;
 
 function App() {
-  const [token, setToken] = useState(localStorage.getItem("token")); // Tenta pegar o token do localStorage
-  const [username, setUsername] = useState(localStorage.getItem("username")); // Tenta pegar o username
+  const [token, setToken] = useState(localStorage.getItem("token"));
+  const [username, setUsername] = useState(localStorage.getItem("username"));
 
-  // Função para fazer login e salvar o token
   const login = (newToken, newUsername) => {
     setToken(newToken);
     setUsername(newUsername);
-    localStorage.setItem("token", newToken); // Salva no localStorage para persistir o login
+    localStorage.setItem("token", newToken);
     localStorage.setItem("username", newUsername);
   };
 
-  // Função para fazer logout e remover o token
   const logout = () => {
     setToken(null);
     setUsername(null);
@@ -43,9 +39,9 @@ function App() {
   return (
     <AuthContext.Provider value={{ token, username, login, logout, API_URL }}>
       <Router>
-        <div className="App">
-          <Header /> {/* Componente de cabeçalho com navegação */}
-          <div className="content">
+        <div className="App-container">
+          <Header />
+          <main className="content">
             <Routes>
               <Route path="/register" element={<Register />} />
               <Route path="/login" element={<Login />} />
@@ -57,7 +53,6 @@ function App() {
                   </PrivateRoute>
                 }
               />
-              {/* Página inicial protegida */}
               <Route
                 path="/comparativo"
                 element={
@@ -67,80 +62,97 @@ function App() {
                 }
               />
             </Routes>
-          </div>
+          </main>
         </div>
       </Router>
     </AuthContext.Provider>
   );
 }
 
-// --- Componente de Cabeçalho (Navegação) ---
+// =================================================================
+// COMPONENTE HEADER ATUALIZADO COM LÓGICA DE MENU RESPONSIVO
+// =================================================================
 function Header() {
   const { token, username, logout } = useContext(AuthContext);
   const navigate = useNavigate();
+  const location = useLocation(); // Hook para saber a página atual
+
+  // Estado para controlar a visibilidade do menu mobile
+  const [menuAberto, setMenuAberto] = useState(false);
 
   const handleLogout = () => {
     logout();
-    navigate("/login"); // Redireciona para a tela de login após o logout
+    setMenuAberto(false); // Fecha o menu ao deslogar
+    navigate("/login");
   };
+
+  // Efeito para fechar o menu ao navegar para outra página
+  useEffect(() => {
+    setMenuAberto(false);
+  }, [location]);
 
   return (
     <header>
-      <div>
-        <Link to="/" style={{ marginRight: "15px" }}>
-          Início
-        </Link>
-        {token && <Link to="/comparativo">Comparativo</Link>}
+      <div className="logo">
+        <Link to="/">MeFinance</Link>
       </div>
-      <nav>
-        {!token ? (
-          <>
-            <Link to="/login" style={{ marginRight: "10px" }}>
-              Login
-            </Link>
-            <Link to="/register">Registrar</Link>
-          </>
-        ) : (
-          <>
-            <span>Olá, {username}!</span>
-            <button onClick={handleLogout}>Sair</button>
-          </>
-        )}
-      </nav>
+
+      {/* Botão Hambúrguer - visível apenas em telas pequenas */}
+      <button
+        className="menu-hamburger"
+        onClick={() => setMenuAberto(!menuAberto)}
+      >
+        <span className="hamburguer-linha"></span>
+        <span className="hamburguer-linha"></span>
+        <span className="hamburguer-linha"></span>
+      </button>
+
+      {/* Container do menu - a classe 'aberto' controla a visibilidade */}
+      <div className={`menu-container ${menuAberto ? "aberto" : ""}`}>
+        <nav>
+          {token && (
+            <>
+              <Link to="/">Dashboard</Link>
+              <Link to="/comparativo">Comparativo</Link>
+            </>
+          )}
+        </nav>
+        <div className="user-area">
+          {!token ? (
+            <>
+              <Link to="/login" className="btn-login">
+                Login
+              </Link>
+              <Link to="/register" className="btn-register">
+                Registrar
+              </Link>
+            </>
+          ) : (
+            <>
+              <span>Olá, {username}!</span>
+              <button onClick={handleLogout} className="btn-sair">
+                Sair
+              </button>
+            </>
+          )}
+        </div>
+      </div>
     </header>
   );
 }
+// =================================================================
 
-// --- Componente de Rota Privada ---
-// Este componente garante que apenas usuários logados possam acessar certas rotas
 function PrivateRoute({ children }) {
   const { token } = useContext(AuthContext);
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!token) {
-      navigate("/login"); // Redireciona para login se não houver token
+      navigate("/login");
     }
   }, [token, navigate]);
 
-  return token ? children : null; // Só renderiza os filhos se houver token
-}
-
-// --- Componente Dashboard (Página Inicial com Formulário e Lista) ---
-function Dashboard() {
-  const [atualizarLista, setAtualizarLista] = useState(0); // Estado para forçar a atualização
-
-  const handleTransacaoAdicionada = (novaTransacao) => {
-    setAtualizarLista((prev) => prev + 1); // Força a ListaTransacoes a recarregar
-  };
-
-  return (
-    <div style={{ padding: "20px" }}>
-      <FormTransacao onTransacaoAdicionada={handleTransacaoAdicionada} />
-      <hr/>
-      <ListaTransacoes key={atualizarLista} /> {/* Key para forçar re-render */}
-    </div>
-  );
+  return token ? children : null;
 }
 
 export default App;

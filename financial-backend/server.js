@@ -1,20 +1,18 @@
 // controle-gastos-backend/server.js
-require("dotenv").config(); // Carrega as variáveis de ambiente do .env
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const { Pool } = require("pg");
-const bcrypt = require("bcryptjs"); // Importa bcryptjs
-const jwt = require("jsonwebtoken"); // Importa jsonwebtoken
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 const app = express();
 const port = process.env.PORT || 3001;
 
-// Variáveis de ambiente importantes
 const JWT_SECRET =
-  process.env.JWT_SECRET || "sua_chave_secreta_padrao_muito_segura"; // Use uma chave forte em produção!
+  process.env.JWT_SECRET || "sua_chave_secreta_padrao_muito_segura";
 const DATABASE_URL = process.env.DATABASE_URL;
 
-// Configuração do PostgreSQL
 const pool = new Pool({
   connectionString: DATABASE_URL,
   ssl: {
@@ -22,7 +20,6 @@ const pool = new Pool({
   },
 });
 
-// Testar a conexão com o banco de dados
 pool
   .connect()
   .then((client) => {
@@ -31,18 +28,15 @@ pool
   })
   .catch((err) => {
     console.error("Erro ao conectar ao PostgreSQL:", err.message || err);
-    process.exit(1); // Encerra a aplicação se não conseguir conectar ao DB
+    process.exit(1);
   });
 
-// --- Middlewares ---
 app.use(cors());
 app.use(express.json());
 
-// --- Middleware de Autenticação JWT ---
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
-
   if (token == null) {
     return res
       .status(401)
@@ -76,10 +70,12 @@ app.post("/register", async (req, res) => {
       "INSERT INTO usuarios (username, password_hash) VALUES ($1, $2) RETURNING id, username",
       [username, hashedPassword]
     );
-    res.status(201).json({
-      message: "Usuário registrado com sucesso!",
-      user: result.rows[0],
-    });
+    res
+      .status(201)
+      .json({
+        message: "Usuário registrado com sucesso!",
+        user: result.rows[0],
+      });
   } catch (err) {
     if (err.code === "23505") {
       return res.status(409).json({ error: "Nome de usuário já existe." });
@@ -131,135 +127,257 @@ app.post("/login", async (req, res) => {
   }
 });
 
-// --- Rotas de Transações (Protegidas) ---
+// --- Rotas de Categorias ---
+app.use("/categorias", authenticateToken);
+
+app.get("/categorias", async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT * FROM categorias WHERE user_id = $1 ORDER BY nome ASC",
+      [req.user.userId]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Erro ao buscar categorias:", err);
+    res.status(500).json({ error: "Erro interno do servidor." });
+  }
+});
+
+app.post("/categorias", async (req, res) => {
+  const { nome } = req.body;
+  if (!nome) {
+    return res
+      .status(400)
+      .json({ error: "O nome da categoria é obrigatório." });
+  }
+  try {
+    const result = await pool.query(
+      "INSERT INTO categorias (nome, user_id) VALUES ($1, $2) RETURNING *",
+      [nome, req.user.userId]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error("Erro ao adicionar categoria:", err);
+    res.status(500).json({ error: "Erro interno do servidor." });
+  }
+});
+
+app.delete("/categorias/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query(
+      "DELETE FROM categorias WHERE id = $1 AND user_id = $2 RETURNING id",
+      [id, req.user.userId]
+    );
+    if (result.rowCount === 0) {
+      return res
+        .status(404)
+        .json({ error: "Categoria não encontrada ou não autorizada." });
+    }
+    res.status(204).send();
+  } catch (err) {
+    console.error("Erro ao deletar categoria:", err);
+    res.status(500).json({ error: "Erro interno do servidor." });
+  }
+});
+
+// --- Rotas de Transações ---
 app.use("/transacoes", authenticateToken);
 
 app.get("/transacoes", async (req, res) => {
   const userId = req.user.userId;
+  const { tipo, categoriaId, dataInicio, dataFim, descricao } = req.query;
+
+  let query = `
+        SELECT t.id, t.descricao, t.valor, t.tipo, t.data::text, t.categoria_id, c.nome as categoria_nome
+        FROM transacoes t
+        LEFT JOIN categorias c ON t.categoria_id = c.id
+        WHERE t.user_id = $1
+    `;
+  const params = [userId];
+  let paramIndex = 2;
+
+  if (tipo) {
+    query += ` AND t.tipo = $${paramIndex++}`;
+    params.push(tipo);
+  }
+  if (categoriaId) {
+    query += ` AND t.categoria_id = $${paramIndex++}`;
+    params.push(categoriaId);
+  }
+  if (dataInicio) {
+    query += ` AND t.data >= $${paramIndex++}`;
+    params.push(dataInicio);
+  }
+  if (dataFim) {
+    query += ` AND t.data <= $${paramIndex++}`;
+    params.push(dataFim);
+  }
+  if (descricao) {
+    query += ` AND t.descricao ILIKE $${paramIndex++}`;
+    params.push(`%${descricao}%`);
+  }
+
+  query += " ORDER BY t.data DESC, t.id DESC";
+
   try {
-    const result = await pool.query(
-      "SELECT id, descricao, valor, tipo, data::text, categoria FROM transacoes WHERE user_id = $1 ORDER BY data DESC, id DESC",
-      [userId]
-    );
+    const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (err) {
     console.error("Erro ao buscar transações:", err);
-    res
-      .status(500)
-      .json({ error: "Erro interno do servidor ao buscar transações." });
+    res.status(500).json({ error: "Erro interno do servidor." });
   }
 });
 
 app.post("/transacoes", async (req, res) => {
-  const { descricao, valor, tipo, data, categoria } = req.body;
+  const { descricao, valor, tipo, data, categoria_id } = req.body;
   const userId = req.user.userId;
 
   if (!descricao || !valor || !tipo || !data) {
-    return res.status(400).json({
-      error: "Todos os campos (descrição, valor, tipo, data) são obrigatórios.",
-    });
+    return res.status(400).json({ error: "Campos obrigatórios faltando." });
   }
-  if (isNaN(parseFloat(valor)) || parseFloat(valor) <= 0) {
+  if (tipo === "despesa" && !categoria_id) {
     return res
       .status(400)
-      .json({ error: "O valor deve ser um número positivo." });
-  }
-  if (!["receita", "despesa"].includes(tipo)) {
-    return res
-      .status(400)
-      .json({ error: 'O tipo deve ser "receita" ou "despesa".' });
-  }
-  // Se for despesa, a categoria é obrigatória
-  if (tipo === "despesa" && !categoria) {
-    return res
-      .status(400)
-      .json({ error: "A categoria é obrigatória para despesas." });
+      .json({ error: "Categoria é obrigatória para despesas." });
   }
 
   try {
     const result = await pool.query(
-      "INSERT INTO transacoes (user_id, descricao, valor, tipo, data, categoria) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, descricao, valor, tipo, data::text, categoria",
+      "INSERT INTO transacoes (user_id, descricao, valor, tipo, data, categoria_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
       [
         userId,
         descricao,
         parseFloat(valor),
         tipo,
         data,
-        tipo === "despesa" ? categoria : null,
+        tipo === "despesa" ? categoria_id : null,
       ]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error("Erro ao adicionar transação:", err);
-    res
-      .status(500)
-      .json({ error: "Erro interno do servidor ao adicionar transação." });
+    res.status(500).json({ error: "Erro interno do servidor." });
   }
 });
 
-// Nova rota para compras parceladas
-app.post("/transacoes/parcelada", async (req, res) => {
-  const { descricao, valor, categoria, data, parcelas } = req.body;
+// ** ROTA DE COMPRA PARCELADA (RE-ADICIONADA) **
+app.post("/transacoes/parcelada", authenticateToken, async (req, res) => {
+  const { descricao, valor, categoria_id, data, parcelas } = req.body;
   const userId = req.user.userId;
 
-  if (!descricao || !valor || !categoria || !data || !parcelas) {
-    return res.status(400).json({
-      error: "Todos os campos são obrigatórios para compra parcelada.",
-    });
-  }
-  if (isNaN(parseInt(parcelas)) || parseInt(parcelas) <= 0) {
+  if (!descricao || !valor || !categoria_id || !data || !parcelas) {
     return res
       .status(400)
-      .json({ error: "O número de parcelas deve ser um inteiro positivo." });
+      .json({
+        error: "Todos os campos são obrigatórios para compra parcelada.",
+      });
+  }
+  if (isNaN(parseInt(parcelas)) || parseInt(parcelas) <= 1) {
+    return res
+      .status(400)
+      .json({ error: "O número de parcelas deve ser maior que 1." });
   }
 
   const valorParcela = parseFloat(valor) / parseInt(parcelas);
-  const dataInicial = new Date(data + "T00:00:00Z"); // Adiciona T00:00:00Z para evitar problemas com fuso horário
+  const dataInicial = new Date(data + "T00:00:00Z");
 
+  const client = await pool.connect();
   try {
-    const client = await pool.connect();
-    try {
-      await client.query("BEGIN");
-      const insertedTransactions = [];
-      for (let i = 1; i <= parcelas; i++) {
-        const dataParcela = new Date(dataInicial);
-        dataParcela.setUTCMonth(dataInicial.getUTCMonth() + (i - 1));
+    await client.query("BEGIN");
+    const insertedTransactions = [];
+    for (let i = 1; i <= parcelas; i++) {
+      const dataParcela = new Date(dataInicial);
+      dataParcela.setUTCMonth(dataInicial.getUTCMonth() + (i - 1));
 
-        const descricaoParcela = `${descricao} (${i}/${parcelas})`;
+      const descricaoParcela = `${descricao} (${i}/${parcelas})`;
 
-        const result = await client.query(
-          "INSERT INTO transacoes (user_id, descricao, valor, tipo, data, categoria) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
-          [
-            userId,
-            descricaoParcela,
-            valorParcela.toFixed(2),
-            "despesa",
-            dataParcela.toISOString().split("T")[0],
-            categoria,
-          ]
-        );
-        insertedTransactions.push(result.rows[0]);
-      }
-      await client.query("COMMIT");
-      res.status(201).json({
+      const result = await client.query(
+        "INSERT INTO transacoes (user_id, descricao, valor, tipo, data, categoria_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
+        [
+          userId,
+          descricaoParcela,
+          valorParcela.toFixed(2),
+          "despesa",
+          dataParcela.toISOString().split("T")[0],
+          categoria_id,
+        ]
+      );
+      insertedTransactions.push(result.rows[0]);
+    }
+    await client.query("COMMIT");
+    res
+      .status(201)
+      .json({
         message: "Compra parcelada registrada com sucesso!",
         transacoes: insertedTransactions,
       });
-    } catch (e) {
-      await client.query("ROLLBACK");
-      throw e;
-    } finally {
-      client.release();
-    }
   } catch (err) {
+    await client.query("ROLLBACK");
     console.error("Erro ao adicionar compra parcelada:", err);
-    res.status(500).json({
-      error: "Erro interno do servidor ao adicionar compra parcelada.",
-    });
+    res
+      .status(500)
+      .json({
+        error: "Erro interno do servidor ao adicionar compra parcelada.",
+      });
+  } finally {
+    client.release();
   }
 });
 
-app.delete("/transacoes/:id", async (req, res) => {
+app.put("/transacoes/:id", authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const { descricao, valor, tipo, data, categoria_id } = req.body;
+  const userId = req.user.userId;
+
+  if (!descricao || !valor || !tipo || !data) {
+    return res.status(400).json({ error: "Todos os campos são obrigatórios." });
+  }
+
+  try {
+    await pool.query(
+      `UPDATE transacoes SET
+                descricao = $1,
+                valor = $2,
+                tipo = $3,
+                data = $4,
+                categoria_id = $5
+             WHERE id = $6 AND user_id = $7`,
+      [
+        descricao,
+        parseFloat(valor),
+        tipo,
+        data,
+        tipo === "despesa" ? categoria_id : null,
+        id,
+        userId,
+      ]
+    );
+
+    const updatedResult = await pool.query(
+      `SELECT t.id, t.descricao, t.valor, t.tipo, t.data::text, t.categoria_id, c.nome as categoria_nome
+              FROM transacoes t
+              LEFT JOIN categorias c ON t.categoria_id = c.id
+              WHERE t.id = $1`,
+      [id]
+    );
+
+    if (updatedResult.rows.length === 0) {
+      return res
+        .status(404)
+        .json({ error: "Transação não encontrada ou não autorizada." });
+    }
+
+    res.json(updatedResult.rows[0]);
+  } catch (err) {
+    console.error("Erro ao editar transação:", err);
+    res
+      .status(500)
+      .json({ error: "Erro interno do servidor ao editar transação." });
+  }
+});
+
+app.delete("/transacoes/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;
   const userId = req.user.userId;
   try {
@@ -268,10 +386,12 @@ app.delete("/transacoes/:id", async (req, res) => {
       [id, userId]
     );
     if (result.rowCount === 0) {
-      return res.status(404).json({
-        error:
-          "Transação não encontrada ou você não tem permissão para deletá-la.",
-      });
+      return res
+        .status(404)
+        .json({
+          error:
+            "Transação não encontrada ou você não tem permissão para deletá-la.",
+        });
     }
     res.status(204).send();
   } catch (err) {
@@ -282,10 +402,10 @@ app.delete("/transacoes/:id", async (req, res) => {
   }
 });
 
-app.get("/transacoes/comparativo", async (req, res) => {
+// ** ROTA COMPARATIVO ATUALIZADA COM DADOS DO GRÁFICO **
+app.get("/transacoes/comparativo", authenticateToken, async (req, res) => {
   const userId = req.user.userId;
   try {
-    // Balanço geral
     const receitasResult = await pool.query(
       "SELECT SUM(valor) AS total_receitas FROM transacoes WHERE user_id = $1 AND tipo = 'receita'",
       [userId]
@@ -294,10 +414,12 @@ app.get("/transacoes/comparativo", async (req, res) => {
       "SELECT SUM(valor) AS total_despesas FROM transacoes WHERE user_id = $1 AND tipo = 'despesa'",
       [userId]
     );
-
-    // Dados para o gráfico de pizza
     const categoriasResult = await pool.query(
-      "SELECT categoria, SUM(valor) as total FROM transacoes WHERE user_id = $1 AND tipo = 'despesa' AND categoria IS NOT NULL GROUP BY categoria",
+      `SELECT c.nome, SUM(t.valor) as total
+             FROM transacoes t
+             JOIN categorias c ON t.categoria_id = c.id
+             WHERE t.user_id = $1 AND t.tipo = 'despesa'
+             GROUP BY c.nome`,
       [userId]
     );
 
@@ -314,7 +436,7 @@ app.get("/transacoes/comparativo", async (req, res) => {
       totalDespesas: totalDespesas.toFixed(2),
       balanco: balanco.toFixed(2),
       gastosPorCategoria: categoriasResult.rows.map((row) => ({
-        name: row.categoria,
+        name: row.nome,
         value: parseFloat(row.total),
       })),
     });

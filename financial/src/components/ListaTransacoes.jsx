@@ -1,125 +1,55 @@
-// src/components/ListaTransacoes.jsx
-import React, { useEffect, useState, useContext } from "react";
-import { AuthContext } from "../App";
+import React from "react";
 
-function ListaTransacoes() {
-  const [transacoes, setTransacoes] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const { token, API_URL } = useContext(AuthContext);
-
-  useEffect(() => {
-    const fetchTransacoes = async () => {
-      if (!token) {
-        setLoading(false);
-        return;
-      }
-
-      setLoading(true);
-      setError("");
-
-      try {
-        const response = await fetch(`${API_URL}/transacoes`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(
-            data.error || `Erro HTTP! status: ${response.status}`
-          );
-        }
-
-        setTransacoes(data);
-      } catch (err) {
-        console.error("Erro ao buscar transações:", err);
-        setError(
-          "Não foi possível carregar as transações. Por favor, faça login novamente."
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTransacoes();
-  }, [token, API_URL]);
-
-  const handleDelete = async (id) => {
-    if (!window.confirm("Tem certeza que deseja deletar esta transação?")) {
-      return;
-    }
-    try {
-      const response = await fetch(`${API_URL}/transacoes/${id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.error || `HTTP error! status: ${response.status}`
-        );
-      }
-
-      setTransacoes(transacoes.filter((transacao) => transacao.id !== id));
-      alert("Transação deletada com sucesso!");
-    } catch (err) {
-      console.error("Erro ao deletar transação:", err);
-      setError(
-        err.message || "Não foi possível deletar a transação. Tente novamente."
-      );
-    }
-  };
-
-  if (loading) return <p>Carregando transações...</p>;
-  if (error) return <p style={{ color: "red" }}>{error}</p>;
+function ListaTransacoes({ transacoes, onEdit, onDelete }) {
+  if (transacoes.length === 0) {
+    return (
+      <p className="nenhuma-transacao">
+        Nenhuma transação encontrada para os filtros selecionados.
+      </p>
+    );
+  }
 
   return (
-    <div>
-      <h2>Minhas Transações</h2>
-      {transacoes.length === 0 ? (
-        <p>
-          Nenhuma transação cadastrada ainda. Adicione uma receita ou despesa!
-        </p>
-      ) : (
-        <ul>
-          {transacoes.map((transacao) => (
-            <li
-              key={transacao.id}
-              style={{
-                fontWeight: "bold",
-                color:
-                  transacao.tipo === "receita"
-                    ? "var(--color-revenue)"
-                    : "var(--color-expense)",
-              }}
-            >
-              <span>
-                {transacao.tipo === "receita" ? "Receita" : "Despesa"}:{" "}
-                {transacao.descricao}
-                {transacao.tipo === "despesa" && ` - ${transacao.categoria}`}-
-                R$ {parseFloat(transacao.valor).toFixed(2)} (
-                {new Date(transacao.data + "T00:00:00Z").toLocaleDateString(
-                  "pt-BR",
-                  { timeZone: "UTC" }
-                )}
-                )
+    <div className="lista-transacoes">
+      <ul>
+        {transacoes.map((transacao) => (
+          <li key={transacao.id} className={`transacao-item ${transacao.tipo}`}>
+            <div className="transacao-info">
+              <span className="transacao-descricao">{transacao.descricao}</span>
+              <span className="transacao-categoria">
+                {transacao.tipo === "despesa"
+                  ? transacao.categoria_nome || "Sem Categoria"
+                  : "Receita"}
               </span>
-              <button
-                onClick={() => handleDelete(transacao.id)}
-                style={{ marginLeft: "10px" }}
-              >
-                Excluir
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+              <span className="transacao-data">
+                {new Date(transacao.data).toLocaleDateString("pt-BR", {
+                  timeZone: "UTC",
+                })}
+              </span>
+            </div>
+            <div className="transacao-valor-acoes">
+              <span className={`transacao-valor ${transacao.tipo}`}>
+                {transacao.tipo === "despesa" ? "-" : "+"} R${" "}
+                {parseFloat(transacao.valor).toFixed(2)}
+              </span>
+              <div className="transacao-acoes">
+                <button
+                  className="btn-editar"
+                  onClick={() => onEdit(transacao)}
+                >
+                  Editar
+                </button>
+                <button
+                  className="btn-excluir"
+                  onClick={() => onDelete(transacao.id)}
+                >
+                  Excluir
+                </button>
+              </div>
+            </div>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

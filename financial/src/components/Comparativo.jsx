@@ -1,4 +1,3 @@
-// src/components/Comparativo.jsx
 import React, { useEffect, useState, useContext } from "react";
 import { AuthContext } from "../App";
 import {
@@ -10,7 +9,21 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
+// Cores para o gráfico de pizza
+const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#AF19FF"];
+
+const CustomTooltip = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="custom-tooltip">
+        <p className="label">{`${
+          payload[0].name
+        } : R$ ${payload[0].value.toFixed(2)}`}</p>
+      </div>
+    );
+  }
+  return null;
+};
 
 function Comparativo() {
   const [comparativo, setComparativo] = useState(null);
@@ -65,43 +78,51 @@ function Comparativo() {
     parseFloat(comparativo.balanco) >= 0
       ? "balanco-positivo"
       : "balanco-negativo";
-
   const hasGastos =
     comparativo.gastosPorCategoria && comparativo.gastosPorCategoria.length > 0;
 
   return (
-    <div className="comparativo-card">
-      <h2>Seu Comparativo de Gastos e Receitas</h2>
-      <p>
-        Total de Receitas:{" "}
-        <strong style={{ color: "var(--color-revenue)" }}>
-          R$ {comparativo.totalReceitas}
-        </strong>
-      </p>
-      <p>
-        Total de Despesas:{" "}
-        <strong style={{ color: "var(--color-expense)" }}>
-          R$ {comparativo.totalDespesas}
-        </strong>
-      </p>
-      <hr />
-      <h3>
-        Balanço Atual:{" "}
-        <strong className={balancoColorClass}>R$ {comparativo.balanco}</strong>
-      </h3>
-      {parseFloat(comparativo.balanco) >= 0 ? (
-        <p style={{ color: "var(--color-revenue)" }}>
-          Parabéns! Suas receitas superam suas despesas.
-        </p>
-      ) : (
-        <p style={{ color: "var(--color-expense)" }}>
-          Atenção: Suas despesas superam suas receitas.
-        </p>
-      )}
+    <div className="comparativo-container">
+      <div className="comparativo-card">
+        <h2>Seu Resumo Financeiro</h2>
+
+        <div className="comparativo-item">
+          <span>Total de Receitas</span>
+          <strong className="valor-receita">
+            R$ {comparativo.totalReceitas}
+          </strong>
+        </div>
+
+        <div className="comparativo-item">
+          <span>Total de Despesas</span>
+          <strong className="valor-despesa">
+            R$ {comparativo.totalDespesas}
+          </strong>
+        </div>
+
+        <hr className="comparativo-divisor" />
+
+        <div className="comparativo-item balanco">
+          <h3>Balanço Atual</h3>
+          <strong className={balancoColorClass}>
+            R$ {comparativo.balanco}
+          </strong>
+        </div>
+
+        {parseFloat(comparativo.balanco) >= 0 ? (
+          <p className="mensagem-status positiva">
+            Parabéns! Suas finanças estão no verde.
+          </p>
+        ) : (
+          <p className="mensagem-status negativa">
+            Atenção: Suas despesas superam suas receitas.
+          </p>
+        )}
+      </div>
 
       {hasGastos && (
-        <div className="grafico-container" style={{ marginTop: "40px" }}>
-          <h3>Distribuição de Despesas por Categoria</h3>
+        <div className="grafico-card">
+          <h3>Despesas por Categoria</h3>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
@@ -109,13 +130,11 @@ function Comparativo() {
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                outerRadius={80}
+                outerRadius={100}
                 fill="#8884d8"
                 dataKey="value"
                 nameKey="name"
-                label={({ name, percent }) =>
-                  `${name} ${(percent * 100).toFixed(0)}%`
-                }
+                label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
               >
                 {comparativo.gastosPorCategoria.map((entry, index) => (
                   <Cell
@@ -124,9 +143,7 @@ function Comparativo() {
                   />
                 ))}
               </Pie>
-              <Tooltip
-                formatter={(value) => `R$ ${parseFloat(value).toFixed(2)}`}
-              />
+              <Tooltip content={<CustomTooltip />} />
               <Legend />
             </PieChart>
           </ResponsiveContainer>
