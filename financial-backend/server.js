@@ -21,6 +21,7 @@ if (!JWT_SECRET || !DATABASE_URL || !FRONTEND_PROD_URL) {
 }
 
 const corsOptions = {
+  // origin: FRONTEND_DEV_URL,
   origin: FRONTEND_PROD_URL,
   optionsSuccessStatus: 200,
 };

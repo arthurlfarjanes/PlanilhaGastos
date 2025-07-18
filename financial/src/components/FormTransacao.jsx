@@ -1,14 +1,20 @@
 import React, { useState, useContext } from "react";
 import { AuthContext } from "../App";
 
+const getTodayDateString = () => {
+  const today = new Date();
+  const offset = today.getTimezoneOffset();
+  const todayWithOffset = new Date(today.getTime() - offset * 60 * 1000);
+  return todayWithOffset.toISOString().split("T")[0];
+};
+
 function FormularioTransacao({ onTransacaoAdicionada, categorias }) {
   const [descricao, setDescricao] = useState("");
   const [valor, setValor] = useState("");
   const [tipo, setTipo] = useState("despesa");
-  const [data, setData] = useState("");
+  const [data, setData] = useState(getTodayDateString());
   const [categoriaId, setCategoriaId] = useState("");
 
-  // Estados para compra parcelada
   const [ehParcelado, setEhParcelado] = useState(false);
   const [parcelas, setParcelas] = useState(2);
 
@@ -42,7 +48,7 @@ function FormularioTransacao({ onTransacaoAdicionada, categorias }) {
       tipo,
       data,
       categoria_id: tipo === "despesa" ? parseInt(categoriaId) : null,
-      ...(ehParcelado && { parcelas: parseInt(parcelas) }), // Adiciona parcelas se necessário
+      ...(ehParcelado && { parcelas: parseInt(parcelas) }),
     };
 
     try {
@@ -59,14 +65,14 @@ function FormularioTransacao({ onTransacaoAdicionada, categorias }) {
       if (!response.ok)
         throw new Error(dataAdicionada.error || "Erro ao processar transação");
 
-      onTransacaoAdicionada(); // Apenas notifica o pai para recarregar
+      onTransacaoAdicionada();
       alert(dataAdicionada.message || "Transação adicionada com sucesso!");
 
-      // Limpa formulário
+      // Limpa formulário, mas mantém a data de hoje
       setDescricao("");
       setValor("");
       setTipo("despesa");
-      setData("");
+      setData(getTodayDateString()); // Reseta para a data de hoje
       setCategoriaId("");
       setEhParcelado(false);
       setParcelas(2);
