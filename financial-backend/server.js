@@ -434,25 +434,40 @@ app.delete("/transacoes/:id", authenticateToken, async (req, res) => {
   }
 });
 
+// ROTA ATUALIZADA
 app.get("/transacoes/comparativo", authenticateToken, async (req, res) => {
   const userId = req.user.userId;
+  const { dataInicio, dataFim } = req.query;
+
+  // Monta a base da query e os parâmetros iniciais
+  let queryReceitas =
+    "SELECT SUM(valor) AS total_receitas FROM transacoes WHERE user_id = $1 AND tipo = 'receita'";
+  let queryDespesas =
+    "SELECT SUM(valor) AS total_despesas FROM transacoes WHERE user_id = $1 AND tipo = 'despesa'";
+  let queryCategorias = `
+        SELECT c.nome, SUM(t.valor) as total
+        FROM transacoes t
+        JOIN categorias c ON t.categoria_id = c.id
+        WHERE t.user_id = $1 AND t.tipo = 'despesa'
+    `;
+  const params = [userId];
+  let paramIndex = 2;
+
+  // Adiciona o filtro de data se os parâmetros existirem
+  if (dataInicio && dataFim) {
+    const dateFilter = ` AND data BETWEEN $${paramIndex} AND $${paramIndex + 1}`;
+    queryReceitas += dateFilter;
+    queryDespesas += dateFilter;
+    queryCategorias += dateFilter;
+    params.push(dataInicio, dataFim);
+  }
+
+  queryCategorias += " GROUP BY c.nome";
+
   try {
-    const receitasResult = await pool.query(
-      "SELECT SUM(valor) AS total_receitas FROM transacoes WHERE user_id = $1 AND tipo = 'receita'",
-      [userId]
-    );
-    const despesasResult = await pool.query(
-      "SELECT SUM(valor) AS total_despesas FROM transacoes WHERE user_id = $1 AND tipo = 'despesa'",
-      [userId]
-    );
-    const categoriasResult = await pool.query(
-      `SELECT c.nome, SUM(t.valor) as total
-             FROM transacoes t
-             JOIN categorias c ON t.categoria_id = c.id
-             WHERE t.user_id = $1 AND t.tipo = 'despesa'
-             GROUP BY c.nome`,
-      [userId]
-    );
+    const receitasResult = await pool.query(queryReceitas, params);
+    const despesasResult = await pool.query(queryDespesas, params);
+    const categoriasResult = await pool.query(queryCategorias, params);
 
     const totalReceitas = parseFloat(
       receitasResult.rows[0].total_receitas || 0

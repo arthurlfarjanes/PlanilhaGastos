@@ -27,7 +27,6 @@ const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
     return (
       <div className="custom-tooltip">
-        {/* ** APLICA A FORMATAÇÃO DE MOEDA AQUI ** */}
         <p className="label">{`${payload[0].name} : ${formatCurrency(
           payload[0].value
         )}`}</p>
@@ -37,14 +36,22 @@ const CustomTooltip = ({ active, payload }) => {
   return null;
 };
 
+// Função para formatar a data como YYYY-MM-DD
+const toISODateString = (date) => {
+  return date.toISOString().split("T")[0];
+};
+
 function Comparativo() {
   const [comparativo, setComparativo] = useState(null);
+  // **NOVO ESTADO para armazenar as transações do período**
+  const [transacoesDoPeriodo, setTransacoesDoPeriodo] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [periodo, setPeriodo] = useState("mes_atual");
   const { token, API_URL } = useContext(AuthContext);
 
   useEffect(() => {
-    const fetchDadosComparativo = async () => {
+    const fetchDados = async () => {
       if (!token) {
         setLoading(false);
         return;
@@ -53,89 +60,149 @@ function Comparativo() {
       setLoading(true);
       setError("");
       setComparativo(null);
+      setTransacoesDoPeriodo([]); // Limpa as transações antigas
+
+      let dataInicio, dataFim;
+      const hoje = new Date();
+
+      switch (periodo) {
+        case "mes_atual":
+          dataInicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+          dataFim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+          break;
+        case "mes_passado":
+          dataInicio = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
+          dataFim = new Date(hoje.getFullYear(), hoje.getMonth(), 0);
+          break;
+        case "ano_atual":
+          dataInicio = new Date(hoje.getFullYear(), 0, 1);
+          dataFim = new Date(hoje.getFullYear(), 11, 31);
+          break;
+        case "tudo":
+        default:
+          break;
+      }
+
+      const params = new URLSearchParams();
+      if (dataInicio && dataFim) {
+        params.append("dataInicio", toISODateString(dataInicio));
+        params.append("dataFim", toISODateString(dataFim));
+      }
+
+      // **ATUALIZADO: Define as URLs para as duas chamadas**
+      const comparativoUrl = `${API_URL}/transacoes/comparativo?${params.toString()}`;
+      const transacoesUrl = `${API_URL}/transacoes?${params.toString()}`;
 
       try {
-        const response = await fetch(`${API_URL}/transacoes/comparativo`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        // **ATUALIZADO: Faz as duas buscas de dados simultaneamente**
+        const [comparativoRes, transacoesRes] = await Promise.all([
+          fetch(comparativoUrl, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(transacoesUrl, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
 
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(
-            data.error || `Erro HTTP! status: ${response.status}`
-          );
+        if (!comparativoRes.ok || !transacoesRes.ok) {
+          // Lida com erros de qualquer uma das respostas
+          const erroMsg =
+            (await comparativoRes.json().error) ||
+            (await transacoesRes.json().error) ||
+            "Erro ao buscar dados";
+          throw new Error(erroMsg);
         }
-        setComparativo(data);
+
+        const comparativoData = await comparativoRes.json();
+        const transacoesData = await transacoesRes.json();
+
+        setComparativo(comparativoData);
+        setTransacoesDoPeriodo(transacoesData);
       } catch (err) {
         console.error("Erro ao buscar dados do comparativo:", err);
         setError(
-          "Não foi possível carregar o comparativo. Por favor, tente novamente."
+          "Não foi possível carregar os dados. Por favor, tente novamente."
         );
       } finally {
         setLoading(false);
       }
     };
 
-    fetchDadosComparativo();
-  }, [token, API_URL]);
+    fetchDados();
+  }, [token, API_URL, periodo]);
 
-  if (loading) return <p>Carregando comparativo...</p>;
   if (error) return <p style={{ color: "red" }}>{error}</p>;
-  if (!comparativo) return <p>Nenhum dado para o comparativo ainda.</p>;
 
   const balancoColorClass =
-    parseFloat(comparativo.balanco) >= 0
+    comparativo && parseFloat(comparativo.balanco) >= 0
       ? "balanco-positivo"
       : "balanco-negativo";
   const hasGastos =
-    comparativo.gastosPorCategoria && comparativo.gastosPorCategoria.length > 0;
+    comparativo &&
+    comparativo.gastosPorCategoria &&
+    comparativo.gastosPorCategoria.length > 0;
+  // **NOVA VARIÁVEL: verifica se existem transações para exibir na tabela**
+  const hasTransacoes = transacoesDoPeriodo && transacoesDoPeriodo.length > 0;
 
   return (
     <div className="comparativo-container">
       <div className="comparativo-card">
-        <h2>Seu Resumo Financeiro</h2>
-
-        <div className="comparativo-item">
-          <span>Total de Receitas</span>
-          {/* ** APLICA A FORMATAÇÃO DE MOEDA AQUI ** */}
-          <strong className="valor-receita">
-            {formatCurrency(comparativo.totalReceitas)}
-          </strong>
+        <div className="comparativo-header">
+          <h2>Seu Resumo Financeiro</h2>
+          <div className="filtro-periodo">
+            <label htmlFor="periodo-select">Período:</label>
+            <select
+              id="periodo-select"
+              value={periodo}
+              onChange={(e) => setPeriodo(e.target.value)}
+            >
+              <option value="mes_atual">Mês Atual</option>
+              <option value="mes_passado">Mês Passado</option>
+              <option value="ano_atual">Este Ano</option>
+              <option value="tudo">Desde o início</option>
+            </select>
+          </div>
         </div>
 
-        <div className="comparativo-item">
-          <span>Total de Despesas</span>
-          {/* ** APLICA A FORMATAÇÃO DE MOEDA AQUI ** */}
-          <strong className="valor-despesa">
-            {formatCurrency(comparativo.totalDespesas)}
-          </strong>
-        </div>
-
-        <hr className="comparativo-divisor" />
-
-        <div className="comparativo-item balanco">
-          <h3>Balanço Atual</h3>
-          {/* ** APLICA A FORMATAÇÃO DE MOEDA AQUI ** */}
-          <strong className={balancoColorClass}>
-            {formatCurrency(comparativo.balanco)}
-          </strong>
-        </div>
-
-        {parseFloat(comparativo.balanco) >= 0 ? (
-          <p className="mensagem-status positiva">
-            Parabéns! Suas finanças estão no verde.
-          </p>
+        {loading ? (
+          <p>Carregando...</p>
+        ) : !comparativo ? (
+          <p>Nenhum dado para o comparativo ainda.</p>
         ) : (
-          <p className="mensagem-status negativa">
-            Atenção: Suas despesas superam suas receitas.
-          </p>
+          <>
+            <div className="comparativo-item">
+              <span>Total de Receitas</span>
+              <strong className="valor-receita">
+                {formatCurrency(comparativo.totalReceitas)}
+              </strong>
+            </div>
+            <div className="comparativo-item">
+              <span>Total de Despesas</span>
+              <strong className="valor-despesa">
+                {formatCurrency(comparativo.totalDespesas)}
+              </strong>
+            </div>
+            <hr className="comparativo-divisor" />
+            <div className="comparativo-item balanco">
+              <h3>Balanço do Período</h3>
+              <strong className={balancoColorClass}>
+                {formatCurrency(comparativo.balanco)}
+              </strong>
+            </div>
+            {parseFloat(comparativo.balanco) >= 0 ? (
+              <p className="mensagem-status positiva">
+                Ótimo resultado para o período!
+              </p>
+            ) : (
+              <p className="mensagem-status negativa">
+                Atenção: Suas despesas superaram as receitas no período.
+              </p>
+            )}
+          </>
         )}
       </div>
 
-      {hasGastos && (
+      {!loading && hasGastos && (
         <div className="grafico-card">
           <h3>Despesas por Categoria</h3>
           <ResponsiveContainer width="100%" height={300}>
@@ -162,6 +229,49 @@ function Comparativo() {
               <Legend />
             </PieChart>
           </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* **NOVA SEÇÃO: TABELA DE TRANSAÇÕES** */}
+      {!loading && (
+        <div className="transacoes-periodo-card">
+          <h3>Transações do Período</h3>
+          {hasTransacoes ? (
+            <table className="tabela-transacoes-comparativo">
+              <thead>
+                <tr>
+                  <th>Descrição</th>
+                  <th>Valor</th>
+                  <th>Tipo</th>
+                  <th>Data</th>
+                  <th>Categoria</th>
+                </tr>
+              </thead>
+              <tbody>
+                {transacoesDoPeriodo.map((t) => (
+                  <tr key={t.id}>
+                    <td>{t.descricao}</td>
+                    <td
+                      className={
+                        t.tipo === "receita" ? "valor-receita" : "valor-despesa"
+                      }
+                    >
+                      {formatCurrency(t.valor)}
+                    </td>
+                    <td>{t.tipo}</td>
+                    <td>
+                      {new Date(t.data).toLocaleDateString("pt-BR", {
+                        timeZone: "UTC",
+                      })}
+                    </td>
+                    <td>{t.categoria_nome || "N/A"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p>Nenhuma transação encontrada para o período selecionado.</p>
+          )}
         </div>
       )}
     </div>
