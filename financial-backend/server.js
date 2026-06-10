@@ -16,7 +16,7 @@ const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const DATABASE_URL = process.env.DATABASE_URL;
-// const FRONTEND_DEV_URL = process.env.FRONTEND_DEV_URL;
+const FRONTEND_DEV_URL = process.env.FRONTEND_DEV_URL;
 const FRONTEND_PROD_URL = process.env.FRONTEND_PROD_URL;
 
 if (!JWT_SECRET || !DATABASE_URL || !FRONTEND_PROD_URL) {
@@ -25,11 +25,28 @@ if (!JWT_SECRET || !DATABASE_URL || !FRONTEND_PROD_URL) {
   );
 }
 
+const allowedOrigins = [
+  FRONTEND_DEV_URL, // Para funcionar no seu PC
+  FRONTEND_PROD_URL, // Para funcionar em Produção
+];
+
 const corsOptions = {
-  // origin: FRONTEND_DEV_URL,
-  origin: FRONTEND_PROD_URL,
+  origin: function (origin, callback) {
+    // Permite requisições sem origem (Postman) ou as permitidas no array
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Bloqueado pela política de CORS"));
+    }
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
   optionsSuccessStatus: 200,
 };
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 app.use(cors(corsOptions));
 app.use(express.json());
