@@ -1,0 +1,8 @@
+# Arquivos de ambiente
+.env
+.env.local
+.env.development
+.env.production
+
+# Dependências
+node_modules/

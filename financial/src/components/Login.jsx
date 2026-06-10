@@ -2,6 +2,7 @@ import React, { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AuthContext } from "../App";
 import { Eye, EyeOff, LogIn, Loader2, AlertCircle } from "lucide-react";
+import { GoogleLogin } from "@react-oauth/google"; // NOVO IMPORT
 
 function Login() {
   const [username, setUsername] = useState("");
@@ -13,6 +14,7 @@ function Login() {
   const { login, API_URL } = useContext(AuthContext);
   const navigate = useNavigate();
 
+  // Login Convencional
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -24,15 +26,38 @@ function Login() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
-
       const data = await response.json();
-
       if (!response.ok) throw new Error(data.error || "Erro ao fazer login.");
 
       login(data.token, username);
       navigate("/");
     } catch (err) {
       setError(err.message || "Falha no login. Verifique suas credenciais.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Função para lidar com o sucesso do Google Login
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch(`${API_URL}/auth/google`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: credentialResponse.credential }),
+      });
+
+      const data = await response.json();
+      if (!response.ok)
+        throw new Error(data.error || "Erro no login com Google.");
+
+      login(data.token, data.username, data.picture);
+      navigate("/");
+    } catch (err) {
+      setError(err.message || "Falha ao autenticar com o servidor.");
     } finally {
       setLoading(false);
     }
@@ -98,7 +123,7 @@ function Login() {
           <button
             disabled={loading}
             type="submit"
-            className="w-full mt-4 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3.5 px-6 rounded-xl transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 flex justify-center items-center gap-2"
+            className="w-full mt-2 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3.5 px-6 rounded-xl transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 flex justify-center items-center gap-2"
           >
             {loading ? (
               <Loader2 size={20} className="animate-spin" />
@@ -109,6 +134,28 @@ function Login() {
             )}
           </button>
         </form>
+
+        {/* NOVO: Divisor visual */}
+        <div className="flex items-center my-6">
+          <div className="grow border-t border-slate-200"></div>
+          <span className="px-4 text-sm text-slate-400 font-medium">
+            Ou continue com
+          </span>
+          <div className="grow border-t border-slate-200"></div>
+        </div>
+
+        {/* NOVO: Botão do Google */}
+        <div className="flex justify-center">
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={() => setError("O login com o Google falhou.")}
+            theme="outline"
+            size="large"
+            shape="rectangular"
+            width="100%"
+            text="continue_with"
+          />
+        </div>
 
         <p className="text-center text-slate-500 text-sm mt-8">
           Ainda não tem uma conta?{" "}

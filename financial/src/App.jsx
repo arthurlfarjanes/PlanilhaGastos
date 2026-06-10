@@ -12,13 +12,13 @@ import {
   ArrowLeftRight,
   LayoutDashboard,
   LogOut,
-  User,
   LogIn,
   UserPlus,
   Wallet,
   Menu,
   X,
 } from "lucide-react";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 import Login from "./components/Login";
 import Register from "./components/Register";
 import Dashboard from "./components/Dashboard";
@@ -31,55 +31,76 @@ const API_URL = import.meta.env.VITE_BACKEND_URL;
 function App() {
   const [token, setToken] = useState(localStorage.getItem("token"));
   const [username, setUsername] = useState(localStorage.getItem("username"));
+  const [profilePic, setProfilePic] = useState(
+    localStorage.getItem("profilePic"),
+  );
 
-  const login = (newToken, newUsername) => {
+  const login = (newToken, newUsername, newProfilePic = null) => {
     setToken(newToken);
     setUsername(newUsername);
+    setProfilePic(newProfilePic);
     localStorage.setItem("token", newToken);
     localStorage.setItem("username", newUsername);
+
+    if (newProfilePic) {
+      localStorage.setItem("profilePic", newProfilePic);
+    } else {
+      localStorage.removeItem("profilePic");
+    }
   };
+
   const logout = () => {
     setToken(null);
     setUsername(null);
+    setProfilePic(null);
     localStorage.removeItem("token");
     localStorage.removeItem("username");
+    localStorage.removeItem("profilePic");
   };
 
   return (
-    <AuthContext.Provider value={{ token, username, login, logout, API_URL }}>
-      <Router>
-        <div className="flex flex-col min-h-screen w-full overflow-x-hidden">
-          <Header />
-          <main className="grow p-6 md:p-8 w-full mx-auto">
-            <Routes>
-              <Route path="/register" element={<Register />} />
-              <Route path="/login" element={<Login />} />
-              <Route
-                path="/"
-                element={
-                  <PrivateRoute>
-                    <Dashboard />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/comparativo"
-                element={
-                  <PrivateRoute>
-                    <Comparativo />
-                  </PrivateRoute>
-                }
-              />
-            </Routes>
-          </main>
-        </div>
-      </Router>
-    </AuthContext.Provider>
+    <GoogleOAuthProvider
+      clientId={
+        import.meta.env.VITE_GOOGLE_CLIENT_ID || "COLE_SEU_CLIENT_ID_AQUI"
+      }
+    >
+      <AuthContext.Provider
+        value={{ token, username, profilePic, login, logout, API_URL }}
+      >
+        <Router>
+          <div className="flex flex-col min-h-screen w-full overflow-x-hidden">
+            <Header />
+            <main className="grow p-6 md:p-8 w-full mx-auto">
+              <Routes>
+                <Route path="/register" element={<Register />} />
+                <Route path="/login" element={<Login />} />
+                <Route
+                  path="/"
+                  element={
+                    <PrivateRoute>
+                      <Dashboard />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path="/comparativo"
+                  element={
+                    <PrivateRoute>
+                      <Comparativo />
+                    </PrivateRoute>
+                  }
+                />
+              </Routes>
+            </main>
+          </div>
+        </Router>
+      </AuthContext.Provider>
+    </GoogleOAuthProvider>
   );
 }
 
 function Header() {
-  const { token, username, logout } = useContext(AuthContext);
+  const { token, username, profilePic, logout } = useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
   const [menuAberto, setMenuAberto] = useState(false);
@@ -92,6 +113,12 @@ function Header() {
   useEffect(() => {
     setMenuAberto(false);
   }, [location]);
+
+  // Função para pegar as iniciais (ex: "Arthur" -> "AR")
+  const getInitials = (name) => {
+    if (!name) return "U";
+    return name.substring(0, 2).toUpperCase();
+  };
 
   return (
     <header className="sticky top-0 z-50 flex items-center justify-between px-6 md:px-10 h-20 bg-white/85 backdrop-blur-md border-b border-slate-200 shadow-sm">
@@ -137,7 +164,8 @@ function Header() {
             </>
           )}
         </nav>
-        <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
+
+        <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
           {!token ? (
             <>
               <Link
@@ -155,9 +183,25 @@ function Header() {
             </>
           ) : (
             <>
-              <span className="flex items-center gap-2 text-slate-600 font-medium w-full md:w-auto justify-center md:justify-start">
-                <User size={18} /> Olá, {username}!
-              </span>
+              {/* COMPONENTE DO AVATAR */}
+              <div className="flex items-center gap-3 w-full md:w-auto justify-center md:justify-start bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200">
+                {profilePic ? (
+                  <img
+                    src={profilePic}
+                    alt="Perfil"
+                    className="w-8 h-8 rounded-full object-cover border-2 border-emerald-500 shadow-sm"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center border-2 border-emerald-200 shadow-sm text-xs">
+                    {getInitials(username)}
+                  </div>
+                )}
+                <span className="font-semibold text-slate-700 text-sm hidden sm:block pr-2">
+                  {username}
+                </span>
+              </div>
+
               <button
                 onClick={handleLogout}
                 className="flex items-center gap-2 font-semibold px-5 py-2.5 rounded-xl bg-red-50 text-red-500 border border-red-100 hover:bg-red-500 hover:text-white transition-all w-full md:w-auto justify-center"
@@ -171,6 +215,7 @@ function Header() {
     </header>
   );
 }
+
 function PrivateRoute({ children }) {
   const { token } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -179,4 +224,5 @@ function PrivateRoute({ children }) {
   }, [token, navigate]);
   return token ? children : null;
 }
+
 export default App;

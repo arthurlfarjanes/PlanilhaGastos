@@ -1,4 +1,3 @@
-// controle-gastos-backend/server.js
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
@@ -9,14 +8,20 @@ const jwt = require("jsonwebtoken");
 const app = express();
 const port = process.env.PORT || 3001;
 
+const { OAuth2Client } = require("google-auth-library");
+const GOOGLE_CLIENT_ID =
+  process.env.GOOGLE_CLIENT_ID ||
+  "965555033994-1q87unq29eedk92ru9coqhrduu4febpe.apps.googleusercontent.com";
+const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
+
 const JWT_SECRET = process.env.JWT_SECRET;
 const DATABASE_URL = process.env.DATABASE_URL;
-// const FRONTEND_DEV_URL = process.env.FRONTEND_DEV_URL;
+const FRONTEND_DEV_URL = process.env.FRONTEND_DEV_URL;
 const FRONTEND_PROD_URL = process.env.FRONTEND_PROD_URL;
 
 if (!JWT_SECRET || !DATABASE_URL || !FRONTEND_PROD_URL) {
   console.error(
-    "ERRO: Variáveis de ambiente essenciais (JWT_SECRET, DATABASE_URL, FRONTEND_URL) não estão definidas."
+    "ERRO: Variáveis de ambiente essenciais (JWT_SECRET, DATABASE_URL, FRONTEND_URL) não estão definidas.",
   );
 }
 
@@ -85,7 +90,7 @@ app.post("/register", async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const result = await pool.query(
       "INSERT INTO usuarios (username, password_hash) VALUES ($1, $2) RETURNING id, username",
-      [username, hashedPassword]
+      [username, hashedPassword],
     );
     res.status(201).json({
       message: "Usuário registrado com sucesso!",
@@ -113,7 +118,7 @@ app.post("/login", async (req, res) => {
   try {
     const result = await pool.query(
       "SELECT * FROM usuarios WHERE username = $1",
-      [username]
+      [username],
     );
     const user = result.rows[0];
 
@@ -129,7 +134,7 @@ app.post("/login", async (req, res) => {
     const token = jwt.sign(
       { userId: user.id, username: user.username },
       JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "1h" },
     );
     res.json({
       message: "Login bem-sucedido!",
@@ -149,7 +154,7 @@ app.get("/categorias", async (req, res) => {
   try {
     const result = await pool.query(
       "SELECT * FROM categorias WHERE user_id = $1 ORDER BY nome ASC",
-      [req.user.userId]
+      [req.user.userId],
     );
     res.json(result.rows);
   } catch (err) {
@@ -168,7 +173,7 @@ app.post("/categorias", async (req, res) => {
   try {
     const result = await pool.query(
       "INSERT INTO categorias (nome, user_id) VALUES ($1, $2) RETURNING *",
-      [nome, req.user.userId]
+      [nome, req.user.userId],
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -189,7 +194,7 @@ app.put("/categorias/:id", async (req, res) => {
   try {
     const result = await pool.query(
       "UPDATE categorias SET nome = $1 WHERE id = $2 AND user_id = $3 RETURNING *",
-      [nome, id, req.user.userId]
+      [nome, id, req.user.userId],
     );
     if (result.rowCount === 0) {
       return res
@@ -208,7 +213,7 @@ app.delete("/categorias/:id", async (req, res) => {
   try {
     const result = await pool.query(
       "DELETE FROM categorias WHERE id = $1 AND user_id = $2 RETURNING id",
-      [id, req.user.userId]
+      [id, req.user.userId],
     );
     if (result.rowCount === 0) {
       return res
@@ -293,7 +298,7 @@ app.post("/transacoes", async (req, res) => {
         tipo,
         data,
         tipo === "despesa" ? categoria_id : null,
-      ]
+      ],
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -339,7 +344,7 @@ app.post("/transacoes/parcelada", authenticateToken, async (req, res) => {
           "despesa",
           dataParcela.toISOString().split("T")[0],
           categoria_id,
-        ]
+        ],
       );
       insertedTransactions.push(result.rows[0]);
     }
@@ -385,7 +390,7 @@ app.put("/transacoes/:id", authenticateToken, async (req, res) => {
         tipo === "despesa" ? categoria_id : null,
         id,
         userId,
-      ]
+      ],
     );
 
     const updatedResult = await pool.query(
@@ -393,7 +398,7 @@ app.put("/transacoes/:id", authenticateToken, async (req, res) => {
               FROM transacoes t
               LEFT JOIN categorias c ON t.categoria_id = c.id
               WHERE t.id = $1`,
-      [id]
+      [id],
     );
 
     if (updatedResult.rows.length === 0) {
@@ -417,7 +422,7 @@ app.delete("/transacoes/:id", authenticateToken, async (req, res) => {
   try {
     const result = await pool.query(
       "DELETE FROM transacoes WHERE id = $1 AND user_id = $2 RETURNING id",
-      [id, userId]
+      [id, userId],
     );
     if (result.rowCount === 0) {
       return res.status(404).json({
@@ -470,10 +475,10 @@ app.get("/transacoes/comparativo", authenticateToken, async (req, res) => {
     const categoriasResult = await pool.query(queryCategorias, params);
 
     const totalReceitas = parseFloat(
-      receitasResult.rows[0].total_receitas || 0
+      receitasResult.rows[0].total_receitas || 0,
     );
     const totalDespesas = parseFloat(
-      despesasResult.rows[0].total_despesas || 0
+      despesasResult.rows[0].total_despesas || 0,
     );
     const balanco = totalReceitas - totalDespesas;
 
@@ -491,6 +496,52 @@ app.get("/transacoes/comparativo", authenticateToken, async (req, res) => {
     res
       .status(500)
       .json({ error: "Erro interno do servidor ao obter comparativo." });
+  }
+});
+
+app.post("/auth/google", async (req, res) => {
+  const { token } = req.body;
+
+  try {
+    const ticket = await googleClient.verifyIdToken({
+      idToken: token,
+      audience: GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const email = payload.email;
+    const picture = payload.picture;
+    const baseUsername = email.split("@")[0];
+
+    let userResult = await pool.query(
+      "SELECT * FROM usuarios WHERE email = $1",
+      [email],
+    );
+    let user = userResult.rows[0];
+
+    if (!user) {
+      const insertResult = await pool.query(
+        "INSERT INTO usuarios (username, email) VALUES ($1, $2) RETURNING id, username, email",
+        [baseUsername, email],
+      );
+      user = insertResult.rows[0];
+    }
+
+    const appToken = jwt.sign(
+      { userId: user.id, username: user.username },
+      JWT_SECRET,
+      { expiresIn: "1h" },
+    );
+
+    res.json({
+      message: "Login com Google bem-sucedido!",
+      token: appToken,
+      username: user.username,
+      picture: picture,
+    });
+  } catch (err) {
+    console.error("Erro na autenticação com Google:", err);
+    res.status(401).json({ error: "Falha ao autenticar com o Google." });
   }
 });
 
