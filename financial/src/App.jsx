@@ -4,18 +4,28 @@ import {
   Routes,
   Route,
   Link,
+  NavLink,
   useNavigate,
-  useLocation, // Importar o useLocation
+  useLocation,
 } from "react-router-dom";
+import {
+  ArrowLeftRight,
+  LayoutDashboard,
+  LogOut,
+  User,
+  LogIn,
+  UserPlus,
+  Wallet,
+  Menu,
+  X,
+} from "lucide-react";
 import Login from "./components/Login";
 import Register from "./components/Register";
 import Dashboard from "./components/Dashboard";
 import Comparativo from "./components/Comparativo";
-import "./App.css";
-import "./components/Modal.css";
+import "./index.css";
 
 export const AuthContext = createContext(null);
-
 const API_URL = import.meta.env.VITE_BACKEND_URL;
 
 function App() {
@@ -28,7 +38,6 @@ function App() {
     localStorage.setItem("token", newToken);
     localStorage.setItem("username", newUsername);
   };
-
   const logout = () => {
     setToken(null);
     setUsername(null);
@@ -39,9 +48,9 @@ function App() {
   return (
     <AuthContext.Provider value={{ token, username, login, logout, API_URL }}>
       <Router>
-        <div className="App-container">
+        <div className="flex flex-col min-h-screen w-full overflow-x-hidden">
           <Header />
-          <main className="content">
+          <main className="grow p-6 md:p-8 w-full mx-auto">
             <Routes>
               <Route path="/register" element={<Register />} />
               <Route path="/login" element={<Login />} />
@@ -69,69 +78,91 @@ function App() {
   );
 }
 
-// =================================================================
-// COMPONENTE HEADER ATUALIZADO COM LÓGICA DE MENU RESPONSIVO
-// =================================================================
 function Header() {
   const { token, username, logout } = useContext(AuthContext);
   const navigate = useNavigate();
-  const location = useLocation(); // Hook para saber a página atual
-
-  // Estado para controlar a visibilidade do menu mobile
+  const location = useLocation();
   const [menuAberto, setMenuAberto] = useState(false);
 
   const handleLogout = () => {
     logout();
-    setMenuAberto(false); // Fecha o menu ao deslogar
+    setMenuAberto(false);
     navigate("/login");
   };
-
-  // Efeito para fechar o menu ao navegar para outra página
   useEffect(() => {
     setMenuAberto(false);
   }, [location]);
 
   return (
-    <header>
+    <header className="sticky top-0 z-50 flex items-center justify-between px-6 md:px-10 h-20 bg-white/85 backdrop-blur-md border-b border-slate-200 shadow-sm">
       <div className="logo">
-        <Link to="/">MeFinance</Link>
+        <Link
+          to="/"
+          className="font-extrabold text-2xl text-emerald-500 hover:text-emerald-600 transition-colors flex items-center gap-2"
+        >
+          <Wallet size={24} /> MeFinance
+        </Link>
       </div>
 
-      {/* Botão Hambúrguer - visível apenas em telas pequenas */}
       <button
-        className="menu-hamburger"
+        className="md:hidden text-slate-700"
         onClick={() => setMenuAberto(!menuAberto)}
       >
-        <span className="hamburguer-linha"></span>
-        <span className="hamburguer-linha"></span>
-        <span className="hamburguer-linha"></span>
+        {menuAberto ? <X size={28} /> : <Menu size={28} />}
       </button>
 
-      {/* Container do menu - a classe 'aberto' controla a visibilidade */}
-      <div className={`menu-container ${menuAberto ? "aberto" : ""}`}>
-        <nav>
+      <div
+        className={`absolute top-20 left-0 w-full bg-white shadow-lg border-b border-slate-200 md:static md:w-auto md:bg-transparent md:shadow-none md:border-none flex flex-col md:flex-row items-start md:items-center gap-6 p-6 md:p-0 transition-all ${menuAberto ? "flex" : "hidden md:flex"}`}
+      >
+        <nav className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
           {token && (
             <>
-              <Link to="/">Dashboard</Link>
-              <Link to="/comparativo">Comparativo</Link>
+              <NavLink
+                to="/"
+                end
+                className={({ isActive }) =>
+                  `flex items-center gap-2 font-semibold text-[0.95rem] px-5 py-2.5 rounded-full transition-colors ${isActive ? "bg-emerald-50 text-emerald-600" : "text-slate-500 hover:bg-emerald-50 hover:text-emerald-600"}`
+                }
+              >
+                <ArrowLeftRight size={18} /> Transações
+              </NavLink>
+              <NavLink
+                to="/comparativo"
+                className={({ isActive }) =>
+                  `flex items-center gap-2 font-semibold text-[0.95rem] px-5 py-2.5 rounded-full transition-colors ${isActive ? "bg-emerald-50 text-emerald-600" : "text-slate-500 hover:bg-emerald-50 hover:text-emerald-600"}`
+                }
+              >
+                <LayoutDashboard size={18} /> Dashboard
+              </NavLink>
             </>
           )}
         </nav>
-        <div className="user-area">
+        <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
           {!token ? (
             <>
-              <Link to="/login" className="btn-login">
-                Login
+              <Link
+                to="/login"
+                className="flex items-center gap-2 font-semibold px-5 py-2.5 rounded-xl text-slate-800 hover:bg-slate-100 transition-colors w-full md:w-auto justify-center"
+              >
+                <LogIn size={18} /> Login
               </Link>
-              <Link to="/register" className="btn-register">
-                Registrar
+              <Link
+                to="/register"
+                className="flex items-center gap-2 font-semibold px-6 py-2.5 rounded-xl bg-emerald-500 text-white shadow-[0_4px_14px_rgba(16,185,129,0.25)] hover:bg-emerald-600 hover:-translate-y-0.5 transition-all w-full md:w-auto justify-center"
+              >
+                <UserPlus size={18} /> Registrar
               </Link>
             </>
           ) : (
             <>
-              <span>Olá, {username}!</span>
-              <button onClick={handleLogout} className="btn-sair">
-                Sair
+              <span className="flex items-center gap-2 text-slate-600 font-medium w-full md:w-auto justify-center md:justify-start">
+                <User size={18} /> Olá, {username}!
+              </span>
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 font-semibold px-5 py-2.5 rounded-xl bg-red-50 text-red-500 border border-red-100 hover:bg-red-500 hover:text-white transition-all w-full md:w-auto justify-center"
+              >
+                <LogOut size={18} /> Sair
               </button>
             </>
           )}
@@ -140,19 +171,12 @@ function Header() {
     </header>
   );
 }
-// =================================================================
-
 function PrivateRoute({ children }) {
   const { token } = useContext(AuthContext);
   const navigate = useNavigate();
-
   useEffect(() => {
-    if (!token) {
-      navigate("/login");
-    }
+    if (!token) navigate("/login");
   }, [token, navigate]);
-
   return token ? children : null;
 }
-
 export default App;

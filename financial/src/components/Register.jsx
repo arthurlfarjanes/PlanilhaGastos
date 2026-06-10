@@ -1,7 +1,14 @@
-// src/components/Register.js
 import React, { useState, useContext } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { AuthContext } from "../App";
+import {
+  Eye,
+  EyeOff,
+  UserPlus,
+  Loader2,
+  AlertCircle,
+  CheckCircle2,
+} from "lucide-react";
 
 function Register() {
   const [username, setUsername] = useState("");
@@ -23,77 +30,112 @@ function Register() {
     try {
       const response = await fetch(`${API_URL}/register`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
 
       const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.error || "Erro ao registrar.");
-      }
+      if (!response.ok) throw new Error(data.error || "Erro ao registrar.");
 
-      setMessage(
-        "Usuário registrado com sucesso! Você pode fazer login agora."
-      );
+      setMessage("Conta criada com sucesso! Redirecionando...");
       setTimeout(() => {
         navigate("/login");
       }, 1500);
     } catch (err) {
-      console.error("Erro de registro:", err);
       setError(err.message || "Falha no registro. Tente novamente.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
+  const inputClass =
+    "w-full p-3.5 border border-slate-200 rounded-xl text-[0.95rem] text-slate-800 bg-slate-50 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/15 transition-all";
+  const labelClass = "block mb-1.5 text-slate-500 font-medium text-[0.85rem]";
+
   return (
-    <div className="auth-container">
-      <h2>Registrar</h2>
-      {error && <p className="error">{error}</p>}
-      {message && <p className="success">{message}</p>}
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Usuário:</label>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
+    <div className="w-full max-w-md mx-auto mt-10 sm:mt-20">
+      <div className="bg-white p-8 rounded-3xl shadow-xl border border-slate-100">
+        <div className="text-center mb-8">
+          <h2 className="text-2xl font-bold text-slate-800">Crie sua conta</h2>
+          <p className="text-slate-500 text-sm mt-2">
+            Comece a gerenciar suas finanças hoje mesmo
+          </p>
         </div>
 
-        {/* Estrutura ajustada para o campo de senha */}
-        <div>
-          <label>Senha:</label>
-          <div className="password-input-wrapper">
-            <input
-              type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-            <button
-              type="button"
-              className="password-toggle-btn"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? "Ocultar" : "Mostrar"}
-            </button>
+        {error && (
+          <div className="flex items-center gap-3 bg-red-50 text-red-600 p-4 rounded-xl mb-6 border border-red-100">
+            <AlertCircle size={20} className="shrink-0" />
+            <p className="text-sm font-medium">{error}</p>
           </div>
-        </div>
+        )}
 
-        <button disabled={loading} type="submit" className="auth-submit-btn">
-          {loading ? (
-            <div className="align-spinner">
-              <div className="spinner" />
+        {message && (
+          <div className="flex items-center gap-3 bg-emerald-50 text-emerald-600 p-4 rounded-xl mb-6 border border-emerald-100">
+            <CheckCircle2 size={20} className="shrink-0" />
+            <p className="text-sm font-medium">{message}</p>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          <div>
+            <label className={labelClass}>Usuário</label>
+            <input
+              type="text"
+              className={inputClass}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+              placeholder="Escolha um nome de usuário"
+            />
+          </div>
+
+          <div>
+            <label className={labelClass}>Senha</label>
+            <div className="relative flex items-center">
+              <input
+                type={showPassword ? "text" : "password"}
+                className={`${inputClass} pr-12`}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                placeholder="Crie uma senha forte"
+              />
+              <button
+                type="button"
+                className="absolute right-3 text-slate-400 hover:text-emerald-500 transition-colors p-1"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
             </div>
-          ) : (
-            "Registrar"
-          )}
-        </button>
-      </form>
+          </div>
+
+          <button
+            disabled={loading}
+            type="submit"
+            className="w-full mt-4 bg-slate-800 hover:bg-slate-900 text-white font-semibold py-3.5 px-6 rounded-xl transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 flex justify-center items-center gap-2"
+          >
+            {loading ? (
+              <Loader2 size={20} className="animate-spin" />
+            ) : (
+              <>
+                <UserPlus size={20} /> Registrar
+              </>
+            )}
+          </button>
+        </form>
+
+        <p className="text-center text-slate-500 text-sm mt-8">
+          Já tem uma conta?{" "}
+          <Link
+            to="/login"
+            className="font-semibold text-emerald-500 hover:text-emerald-600 transition-colors"
+          >
+            Faça login
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }
