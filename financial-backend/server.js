@@ -16,7 +16,7 @@ const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const DATABASE_URL = process.env.DATABASE_URL;
-const FRONTEND_DEV_URL = process.env.FRONTEND_DEV_URL;
+// const FRONTEND_DEV_URL = process.env.FRONTEND_DEV_URL;
 const FRONTEND_PROD_URL = process.env.FRONTEND_PROD_URL;
 
 if (!JWT_SECRET || !DATABASE_URL || !FRONTEND_PROD_URL) {
