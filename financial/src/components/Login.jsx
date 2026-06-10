@@ -152,7 +152,7 @@ function Login() {
             theme="outline"
             size="large"
             shape="rectangular"
-            width="100%"
+            // width="100%"
             text="continue_with"
           />
         </div>
