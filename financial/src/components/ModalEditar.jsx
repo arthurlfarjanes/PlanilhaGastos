@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../App";
 import { X, Save } from "lucide-react";
+import { NumericFormat } from "react-number-format";
 
 function ModalEditar({ transacao, onClose, onSave, categorias }) {
   const [formData, setFormData] = useState({
     ...transacao,
     data: transacao.data.split("T")[0],
   });
-  const [isClosing, setIsClosing] = useState(false); // NOVO: Controle de saída
+  const [isClosing, setIsClosing] = useState(false);
   const { token, API_URL } = useContext(AuthContext);
 
   useEffect(() => {
@@ -20,16 +21,18 @@ function ModalEditar({ transacao, onClose, onSave, categorias }) {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // NOVO: Função que roda a animação e depois fecha
   const handleClose = () => {
     setIsClosing(true);
     setTimeout(() => {
       onClose();
-    }, 200); // 200ms é o exato tempo da nossa animação no CSS
+    }, 200);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.valor || parseFloat(formData.valor) <= 0)
+      return alert("Insira um valor válido");
+
     try {
       const response = await fetch(`${API_URL}/transacoes/${transacao.id}`, {
         method: "PUT",
@@ -49,7 +52,7 @@ function ModalEditar({ transacao, onClose, onSave, categorias }) {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Erro ao salvar");
       onSave(data);
-      handleClose(); // Usa a nova função de fechamento suave
+      handleClose();
     } catch (error) {
       alert(error.message);
     }
@@ -62,11 +65,9 @@ function ModalEditar({ transacao, onClose, onSave, categorias }) {
   const labelClass = "block mb-1.5 text-slate-500 font-medium text-[0.85rem]";
 
   return (
-    // Fundo do Modal recebe Fade In/Out
     <div
       className={`fixed inset-0 z-100 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 ${isClosing ? "animate-fade-out" : "animate-fade-in"}`}
     >
-      {/* Caixa do Modal recebe Scale In/Out */}
       <div
         className={`bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden flex flex-col ${isClosing ? "animate-scale-out" : "animate-scale-in"}`}
       >
@@ -99,13 +100,18 @@ function ModalEditar({ transacao, onClose, onSave, categorias }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
               <label className={labelClass}>Valor</label>
-              <input
-                type="number"
-                step="0.01"
-                name="valor"
+              <NumericFormat
                 className={inputClass}
                 value={formData.valor || ""}
-                onChange={handleChange}
+                onValueChange={(values) => {
+                  setFormData((prev) => ({ ...prev, valor: values.value }));
+                }}
+                thousandSeparator="."
+                decimalSeparator=","
+                prefix="R$ "
+                decimalScale={2}
+                fixedDecimalScale={true}
+                placeholder="R$ 0,00"
                 required
               />
             </div>

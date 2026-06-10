@@ -1,208 +1,7 @@
-// import React, { useState, useContext } from "react";
-// import { AuthContext } from "../App";
-// import { PlusCircle } from "lucide-react"; // Importando o ícone
-
-// const getTodayDateString = () => {
-//   const today = new Date();
-//   const offset = today.getTimezoneOffset();
-//   const todayWithOffset = new Date(today.getTime() - offset * 60 * 1000);
-//   return todayWithOffset.toISOString().split("T")[0];
-// };
-
-// function FormularioTransacao({ onTransacaoAdicionada, categorias }) {
-//   const [descricao, setDescricao] = useState("");
-//   const [valor, setValor] = useState("");
-//   const [tipo, setTipo] = useState("despesa");
-//   const [data, setData] = useState(getTodayDateString());
-//   const [categoriaId, setCategoriaId] = useState("");
-//   const [ehParcelado, setEhParcelado] = useState(false);
-//   const [parcelas, setParcelas] = useState(2);
-//   const [error, setError] = useState("");
-//   const [loading, setLoading] = useState(false);
-
-//   const { token, API_URL } = useContext(AuthContext);
-
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-//     setError("");
-
-//     if (tipo === "despesa" && !categoriaId) {
-//       setError("Por favor, selecione uma categoria para a despesa.");
-//       return;
-//     }
-//     if (ehParcelado && parcelas <= 1) {
-//       setError("O número de parcelas deve ser maior que 1.");
-//       return;
-//     }
-
-//     setLoading(true);
-//     const endpoint = ehParcelado
-//       ? `${API_URL}/transacoes/parcelada`
-//       : `${API_URL}/transacoes`;
-
-//     const transacaoData = {
-//       descricao,
-//       valor: parseFloat(valor),
-//       tipo,
-//       data,
-//       categoria_id: tipo === "despesa" ? parseInt(categoriaId) : null,
-//       ...(ehParcelado && { parcelas: parseInt(parcelas) }),
-//     };
-
-//     try {
-//       const response = await fetch(endpoint, {
-//         method: "POST",
-//         headers: {
-//           "Content-Type": "application/json",
-//           Authorization: `Bearer ${token}`,
-//         },
-//         body: JSON.stringify(transacaoData),
-//       });
-
-//       const dataAdicionada = await response.json();
-//       if (!response.ok)
-//         throw new Error(dataAdicionada.error || "Erro ao processar transação");
-
-//       onTransacaoAdicionada();
-//       alert(dataAdicionada.message || "Transação adicionada com sucesso!");
-
-//       setDescricao("");
-//       setValor("");
-//       setTipo("despesa");
-//       setData(getTodayDateString());
-//       setCategoriaId("");
-//       setEhParcelado(false);
-//       setParcelas(2);
-//     } catch (err) {
-//       setError(err.message);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   return (
-//     <form onSubmit={handleSubmit} className="form-transacao">
-//       <h3 style={{ marginBottom: "20px" }}>Adicionar Nova Transação</h3>
-//       {error && <p className="error">{error}</p>}
-
-//       <div>
-//         <label>Descrição:</label>
-//         <input
-//           type="text"
-//           value={descricao}
-//           onChange={(e) => setDescricao(e.target.value)}
-//           required
-//         />
-//       </div>
-//       <div>
-//         <label>Valor (Total):</label>
-//         <input
-//           type="number"
-//           step="0.01"
-//           value={valor}
-//           onChange={(e) => setValor(e.target.value)}
-//           required
-//         />
-//       </div>
-
-//       <div>
-//         <label>Tipo:</label>
-//         <select
-//           value={tipo}
-//           onChange={(e) => {
-//             setTipo(e.target.value);
-//             setCategoriaId("");
-//             setEhParcelado(false);
-//           }}
-//           required
-//         >
-//           <option value="despesa">Despesa</option>
-//           <option value="receita">Receita</option>
-//         </select>
-//       </div>
-
-//       {tipo === "despesa" && (
-//         <>
-//           <div>
-//             <label>Categoria:</label>
-//             <select
-//               value={categoriaId}
-//               onChange={(e) => setCategoriaId(e.target.value)}
-//               required
-//             >
-//               <option value="" disabled>
-//                 Selecione uma categoria
-//               </option>
-//               {categorias.length > 0 ? (
-//                 categorias.map((cat) => (
-//                   <option key={cat.id} value={cat.id}>
-//                     {cat.nome}
-//                   </option>
-//                 ))
-//               ) : (
-//                 <option disabled>Cadastre uma categoria</option>
-//               )}
-//             </select>
-//           </div>
-//           <div className="checkbox-container">
-//             <input
-//               id="parcelado-checkbox"
-//               type="checkbox"
-//               checked={ehParcelado}
-//               onChange={(e) => setEhParcelado(e.target.checked)}
-//             />
-//             <label
-//               htmlFor="parcelado-checkbox"
-//               style={{ margin: 0, cursor: "pointer" }}
-//             >
-//               É uma compra parcelada?
-//             </label>
-//           </div>
-//           {ehParcelado && (
-//             <div>
-//               <label>Número de Parcelas:</label>
-//               <input
-//                 type="number"
-//                 min="2"
-//                 value={parcelas}
-//                 onChange={(e) => setParcelas(e.target.value)}
-//                 required
-//               />
-//             </div>
-//           )}
-//         </>
-//       )}
-
-//       <div>
-//         <label>
-//           {ehParcelado ? "Data da 1ª Parcela:" : "Data da Transação:"}
-//         </label>
-//         <input
-//           type="date"
-//           value={data}
-//           onChange={(e) => setData(e.target.value)}
-//           required
-//         />
-//       </div>
-
-//       <button
-//         disabled={loading}
-//         type="submit"
-//         className="flex-icon"
-//         style={{ width: "100%", marginTop: "10px", padding: "14px" }}
-//       >
-//         <PlusCircle size={20} />
-//         {loading ? "Processando..." : "Adicionar Transação"}
-//       </button>
-//     </form>
-//   );
-// }
-
-// export default FormularioTransacao;
-
 import React, { useState, useContext } from "react";
 import { AuthContext } from "../App";
 import { PlusCircle } from "lucide-react";
+import { NumericFormat } from "react-number-format";
 
 const getTodayDateString = () => {
   const today = new Date();
@@ -221,16 +20,21 @@ function FormularioTransacao({ onTransacaoAdicionada, categorias }) {
   const [ehParcelado, setEhParcelado] = useState(false);
   const [parcelas, setParcelas] = useState(2);
   const [loading, setLoading] = useState(false);
+
   const { token, API_URL } = useContext(AuthContext);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (tipo === "despesa" && !categoriaId)
       return alert("Selecione uma categoria");
+    if (!valor || parseFloat(valor) <= 0)
+      return alert("Insira um valor válido");
+
     setLoading(true);
     const endpoint = ehParcelado
       ? `${API_URL}/transacoes/parcelada`
       : `${API_URL}/transacoes`;
+
     const transacaoData = {
       descricao,
       valor: parseFloat(valor),
@@ -249,8 +53,11 @@ function FormularioTransacao({ onTransacaoAdicionada, categorias }) {
         },
         body: JSON.stringify(transacaoData),
       });
-      if (!res.ok) throw new Error("Erro");
+      if (!res.ok) throw new Error("Erro ao salvar transação");
+
       onTransacaoAdicionada();
+
+      // Reseta o formulário
       setDescricao("");
       setValor("");
       setTipo("despesa");
@@ -286,16 +93,24 @@ function FormularioTransacao({ onTransacaoAdicionada, categorias }) {
           value={descricao}
           onChange={(e) => setDescricao(e.target.value)}
           required
+          placeholder="Ex: Mercado"
         />
       </div>
+
       <div>
         <label className={labelClass}>Valor (Total)</label>
-        <input
-          type="number"
-          step="0.01"
+        <NumericFormat
           className={inputClass}
           value={valor}
-          onChange={(e) => setValor(e.target.value)}
+          onValueChange={(values) => {
+            setValor(values.value);
+          }}
+          thousandSeparator="."
+          decimalSeparator=","
+          prefix="R$ "
+          decimalScale={2}
+          fixedDecimalScale={true}
+          placeholder="R$ 0,00"
           required
         />
       </div>
@@ -341,7 +156,7 @@ function FormularioTransacao({ onTransacaoAdicionada, categorias }) {
             <input
               id="parcela"
               type="checkbox"
-              className="w-5 h-5 accent-emerald-500"
+              className="w-5 h-5 accent-emerald-500 cursor-pointer"
               checked={ehParcelado}
               onChange={(e) => setEhParcelado(e.target.checked)}
             />
@@ -381,7 +196,7 @@ function FormularioTransacao({ onTransacaoAdicionada, categorias }) {
       <button
         disabled={loading}
         type="submit"
-        className="w-full mt-2 bg-emerald-500 text-white font-semibold py-3.5 px-6 rounded-xl hover:bg-emerald-600 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
+        className="w-full mt-2 bg-emerald-500 text-white font-semibold py-3.5 px-6 rounded-xl hover:bg-emerald-600 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 shadow-md"
       >
         <PlusCircle size={20} />{" "}
         {loading ? "Processando..." : "Adicionar Transação"}
@@ -389,4 +204,5 @@ function FormularioTransacao({ onTransacaoAdicionada, categorias }) {
     </form>
   );
 }
+
 export default FormularioTransacao;
