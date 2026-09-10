@@ -17,12 +17,14 @@ import {
   Wallet,
   Menu,
   X,
+  CalendarDays, 
 } from "lucide-react";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import Login from "./components/Login";
 import Register from "./components/Register";
 import Dashboard from "./components/Dashboard";
 import Comparativo from "./components/Comparativo";
+import GerenciarGastosFixos from "./components/GerenciarGastosFixos";
 import "./index.css";
 
 export const AuthContext = createContext(null);
@@ -90,6 +92,14 @@ function App() {
                     </PrivateRoute>
                   }
                 />
+                <Route
+                  path="/gastos-fixos"
+                  element={
+                    <PrivateRoute>
+                      <GerenciarGastosFixos />
+                    </PrivateRoute>
+                  }
+                />
               </Routes>
             </main>
           </div>
@@ -114,7 +124,6 @@ function Header() {
     setMenuAberto(false);
   }, [location]);
 
-  // Função para pegar as iniciais (ex: "Arthur" -> "AR")
   const getInitials = (name) => {
     if (!name) return "U";
     return name.substring(0, 2).toUpperCase();
@@ -161,6 +170,14 @@ function Header() {
               >
                 <LayoutDashboard size={18} /> Dashboard
               </NavLink>
+              <NavLink
+                to="/gastos-fixos"
+                className={({ isActive }) =>
+                  `flex items-center gap-2 font-semibold text-[0.95rem] px-5 py-2.5 rounded-full transition-colors ${isActive ? "bg-emerald-50 text-emerald-600" : "text-slate-500 hover:bg-emerald-50 hover:text-emerald-600"}`
+                }
+              >
+                <CalendarDays size={18} /> Gastos Fixos
+              </NavLink>
             </>
           )}
         </nav>
@@ -183,7 +200,6 @@ function Header() {
             </>
           ) : (
             <>
-              {/* COMPONENTE DO AVATAR */}
               <div className="flex items-center gap-3 w-full md:w-auto justify-center md:justify-start bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200">
                 {profilePic ? (
                   <img
