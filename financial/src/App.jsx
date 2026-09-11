@@ -34,6 +34,8 @@ import Register from "./components/Register";
 import Dashboard from "./components/Dashboard";
 import Comparativo from "./components/Comparativo";
 import GerenciarGastosFixos from "./components/GerenciarGastosFixos";
+import NotFound from "./components/NotFound";
+import ServerError from "./components/ServerError";
 import "./index.css";
 
 export const AuthContext = createContext(null);
@@ -154,6 +156,12 @@ function AppShell() {
               </PrivateRoute>
             }
           />
+
+          {/* Rota Pega-Tudo para 404 */}
+          <Route path="*" element={<NotFound />} />
+
+          {/* Rota para erros 500 */}
+          <Route path="/500" element={<ServerError />} />
         </Routes>
       </main>
     </div>
