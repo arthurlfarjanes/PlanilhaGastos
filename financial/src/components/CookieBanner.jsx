@@ -4,7 +4,8 @@ export default function CookieBanner() {
   const [aceito, setAceito] = useState(true);
 
   const injetarAnalytics = () => {
-    if (window.dataLayer) return;
+    // Evita injetar caso o gtag já esteja carregado na página
+    if (typeof window.gtag === "function") return;
 
     const trackingId = "G-H87RWLRY0W";
 
