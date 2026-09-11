@@ -1,26 +1,30 @@
 import React, { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../App";
-import { X, Save } from "lucide-react";
+import { Save, AlertCircle } from "lucide-react";
 import { NumericFormat } from "react-number-format";
+import Modal from "./ui/Modal";
+import Button from "./ui/Button";
 
 function ModalEditar({ transacao, onClose, onSave, categorias }) {
   const [formData, setFormData] = useState({
     ...transacao,
-    data: transacao.data.split("T")[0],
+    data: transacao?.data ? transacao.data.split("T")[0] : "",
   });
-  const [isClosing, setIsClosing] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const { token, API_URL } = useContext(AuthContext);
 
   useEffect(() => {
-    const dataFormatada = transacao.data ? transacao.data.split("T")[0] : "";
-    // Garantir que categoria_id seja um número para a comparação no layout de pílulas funcionar perfeitamente
-    setFormData({
-      ...transacao,
-      data: dataFormatada,
-      categoria_id: transacao.categoria_id
-        ? parseInt(transacao.categoria_id)
-        : "",
-    });
+    if (transacao) {
+      const dataFormatada = transacao.data ? transacao.data.split("T")[0] : "";
+      setFormData({
+        ...transacao,
+        data: dataFormatada,
+        categoria_id: transacao.categoria_id
+          ? parseInt(transacao.categoria_id)
+          : "",
+      });
+    }
   }, [transacao]);
 
   const handleChange = (e) => {
@@ -28,22 +32,20 @@ function ModalEditar({ transacao, onClose, onSave, categorias }) {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleClose = () => {
-    setIsClosing(true);
-    setTimeout(() => {
-      onClose();
-    }, 200);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
 
     if (formData.tipo === "despesa" && !formData.categoria_id) {
-      return alert("Selecione uma categoria clicando na cor desejada.");
+      setError("Por favor, selecione uma categoria para a despesa.");
+      return;
     }
     if (!formData.valor || parseFloat(formData.valor) <= 0) {
-      return alert("Insira um valor válido");
+      setError("Insira um valor maior que zero.");
+      return;
     }
+
+    setLoading(true);
 
     try {
       const response = await fetch(`${API_URL}/transacoes/${transacao.id}`, {
@@ -62,176 +64,168 @@ function ModalEditar({ transacao, onClose, onSave, categorias }) {
         }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Erro ao salvar");
+      if (!response.ok) throw new Error(data.error || "Erro ao salvar transação");
       onSave(data);
-      handleClose();
-    } catch (error) {
-      alert(error.message);
+      onClose();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   if (!transacao) return null;
 
   const inputClass =
-    "w-full p-3 border border-slate-200 rounded-xl text-[0.95rem] text-slate-800 bg-slate-50 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/15 transition-all";
+    "w-full p-3 border border-slate-200 dark:border-[#2E3342] rounded-xl text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-[#14171F] focus:outline-none focus:border-[#B6FFE2] focus:ring-4 focus:ring-[#B6FFE2]/15 transition-all shadow-xs";
   const labelClass =
-    "block mb-2 text-slate-500 font-bold uppercase tracking-wider text-[0.75rem]";
+    "block mb-1.5 text-slate-500 dark:text-[#8E9AA8] font-bold uppercase tracking-wider text-[0.75rem]";
 
   return (
-    <div
-      className={`fixed inset-0 z-100 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 ${isClosing ? "animate-fade-out" : "animate-fade-in"}`}
-    >
-      <div
-        className={`bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden flex flex-col ${isClosing ? "animate-scale-out" : "animate-scale-in"}`}
-      >
-        <div className="flex justify-between items-center p-6 md:px-8 border-b border-slate-100">
-          <h2 className="text-xl font-bold text-slate-800">Editar Transação</h2>
-          <button
-            onClick={handleClose}
-            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
-          >
-            <X size={24} />
-          </button>
+    <Modal isOpen={!!transacao} onClose={onClose} title="Editar Transação" maxWidth="max-w-xl">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        {error && (
+          <div className="flex items-center gap-2.5 p-3 rounded-xl bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 text-xs font-semibold border border-red-200 dark:border-red-500/20">
+            <AlertCircle size={16} className="shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        {/* Descrição */}
+        <div>
+          <label className={labelClass}>Descrição</label>
+          <input
+            type="text"
+            name="descricao"
+            className={inputClass}
+            value={formData.descricao || ""}
+            onChange={handleChange}
+            required
+            maxLength={150}
+          />
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="p-6 md:p-8 flex flex-col gap-6 overflow-y-auto max-h-[75vh]"
-        >
+        {/* Valor e Data */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className={labelClass}>Descrição</label>
-            <input
-              type="text"
-              name="descricao"
+            <label className={labelClass}>Valor</label>
+            <NumericFormat
               className={inputClass}
-              value={formData.descricao || ""}
+              value={formData.valor || ""}
+              onValueChange={(values) => {
+                setFormData((prev) => ({ ...prev, valor: values.value }));
+              }}
+              thousandSeparator="."
+              decimalSeparator=","
+              prefix="R$ "
+              decimalScale={2}
+              fixedDecimalScale={true}
+              required
+            />
+          </div>
+          <div>
+            <label className={labelClass}>Data</label>
+            <input
+              type="date"
+              name="data"
+              className={inputClass}
+              value={formData.data || ""}
               onChange={handleChange}
               required
             />
           </div>
+        </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div>
-              <label className={labelClass}>Valor</label>
-              <NumericFormat
-                className={inputClass}
-                value={formData.valor || ""}
-                onValueChange={(values) => {
-                  setFormData((prev) => ({ ...prev, valor: values.value }));
-                }}
-                thousandSeparator="."
-                decimalSeparator=","
-                prefix="R$ "
-                decimalScale={2}
-                fixedDecimalScale={true}
-                placeholder="R$ 0,00"
-                required
-              />
-            </div>
-            <div>
-              <label className={labelClass}>Data</label>
-              <input
-                type="date"
-                name="data"
-                className={inputClass}
-                value={formData.data || ""}
-                onChange={handleChange}
-                required
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className={labelClass}>Tipo de Transação</label>
-            <div className="flex bg-slate-100 p-1 rounded-xl">
-              <button
-                type="button"
-                onClick={() =>
-                  setFormData((prev) => ({ ...prev, tipo: "despesa" }))
-                }
-                className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${formData.tipo === "despesa" ? "bg-white shadow-sm text-red-500" : "text-slate-500 hover:text-slate-700"}`}
-              >
-                Despesa
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    tipo: "receita",
-                    categoria_id: "",
-                  }))
-                }
-                className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${formData.tipo === "receita" ? "bg-white shadow-sm text-emerald-500" : "text-slate-500 hover:text-slate-700"}`}
-              >
-                Receita
-              </button>
-            </div>
-          </div>
-
-          {formData.tipo === "despesa" && (
-            <div className="animate-in fade-in slide-in-from-top-2">
-              <label className={labelClass}>Categoria</label>
-              <div className="flex flex-wrap gap-2.5 mt-2">
-                {categorias.map((cat) => {
-                  const isSelected = formData.categoria_id === cat.id;
-                  return (
-                    <button
-                      type="button"
-                      key={cat.id}
-                      onClick={() =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          categoria_id: cat.id,
-                        }))
-                      }
-                      className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all border flex items-center gap-2 hover:-translate-y-0.5`}
-                      style={{
-                        backgroundColor: isSelected
-                          ? `${cat.cor}15`
-                          : "#ffffff",
-                        borderColor: isSelected ? cat.cor : "#e2e8f0",
-                        color: isSelected ? cat.cor : "#64748b",
-                        boxShadow: isSelected
-                          ? `0 0 0 2px ${cat.cor}30`
-                          : "none",
-                      }}
-                    >
-                      <span
-                        className="w-2.5 h-2.5 rounded-full shadow-sm"
-                        style={{ backgroundColor: cat.cor || "#10b981" }}
-                      ></span>
-                      {cat.nome}
-                    </button>
-                  );
-                })}
-                {categorias.length === 0 && (
-                  <p className="text-sm text-slate-400">
-                    Nenhuma categoria encontrada.
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
-
-          <div className="flex justify-end gap-3 mt-2 pt-6 border-t border-slate-100">
+        {/* Tipo de Transação */}
+        <div>
+          <label className={labelClass}>Tipo</label>
+          <div className="grid grid-cols-2 bg-slate-100 dark:bg-[#14171F] p-1 rounded-xl border border-slate-200 dark:border-[#2E3342]">
             <button
               type="button"
-              onClick={handleClose}
-              className="px-6 py-3 font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+              onClick={() =>
+                setFormData((prev) => ({ ...prev, tipo: "despesa" }))
+              }
+              className={`py-2 text-xs sm:text-sm font-bold rounded-lg transition-all cursor-pointer ${
+                formData.tipo === "despesa"
+                  ? "bg-red-500 text-white shadow-xs"
+                  : "text-slate-500 dark:text-[#8E9AA8]"
+              }`}
             >
-              Cancelar
+              Despesa
             </button>
             <button
-              type="submit"
-              className="px-6 py-3 font-semibold text-white bg-emerald-500 hover:bg-emerald-600 rounded-xl transition-colors flex items-center gap-2 shadow-md"
+              type="button"
+              onClick={() =>
+                setFormData((prev) => ({
+                  ...prev,
+                  tipo: "receita",
+                  categoria_id: null,
+                }))
+              }
+              className={`py-2 text-xs sm:text-sm font-bold rounded-lg transition-all cursor-pointer ${
+                formData.tipo === "receita"
+                  ? "bg-[#B6FFE2] text-[#14171F] shadow-xs"
+                  : "text-slate-500 dark:text-[#8E9AA8]"
+              }`}
             >
-              <Save size={18} /> Salvar Alterações
+              Receita
             </button>
           </div>
-        </form>
-      </div>
-    </div>
+        </div>
+
+        {/* Categoria */}
+        {formData.tipo === "despesa" && (
+          <div className="animate-fade-in flex flex-col gap-2">
+            <label className={labelClass}>Categoria</label>
+            <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto pr-1 py-1">
+              {categorias.map((cat) => {
+                const isSelected = formData.categoria_id === cat.id;
+                return (
+                  <button
+                    type="button"
+                    key={cat.id}
+                    onClick={() =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        categoria_id: cat.id,
+                      }))
+                    }
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border flex items-center gap-1.5 cursor-pointer ${
+                      isSelected
+                        ? "ring-2 ring-offset-1 dark:ring-offset-[#1E222B]"
+                        : "opacity-80 hover:opacity-100 hover:-translate-y-0.5"
+                    }`}
+                    style={{
+                      backgroundColor: isSelected ? `${cat.cor}25` : "transparent",
+                      borderColor: cat.cor || "#2E3342",
+                      color: cat.cor || "#B6FFE2",
+                      // @ts-ignore
+                      "--tw-ring-color": cat.cor,
+                    }}
+                  >
+                    <span
+                      className="w-2 h-2 rounded-full shadow-xs"
+                      style={{ backgroundColor: cat.cor || "#10b981" }}
+                    />
+                    {cat.nome}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Botões de Ação */}
+        <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-[#2E3342]">
+          <Button variant="ghost" onClick={onClose} disabled={loading}>
+            Cancelar
+          </Button>
+          <Button type="submit" variant="primary" loading={loading}>
+            <Save size={16} /> Salvar Alterações
+          </Button>
+        </div>
+      </form>
+    </Modal>
   );
 }
 

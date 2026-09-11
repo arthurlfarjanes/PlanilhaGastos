@@ -1,7 +1,8 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext } from "react";
 import { AuthContext } from "../App";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, AlertCircle } from "lucide-react";
 import { NumericFormat } from "react-number-format";
+import Button from "./ui/Button";
 
 const getTodayDateString = () => {
   const today = new Date();
@@ -20,15 +21,22 @@ function FormularioTransacao({ onTransacaoAdicionada, categorias }) {
   const [ehParcelado, setEhParcelado] = useState(false);
   const [parcelas, setParcelas] = useState(2);
   const [loading, setLoading] = useState(false);
+  const [formError, setFormError] = useState("");
 
   const { token, API_URL } = useContext(AuthContext);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (tipo === "despesa" && !categoriaId)
-      return alert("Selecione uma categoria clicando na cor desejada.");
-    if (!valor || parseFloat(valor) <= 0)
-      return alert("Insira um valor válido");
+    setFormError("");
+
+    if (tipo === "despesa" && !categoriaId) {
+      setFormError("Por favor, selecione uma categoria para a despesa.");
+      return;
+    }
+    if (!valor || parseFloat(valor) <= 0) {
+      setFormError("Insira um valor maior que zero.");
+      return;
+    }
 
     setLoading(true);
     const endpoint = ehParcelado
@@ -53,7 +61,8 @@ function FormularioTransacao({ onTransacaoAdicionada, categorias }) {
         },
         body: JSON.stringify(transacaoData),
       });
-      if (!res.ok) throw new Error("Erro ao salvar transação");
+      const dataResp = await res.json();
+      if (!res.ok) throw new Error(dataResp.error || "Erro ao salvar transação");
 
       onTransacaoAdicionada();
       setDescricao("");
@@ -63,27 +72,41 @@ function FormularioTransacao({ onTransacaoAdicionada, categorias }) {
       setCategoriaId("");
       setEhParcelado(false);
       setParcelas(2);
+      setFormError("");
     } catch (err) {
-      alert(err.message);
+      setFormError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
   const inputClass =
-    "w-full p-3 border border-slate-200 rounded-xl text-[0.95rem] text-slate-900 bg-white focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/15 transition-all";
+    "w-full p-3 border border-slate-200 dark:border-[#2E3342] rounded-xl text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-[#14171F] focus:outline-none focus:border-[#B6FFE2] focus:ring-4 focus:ring-[#B6FFE2]/15 transition-all shadow-xs placeholder-slate-400 dark:placeholder-[#687082]";
   const labelClass =
-    "block mb-2 text-slate-500 font-bold uppercase tracking-wider text-[0.75rem]";
+    "block mb-1.5 text-slate-500 dark:text-[#8E9AA8] font-bold uppercase tracking-wider text-[0.75rem]";
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-slate-100 flex flex-col gap-6"
+      className="bg-white dark:bg-[#1E222B] p-6 sm:p-7 rounded-2xl shadow-xs border border-slate-200/80 dark:border-[#2E3342] flex flex-col gap-5 transition-colors duration-200"
     >
-      <h3 className="font-semibold text-lg text-slate-800 border-b border-slate-100 pb-3">
-        Adicionar Transação
-      </h3>
+      <div className="flex items-center justify-between border-b border-slate-100 dark:border-[#2E3342] pb-3">
+        <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100 flex items-center gap-2">
+          Nova Transação
+        </h3>
+        <span className="text-xs px-2.5 py-1 rounded-full font-bold bg-slate-100 dark:bg-[#23262F] text-slate-600 dark:text-[#8E9AA8] border border-slate-200 dark:border-[#2E3342]">
+          Rápido
+        </span>
+      </div>
 
+      {formError && (
+        <div className="flex items-center gap-2.5 p-3 rounded-xl bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 text-xs font-semibold border border-red-200 dark:border-red-500/20">
+          <AlertCircle size={16} className="shrink-0" />
+          <span>{formError}</span>
+        </div>
+      )}
+
+      {/* Descrição */}
       <div>
         <label className={labelClass}>Descrição</label>
         <input
@@ -92,11 +115,12 @@ function FormularioTransacao({ onTransacaoAdicionada, categorias }) {
           value={descricao}
           onChange={(e) => setDescricao(e.target.value)}
           required
-          placeholder="Ex: Mercado"
+          placeholder="Ex: Supermercado, Salário, Uber"
         />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+      {/* Valor e Data */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className={labelClass}>Valor</label>
           <NumericFormat
@@ -124,16 +148,21 @@ function FormularioTransacao({ onTransacaoAdicionada, categorias }) {
         </div>
       </div>
 
+      {/* Seletor Tipo: Despesa vs Receita */}
       <div>
         <label className={labelClass}>Tipo de Transação</label>
-        <div className="flex bg-slate-100 p-1 rounded-xl">
+        <div className="grid grid-cols-2 bg-slate-100 dark:bg-[#14171F] p-1 rounded-xl border border-slate-200 dark:border-[#2E3342]">
           <button
             type="button"
             onClick={() => {
               setTipo("despesa");
               setEhParcelado(false);
             }}
-            className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${tipo === "despesa" ? "bg-white shadow-sm text-red-500" : "text-slate-500 hover:text-slate-700"}`}
+            className={`py-2 text-xs sm:text-sm font-bold rounded-lg transition-all cursor-pointer ${
+              tipo === "despesa"
+                ? "bg-red-500 text-white shadow-xs"
+                : "text-slate-500 dark:text-[#8E9AA8] hover:text-slate-800 dark:hover:text-white"
+            }`}
           >
             Despesa
           </button>
@@ -144,19 +173,22 @@ function FormularioTransacao({ onTransacaoAdicionada, categorias }) {
               setCategoriaId("");
               setEhParcelado(false);
             }}
-            className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${tipo === "receita" ? "bg-white shadow-sm text-emerald-500" : "text-slate-500 hover:text-slate-700"}`}
+            className={`py-2 text-xs sm:text-sm font-bold rounded-lg transition-all cursor-pointer ${
+              tipo === "receita"
+                ? "bg-[#B6FFE2] text-[#14171F] shadow-xs"
+                : "text-slate-500 dark:text-[#8E9AA8] hover:text-slate-800 dark:hover:text-white"
+            }`}
           >
             Receita
           </button>
         </div>
       </div>
 
+      {/* Categorias (Exibido apenas para Despesa) */}
       {tipo === "despesa" && (
-        <div className="animate-in fade-in slide-in-from-top-2">
+        <div className="animate-fade-in flex flex-col gap-2">
           <label className={labelClass}>Selecione a Categoria</label>
-
-          {/* UI de Pílulas Inteligentes */}
-          <div className="flex flex-wrap gap-2.5 mt-2">
+          <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto pr-1 py-1">
             {categorias.map((cat) => {
               const isSelected = categoriaId === cat.id;
               return (
@@ -164,50 +196,58 @@ function FormularioTransacao({ onTransacaoAdicionada, categorias }) {
                   type="button"
                   key={cat.id}
                   onClick={() => setCategoriaId(cat.id)}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all border flex items-center gap-2 hover:-translate-y-0.5`}
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border flex items-center gap-1.5 cursor-pointer ${
+                    isSelected
+                      ? "ring-2 ring-offset-1 dark:ring-offset-[#1E222B]"
+                      : "opacity-80 hover:opacity-100 hover:-translate-y-0.5"
+                  }`}
                   style={{
-                    backgroundColor: isSelected ? `${cat.cor}15` : "#ffffff",
-                    borderColor: isSelected ? cat.cor : "#e2e8f0",
-                    color: isSelected ? cat.cor : "#64748b",
-                    boxShadow: isSelected ? `0 0 0 2px ${cat.cor}30` : "none",
+                    backgroundColor: isSelected ? `${cat.cor}25` : "transparent",
+                    borderColor: cat.cor || "#2E3342",
+                    color: cat.cor || "#B6FFE2",
+                    // @ts-ignore
+                    "--tw-ring-color": cat.cor,
                   }}
                 >
                   <span
-                    className="w-2.5 h-2.5 rounded-full shadow-sm"
-                    style={{ backgroundColor: cat.cor }}
-                  ></span>
+                    className="w-2 h-2 rounded-full shadow-xs"
+                    style={{ backgroundColor: cat.cor || "#10b981" }}
+                  />
                   {cat.nome}
                 </button>
               );
             })}
             {categorias.length === 0 && (
-              <p className="text-sm text-slate-400">
-                Cadastre categorias primeiro.
+              <p className="text-xs text-slate-400 dark:text-[#8E9AA8]">
+                Nenhuma categoria cadastrada ainda.
               </p>
             )}
           </div>
 
-          <div className="flex items-center gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200 mt-5">
+          {/* Opção de Parcelamento */}
+          <div className="flex items-center gap-3 bg-slate-50 dark:bg-[#14171F] p-3 rounded-xl border border-slate-200 dark:border-[#2E3342] mt-2">
             <input
               id="parcela"
               type="checkbox"
-              className="w-5 h-5 accent-emerald-500 cursor-pointer"
+              className="w-4 h-4 rounded text-[#059669] dark:text-[#B6FFE2] accent-[#B6FFE2] cursor-pointer"
               checked={ehParcelado}
               onChange={(e) => setEhParcelado(e.target.checked)}
             />
             <label
               htmlFor="parcela"
-              className="text-slate-700 font-medium m-0 cursor-pointer text-sm normal-case tracking-normal"
+              className="text-slate-700 dark:text-slate-200 font-medium m-0 cursor-pointer text-xs sm:text-sm"
             >
-              É compra parcelada?
+              Compra Parcelada?
             </label>
           </div>
+
           {ehParcelado && (
-            <div className="mt-3">
-              <label className={labelClass}>Número de Parcelas</label>
+            <div className="mt-1 animate-fade-in">
+              <label className={labelClass}>Número de Parcelas (máx: 72)</label>
               <input
                 type="number"
                 min="2"
+                max="72"
                 className={inputClass}
                 value={parcelas}
                 onChange={(e) => setParcelas(e.target.value)}
@@ -218,14 +258,16 @@ function FormularioTransacao({ onTransacaoAdicionada, categorias }) {
         </div>
       )}
 
-      <button
-        disabled={loading}
+      <Button
         type="submit"
-        className="w-full mt-2 bg-emerald-500 text-white font-semibold py-3.5 px-6 rounded-xl hover:bg-emerald-600 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 shadow-md"
+        variant="primary"
+        size="lg"
+        loading={loading}
+        className="w-full mt-2"
       >
-        <PlusCircle size={20} />{" "}
-        {loading ? "Processando..." : "Adicionar Transação"}
-      </button>
+        <PlusCircle size={18} />
+        Adicionar Transação
+      </Button>
     </form>
   );
 }

@@ -1,5 +1,5 @@
 import React from "react";
-import { FilterX } from "lucide-react";
+import { FilterX, Search, Filter } from "lucide-react";
 
 function FiltroTransacoes({ filtros, setFiltros, categorias }) {
   const handleInputChange = (e) => {
@@ -20,29 +20,49 @@ function FiltroTransacoes({ filtros, setFiltros, categorias }) {
   const hasFiltrosAtivos = Object.values(filtros).some((valor) => valor !== "");
 
   const inputClass =
-    "w-full p-3 border border-slate-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none";
+    "w-full p-2.5 border border-slate-200 dark:border-[#2E3342] rounded-xl text-xs sm:text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-[#14171F] focus:outline-none focus:border-[#B6FFE2] focus:ring-4 focus:ring-[#B6FFE2]/15 transition-all shadow-xs";
   const labelClass =
-    "block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5";
+    "block text-[0.7rem] font-bold text-slate-500 dark:text-[#8E9AA8] uppercase tracking-wider mb-1";
 
   return (
-    <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-slate-100">
-      <h3 className="font-semibold text-lg text-slate-800 border-b border-slate-100 pb-3 mb-5">
-        Filtrar Transações
-      </h3>
+    <div className="bg-white dark:bg-[#1E222B] p-5 sm:p-7 rounded-2xl shadow-xs border border-slate-200/80 dark:border-[#2E3342] transition-colors duration-200">
+      <div className="flex items-center justify-between border-b border-slate-100 dark:border-[#2E3342] pb-3 mb-4">
+        <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100 flex items-center gap-2">
+          <Filter size={18} className="text-[#059669] dark:text-[#B6FFE2]" />
+          Filtrar Transações
+        </h3>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
+        {hasFiltrosAtivos && (
+          <button
+            onClick={limparFiltros}
+            className="flex items-center gap-1.5 text-xs font-bold text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 transition-colors cursor-pointer bg-red-50 dark:bg-red-500/10 px-3 py-1.5 rounded-lg border border-red-200/50 dark:border-red-500/20"
+          >
+            <FilterX size={14} /> Limpar Filtros
+          </button>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 sm:gap-4 items-end">
+        {/* Busca por Descrição */}
         <div className="lg:col-span-2">
           <label className={labelClass}>Descrição</label>
-          <input
-            type="text"
-            name="descricao"
-            placeholder="Pesquisar..."
-            className={inputClass}
-            value={filtros.descricao}
-            onChange={handleInputChange}
-          />
+          <div className="relative flex items-center">
+            <Search
+              size={16}
+              className="absolute left-3 text-slate-400 dark:text-[#687082] pointer-events-none"
+            />
+            <input
+              type="text"
+              name="descricao"
+              placeholder="Pesquisar..."
+              className={`${inputClass} pl-9`}
+              value={filtros.descricao}
+              onChange={handleInputChange}
+            />
+          </div>
         </div>
 
+        {/* Tipo */}
         <div>
           <label className={labelClass}>Tipo</label>
           <select
@@ -57,6 +77,7 @@ function FiltroTransacoes({ filtros, setFiltros, categorias }) {
           </select>
         </div>
 
+        {/* Categoria */}
         <div>
           <label className={labelClass}>Categoria</label>
           <select
@@ -75,6 +96,7 @@ function FiltroTransacoes({ filtros, setFiltros, categorias }) {
           </select>
         </div>
 
+        {/* Data Início */}
         <div>
           <label className={labelClass}>De</label>
           <input
@@ -86,6 +108,7 @@ function FiltroTransacoes({ filtros, setFiltros, categorias }) {
           />
         </div>
 
+        {/* Data Fim */}
         <div>
           <label className={labelClass}>Até</label>
           <input
@@ -97,15 +120,6 @@ function FiltroTransacoes({ filtros, setFiltros, categorias }) {
           />
         </div>
       </div>
-
-      {hasFiltrosAtivos && (
-        <button
-          onClick={limparFiltros}
-          className="mt-5 w-full md:w-auto bg-slate-100 text-slate-600 font-semibold py-2.5 px-6 rounded-xl hover:bg-slate-200 transition-colors flex items-center justify-center gap-2 animate-in fade-in slide-in-from-top-2"
-        >
-          <FilterX size={16} /> Limpar Filtros
-        </button>
-      )}
     </div>
   );
 }

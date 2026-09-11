@@ -1,5 +1,5 @@
 import React from "react";
-import { Edit2, Trash2 } from "lucide-react";
+import { Edit2, Trash2, ArrowUpRight, ArrowDownRight, Tag } from "lucide-react";
 
 const formatCurrency = (value) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
@@ -9,63 +9,105 @@ const formatCurrency = (value) =>
 function ListaTransacoes({ transacoes, onEdit, onDelete }) {
   if (transacoes.length === 0)
     return (
-      <p className="text-center text-slate-500 py-10">
-        Nenhuma transação encontrada.
-      </p>
+      <div className="bg-white dark:bg-[#1E222B] p-12 rounded-2xl border border-slate-200/80 dark:border-[#2E3342] text-center shadow-xs">
+        <p className="text-slate-400 dark:text-[#8E9AA8] font-medium">
+          Nenhuma transação encontrada para os filtros selecionados.
+        </p>
+      </div>
     );
 
   return (
-    <div className="flex flex-col gap-3.5">
-      {transacoes.map((t) => (
-        <div
-          key={t.id}
-          className={`flex flex-col sm:flex-row sm:items-center justify-between p-5 bg-white rounded-xl shadow-sm border border-slate-200 border-l-[6px] transition-all hover:shadow-md hover:translate-x-1 ${t.tipo === "receita" ? "border-l-emerald-500" : "border-l-red-500"}`}
-        >
-          {/* Informações da Transação (Esquerda) */}
-          <div className="flex flex-col gap-1.5 mb-2 sm:mb-0">
-            <span className="font-bold text-lg text-slate-800">
-              {t.descricao}
-            </span>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[0.75rem] font-bold px-3 py-1 bg-slate-100 text-slate-500 rounded-full">
-                {t.tipo === "despesa"
-                  ? t.categoria_nome || "S/ Categoria"
-                  : "Receita"}
+    <div className="flex flex-col gap-3">
+      {transacoes.map((t) => {
+        const isReceita = t.tipo === "receita";
+
+        return (
+          <div
+            key={t.id}
+            className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-5 bg-white dark:bg-[#1E222B] rounded-2xl shadow-xs border border-slate-200/80 dark:border-[#2E3342] border-l-4 sm:border-l-[6px] transition-all duration-150 hover:shadow-md hover:translate-x-0.5 ${
+              isReceita
+                ? "border-l-emerald-500 dark:border-l-[#B6FFE2]"
+                : "border-l-red-500"
+            }`}
+          >
+            {/* Informações da Transação */}
+            <div className="flex items-start gap-3.5 mb-3 sm:mb-0 min-w-0">
+              <div
+                className={`p-2.5 rounded-xl shrink-0 mt-0.5 ${
+                  isReceita
+                    ? "bg-emerald-50 dark:bg-[#B6FFE2]/10 text-emerald-600 dark:text-[#B6FFE2]"
+                    : "bg-red-50 dark:bg-red-500/10 text-red-500 dark:text-red-400"
+                }`}
+              >
+                {isReceita ? (
+                  <ArrowUpRight size={18} strokeWidth={2.5} />
+                ) : (
+                  <ArrowDownRight size={18} strokeWidth={2.5} />
+                )}
+              </div>
+
+              <div className="flex flex-col gap-1 min-w-0">
+                <span className="font-bold text-base sm:text-lg text-slate-800 dark:text-slate-100 truncate">
+                  {t.descricao}
+                </span>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 text-[0.7rem] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-[#14171F] text-slate-600 dark:text-[#8E9AA8] border border-slate-200 dark:border-[#2E3342]">
+                    {isReceita ? (
+                      "Receita"
+                    ) : (
+                      <>
+                        <span
+                          className="w-2 h-2 rounded-full shrink-0"
+                          style={{
+                            backgroundColor: t.categoria_cor || "#10b981",
+                          }}
+                        />
+                        {t.categoria_nome || "Sem Categoria"}
+                      </>
+                    )}
+                  </span>
+
+                  <span className="text-xs text-slate-400 dark:text-[#687082] font-medium">
+                    {new Date(t.data).toLocaleDateString("pt-BR", {
+                      timeZone: "UTC",
+                    })}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Valor e Ações */}
+            <div className="flex flex-col sm:items-end gap-2.5 pt-3 sm:pt-0 border-t border-slate-100 dark:border-[#2E3342] sm:border-0 w-full sm:w-auto">
+              <span
+                className={`text-xl sm:text-xl font-black self-start sm:self-end ${
+                  isReceita
+                    ? "text-emerald-600 dark:text-[#B6FFE2]"
+                    : "text-red-500 dark:text-red-400"
+                }`}
+              >
+                {isReceita ? "+" : "-"} {formatCurrency(t.valor)}
               </span>
-              <span className="text-xs text-slate-400 font-medium">
-                {new Date(t.data).toLocaleDateString("pt-BR", {
-                  timeZone: "UTC",
-                })}
-              </span>
+
+              <div className="flex gap-2 w-full sm:w-auto">
+                <button
+                  onClick={() => onEdit(t)}
+                  className="flex-1 sm:flex-none justify-center bg-slate-100 dark:bg-[#23262F] hover:bg-slate-200 dark:hover:bg-[#2E3342] text-slate-700 dark:text-slate-200 py-2 sm:py-1.5 px-3 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all border border-slate-200 dark:border-[#2E3342] cursor-pointer"
+                >
+                  <Edit2 size={13} /> Editar
+                </button>
+
+                <button
+                  onClick={() => onDelete(t.id)}
+                  className="flex-1 sm:flex-none justify-center bg-red-50 dark:bg-red-500/10 hover:bg-red-500 hover:text-white dark:hover:bg-red-500 dark:hover:text-white text-red-600 dark:text-red-400 py-2 sm:py-1.5 px-3 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all border border-red-200/60 dark:border-red-500/20 cursor-pointer"
+                >
+                  <Trash2 size={13} /> Excluir
+                </button>
+              </div>
             </div>
           </div>
-
-          {/* Valor e Ações (Direita no Desktop, Embaixo no Mobile) */}
-          <div className="flex flex-col sm:items-end gap-3 sm:gap-2 pt-3 sm:pt-0 mt-2 sm:mt-0 border-t border-slate-100 sm:border-0 w-full sm:w-auto">
-            <span
-              className={`text-2xl sm:text-xl font-extrabold self-start sm:self-end ${t.tipo === "receita" ? "text-emerald-500" : "text-red-500"}`}
-            >
-              {formatCurrency(t.valor)}
-            </span>
-
-            <div className="flex gap-2 w-full sm:w-auto mt-1 sm:mt-0">
-              <button
-                onClick={() => onEdit(t)}
-                className="flex-1 sm:flex-none justify-center bg-blue-500 hover:bg-blue-600 text-white py-2.5 sm:py-1.5 px-3 rounded-lg text-sm sm:text-xs font-semibold flex items-center gap-1.5 transition-all"
-              >
-                <Edit2 size={16} className="sm:w-3.5 sm:h-3.5" /> Editar
-              </button>
-
-              <button
-                onClick={() => onDelete(t.id)}
-                className="flex-1 sm:flex-none justify-center bg-red-500 hover:bg-red-600 text-white py-2.5 sm:py-1.5 px-3 rounded-lg text-sm sm:text-xs font-semibold flex items-center gap-1.5 transition-all"
-              >
-                <Trash2 size={16} className="sm:w-3.5 sm:h-3.5" /> Excluir
-              </button>
-            </div>
-          </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

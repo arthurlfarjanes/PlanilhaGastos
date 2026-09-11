@@ -15,18 +15,19 @@ import {
   AreaChart,
   Area,
 } from "recharts";
-import { Search, FilterX } from "lucide-react";
+import { Search, FilterX, TrendingUp, TrendingDown, Scale } from "lucide-react";
 
 const formatCurrency = (value) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
     parseFloat(value) || 0,
   );
 
+// ─── Tooltips personalizados ───────────────────────────────────────────────────
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white p-2.5 sm:p-3 rounded-xl border border-slate-200 shadow-md">
-        <p className="font-semibold text-slate-800 text-xs sm:text-sm m-0">
+      <div className="bg-white dark:bg-[#1E222B] p-2.5 sm:p-3 rounded-xl border border-slate-200 dark:border-[#2E3342] shadow-md">
+        <p className="font-semibold text-slate-800 dark:text-slate-100 text-xs sm:text-sm m-0">
           {`${payload[0].name || payload[0].dataKey} : ${formatCurrency(payload[0].value)}`}
         </p>
       </div>
@@ -38,8 +39,8 @@ const CustomTooltip = ({ active, payload }) => {
 const MultiTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-200 shadow-md">
-        <p className="font-bold text-slate-700 text-xs sm:text-sm border-b border-slate-100 pb-2 mb-2">
+      <div className="bg-white dark:bg-[#1E222B] p-3 sm:p-4 rounded-xl border border-slate-200 dark:border-[#2E3342] shadow-md">
+        <p className="font-bold text-slate-700 dark:text-slate-200 text-xs sm:text-sm border-b border-slate-100 dark:border-[#2E3342] pb-2 mb-2">
           {label}
         </p>
         {payload.map((entry, index) => (
@@ -57,17 +58,12 @@ const MultiTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-// ==========================================
-// SUB-COMPONENTE: TABELA ISOLADA E MEMOIZADA
-// ==========================================
-// O 'memo' garante que este componente só re-renderize se a prop 'transacoes' mudar.
-// Como os estados dos filtros estão aqui dentro, digitar na busca não afeta os gráficos do painel.
+// ─── Tabela Filtrada (memoizada) ───────────────────────────────────────────────
 const TabelaFiltrada = memo(({ transacoes }) => {
   const [filtroDescricao, setFiltroDescricao] = useState("");
   const [filtroTipo, setFiltroTipo] = useState("todos");
   const [filtroCategoria, setFiltroCategoria] = useState("todas");
 
-  // Limpa os filtros locais caso o período principal (e consequentemente as transações) mude
   useEffect(() => {
     setFiltroDescricao("");
     setFiltroTipo("todos");
@@ -98,45 +94,48 @@ const TabelaFiltrada = memo(({ transacoes }) => {
     setFiltroCategoria("todas");
   };
 
-  const cardClass =
-    "bg-white rounded-2xl shadow-lg border border-slate-100 flex flex-col p-0 sm:p-0 overflow-hidden mt-6 sm:mt-8";
+  const hasFilter =
+    filtroDescricao || filtroTipo !== "todos" || filtroCategoria !== "todas";
+
+  const selectClass =
+    "w-full md:w-auto px-3 py-2.5 border border-slate-200 dark:border-[#2E3342] rounded-xl text-sm font-medium focus:outline-none focus:border-[#B6FFE2] focus:ring-2 focus:ring-[#B6FFE2]/20 bg-white dark:bg-[#14171F] text-slate-700 dark:text-slate-200 shadow-xs cursor-pointer transition-colors";
 
   return (
-    <div className={cardClass}>
-      <div className="p-5 sm:p-6 md:p-8 pb-4 sm:pb-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h3 className="font-bold text-lg sm:text-xl text-slate-800 m-0">
+    <div className="bg-white dark:bg-[#1E222B] rounded-2xl border border-slate-200/80 dark:border-[#2E3342] shadow-xs overflow-hidden mt-0">
+      {/* Cabeçalho da tabela */}
+      <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-[#2E3342] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <h3 className="font-bold text-lg text-slate-800 dark:text-white">
           Extrato do Período
         </h3>
-        {(filtroDescricao ||
-          filtroTipo !== "todos" ||
-          filtroCategoria !== "todas") && (
+        {hasFilter && (
           <button
             onClick={limparFiltros}
-            className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-red-500 transition-colors"
+            className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-[#8E9AA8] hover:text-red-500 dark:hover:text-red-400 transition-colors"
           >
             <FilterX size={14} /> Limpar Filtros
           </button>
         )}
       </div>
 
-      <div className="flex flex-col md:flex-row gap-3 p-4 sm:p-5 md:px-8 border-b border-slate-100 bg-slate-50/50">
+      {/* Filtros da tabela */}
+      <div className="flex flex-col md:flex-row gap-3 p-4 sm:p-5 border-b border-slate-100 dark:border-[#2E3342] bg-slate-50/50 dark:bg-[#14171F]/40">
         <div className="relative flex-1">
           <Search
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
-            size={16}
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-[#687082]"
+            size={15}
           />
           <input
             type="text"
             placeholder="Buscar por descrição..."
             value={filtroDescricao}
             onChange={(e) => setFiltroDescricao(e.target.value)}
-            className="w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 bg-white transition-all shadow-sm"
+            className="w-full pl-10 pr-3 py-2.5 border border-slate-200 dark:border-[#2E3342] rounded-xl text-sm focus:outline-none focus:border-[#B6FFE2] focus:ring-2 focus:ring-[#B6FFE2]/20 bg-white dark:bg-[#14171F] text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-[#687082] shadow-xs transition-all"
           />
         </div>
         <select
           value={filtroTipo}
           onChange={(e) => setFiltroTipo(e.target.value)}
-          className="w-full md:w-auto px-3 py-2.5 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 bg-white shadow-sm text-slate-700 cursor-pointer"
+          className={selectClass}
         >
           <option value="todos">Todos os Tipos</option>
           <option value="receita">Receitas</option>
@@ -146,7 +145,7 @@ const TabelaFiltrada = memo(({ transacoes }) => {
           value={filtroCategoria}
           onChange={(e) => setFiltroCategoria(e.target.value)}
           disabled={filtroTipo === "receita"}
-          className="w-full md:w-auto px-3 py-2.5 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 bg-white shadow-sm text-slate-700 cursor-pointer disabled:opacity-50 disabled:bg-slate-100"
+          className={selectClass + " disabled:opacity-50"}
         >
           <option value="todas">Todas as Categorias</option>
           {categoriasDisponiveis.map((c) => (
@@ -157,67 +156,78 @@ const TabelaFiltrada = memo(({ transacoes }) => {
         </select>
       </div>
 
+      {/* Tabela */}
       <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse min-w-150">
-          <thead className="bg-slate-50 border-b border-slate-200 text-xs font-bold uppercase tracking-wider text-slate-500">
+        <table className="w-full text-left border-collapse min-w-[600px]">
+          <thead className="bg-slate-50 dark:bg-[#14171F]/60 border-b border-slate-200 dark:border-[#2E3342] text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-[#687082]">
             <tr>
-              <th className="p-4 pl-5 sm:pl-8">Descrição</th>
+              <th className="p-4 pl-5 sm:pl-6">Descrição</th>
               <th className="p-4">Valor</th>
               <th className="p-4">Tipo</th>
               <th className="p-4">Data</th>
               <th className="p-4">Categoria</th>
             </tr>
           </thead>
-          <tbody className="text-slate-700 text-sm">
+          <tbody className="text-slate-700 dark:text-slate-200 text-sm divide-y divide-slate-100 dark:divide-[#2E3342]">
             {transacoesFiltradas.length > 0 ? (
-              transacoesFiltradas.map((t, i) => (
+              transacoesFiltradas.map((t) => (
                 <tr
                   key={t.id}
-                  className={`${i % 2 === 0 ? "bg-white" : "bg-slate-50/30"} hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0`}
+                  className="hover:bg-slate-50 dark:hover:bg-[#14171F]/40 transition-colors"
                 >
-                  <td className="p-4 pl-5 sm:pl-8 font-semibold text-slate-800">
+                  <td className="p-4 pl-5 sm:pl-6 font-semibold text-slate-800 dark:text-slate-100">
                     {t.descricao}
                   </td>
                   <td
-                    className={`p-4 font-bold ${t.tipo === "receita" ? "text-emerald-500" : "text-red-500"}`}
+                    className={`p-4 font-bold ${
+                      t.tipo === "receita"
+                        ? "text-emerald-600 dark:text-[#B6FFE2]"
+                        : "text-red-500 dark:text-red-400"
+                    }`}
                   >
                     {formatCurrency(t.valor)}
                   </td>
                   <td className="p-4">
                     <span
-                      className={`px-2.5 py-1 text-[0.7rem] font-extrabold uppercase tracking-wide rounded-full ${t.tipo === "receita" ? "bg-emerald-100 text-emerald-600" : "bg-red-100 text-red-600"}`}
+                      className={`px-2.5 py-1 text-[0.7rem] font-extrabold uppercase tracking-wide rounded-full ${
+                        t.tipo === "receita"
+                          ? "bg-emerald-100 dark:bg-[#B6FFE2]/15 text-emerald-700 dark:text-[#B6FFE2]"
+                          : "bg-red-100 dark:bg-red-500/15 text-red-600 dark:text-red-400"
+                      }`}
                     >
                       {t.tipo}
                     </span>
                   </td>
-                  <td className="p-4 text-slate-500 text-xs sm:text-sm">
+                  <td className="p-4 text-slate-500 dark:text-[#8E9AA8] text-xs sm:text-sm">
                     {new Date(t.data).toLocaleDateString("pt-BR", {
                       timeZone: "UTC",
                     })}
                   </td>
-                  <td className="p-4 font-medium text-slate-500 text-xs sm:text-sm">
+                  <td className="p-4 font-medium text-slate-500 dark:text-[#8E9AA8] text-xs sm:text-sm">
                     {t.categoria_nome ? (
                       <span className="flex items-center gap-1.5">
                         <span
-                          className="w-2 h-2 rounded-full"
+                          className="w-2 h-2 rounded-full shrink-0"
                           style={{
                             backgroundColor: t.categoria_cor || "#10b981",
                           }}
-                        ></span>
+                        />
                         {t.categoria_nome}
                       </span>
                     ) : (
-                      "-"
+                      <span className="text-slate-300 dark:text-[#687082]">—</span>
                     )}
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="5" className="p-10 text-center text-slate-500">
-                  <div className="flex flex-col items-center gap-2">
-                    <Search size={24} className="text-slate-300" />
-                    <p>Nenhuma transação encontrada com os filtros atuais.</p>
+                <td colSpan="5" className="p-10 text-center">
+                  <div className="flex flex-col items-center gap-2 text-slate-400 dark:text-[#8E9AA8]">
+                    <Search size={24} className="opacity-40" />
+                    <p className="font-medium">
+                      Nenhuma transação encontrada com os filtros atuais.
+                    </p>
                   </div>
                 </td>
               </tr>
@@ -229,9 +239,7 @@ const TabelaFiltrada = memo(({ transacoes }) => {
   );
 });
 
-// ==========================================
-// COMPONENTE PRINCIPAL: COMPARATIVO
-// ==========================================
+// ─── Componente principal ──────────────────────────────────────────────────────
 function Comparativo() {
   const [comparativo, setComparativo] = useState(null);
   const [transacoes, setTransacoes] = useState([]);
@@ -273,6 +281,7 @@ function Comparativo() {
         setComparativo(await cRes.json());
         setTransacoes(await tRes.json());
       } catch (err) {
+        // silencioso
       } finally {
         setLoading(false);
       }
@@ -325,21 +334,34 @@ function Comparativo() {
     return Object.values(mapaDias);
   }, [transacoes]);
 
+  // Constantes de estilo para cards e títulos
   const cardClass =
-    "bg-white rounded-2xl p-5 sm:p-6 md:p-8 shadow-lg border border-slate-100 flex flex-col";
-  const titleClass = "font-bold text-lg sm:text-xl text-slate-800 mb-5 sm:mb-6";
+    "bg-white dark:bg-[#1E222B] rounded-2xl p-5 sm:p-6 border border-slate-200/80 dark:border-[#2E3342] shadow-xs flex flex-col";
+
+  const titleClass =
+    "font-bold text-lg text-slate-800 dark:text-white mb-5 sm:mb-6";
+
+  // Cores para os gráficos adaptadas ao dark mode (usamos cores fixas que são legíveis nos dois modos)
+  const chartColors = {
+    receita: "#10b981",
+    despesa: "#ef4444",
+    gridLight: "#f1f5f9",
+    gridDark: "#2E3342",
+    tick: "#94a3b8",
+  };
 
   return (
     <div className="flex flex-col gap-6 sm:gap-8 w-full">
-      {/* LINHA 1: Resumo e Gastos */}
+      {/* ── LINHA 1: Resumo + Gráfico de Pizza ── */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 sm:gap-8">
+        {/* Card: Resumo Geral */}
         <div className={cardClass}>
           <div className="flex justify-between items-center mb-5 sm:mb-6">
-            <h2 className="font-bold text-lg sm:text-xl text-slate-800">
+            <h2 className="font-bold text-lg text-slate-800 dark:text-white">
               Resumo Geral
             </h2>
             <select
-              className="p-2 sm:p-2.5 border border-slate-200 rounded-lg text-xs sm:text-sm font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer"
+              className="p-2 sm:p-2.5 border border-slate-200 dark:border-[#2E3342] rounded-lg text-xs sm:text-sm font-medium bg-white dark:bg-[#14171F] text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#B6FFE2]/30 cursor-pointer transition-colors"
               value={periodo}
               onChange={(e) => setPeriodo(e.target.value)}
             >
@@ -350,49 +372,85 @@ function Comparativo() {
             </select>
           </div>
 
-          {!loading && comparativo && (
+          {loading ? (
+            <div className="flex flex-col gap-3 grow justify-center animate-pulse">
+              <div className="h-6 bg-slate-100 dark:bg-[#23262F] rounded-lg" />
+              <div className="h-6 bg-slate-100 dark:bg-[#23262F] rounded-lg" />
+              <div className="h-24 bg-slate-100 dark:bg-[#23262F] rounded-xl mt-4" />
+            </div>
+          ) : comparativo ? (
             <div className="flex flex-col gap-3 sm:gap-4 grow justify-center">
-              <div className="flex justify-between border-b border-slate-100 pb-3 sm:pb-4">
-                <span className="text-slate-500 text-sm sm:text-base font-medium">
-                  Receitas
-                </span>
-                <strong className="text-emerald-500 text-lg sm:text-xl">
+              {/* Receitas */}
+              <div className="flex items-center justify-between p-3.5 rounded-xl bg-emerald-50 dark:bg-[#B6FFE2]/10 border border-emerald-100 dark:border-[#B6FFE2]/20">
+                <div className="flex items-center gap-2.5 text-emerald-700 dark:text-[#B6FFE2]">
+                  <TrendingUp size={18} />
+                  <span className="text-sm font-semibold">Receitas</span>
+                </div>
+                <strong className="text-emerald-600 dark:text-[#B6FFE2] text-lg">
                   {formatCurrency(comparativo.totalReceitas)}
                 </strong>
               </div>
-              <div className="flex justify-between border-b border-slate-100 pb-3 sm:pb-4">
-                <span className="text-slate-500 text-sm sm:text-base font-medium">
-                  Despesas
-                </span>
-                <strong className="text-red-500 text-lg sm:text-xl">
+
+              {/* Despesas */}
+              <div className="flex items-center justify-between p-3.5 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20">
+                <div className="flex items-center gap-2.5 text-red-600 dark:text-red-400">
+                  <TrendingDown size={18} />
+                  <span className="text-sm font-semibold">Despesas</span>
+                </div>
+                <strong className="text-red-500 dark:text-red-400 text-lg">
                   {formatCurrency(comparativo.totalDespesas)}
                 </strong>
               </div>
-              <div className="flex flex-col items-center bg-slate-50 p-5 sm:p-6 rounded-xl mt-2 sm:mt-4 text-center border border-slate-100">
-                <span className="text-xs sm:text-sm font-semibold text-slate-500 uppercase tracking-wide">
+
+              {/* Balanço */}
+              <div
+                className={`flex flex-col items-center p-5 rounded-xl mt-1 text-center border ${
+                  comparativo.balanco >= 0
+                    ? "bg-emerald-50 dark:bg-[#B6FFE2]/10 border-emerald-100 dark:border-[#B6FFE2]/20"
+                    : "bg-red-50 dark:bg-red-500/10 border-red-100 dark:border-red-500/20"
+                }`}
+              >
+                <Scale
+                  size={18}
+                  className={
+                    comparativo.balanco >= 0
+                      ? "text-emerald-500 dark:text-[#B6FFE2] mb-2"
+                      : "text-red-500 dark:text-red-400 mb-2"
+                  }
+                />
+                <span className="text-xs font-bold text-slate-500 dark:text-[#8E9AA8] uppercase tracking-wide">
                   Balanço Final
                 </span>
                 <strong
-                  className={`text-3xl sm:text-4xl font-black mt-1 sm:mt-2 tracking-tight ${comparativo.balanco >= 0 ? "text-emerald-500" : "text-red-500"}`}
+                  className={`text-3xl sm:text-4xl font-black mt-1.5 tracking-tight ${
+                    comparativo.balanco >= 0
+                      ? "text-emerald-600 dark:text-[#B6FFE2]"
+                      : "text-red-500 dark:text-red-400"
+                  }`}
                 >
                   {formatCurrency(comparativo.balanco)}
                 </strong>
                 <span
-                  className={`text-[0.7rem] sm:text-xs font-bold mt-3 px-3 py-1 sm:px-4 sm:py-1.5 rounded-full ${comparativo.balanco >= 0 ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}
+                  className={`text-xs font-bold mt-2.5 px-3 py-1 rounded-full ${
+                    comparativo.balanco >= 0
+                      ? "bg-emerald-100 dark:bg-[#B6FFE2]/20 text-emerald-700 dark:text-[#B6FFE2]"
+                      : "bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-400"
+                  }`}
                 >
-                  {comparativo.balanco >= 0 ? "Positivo" : "Negativo"}
+                  {comparativo.balanco >= 0 ? "Positivo ✓" : "Negativo"}
                 </span>
               </div>
             </div>
-          )}
+          ) : null}
         </div>
 
+        {/* Gráfico de Pizza: Despesas por Categoria */}
         {!loading && comparativo?.gastosPorCategoria?.length > 0 ? (
           <div className={`${cardClass} xl:col-span-2 items-center`}>
-            <h3 className="w-full text-left font-bold text-lg sm:text-xl text-slate-800 border-b border-slate-100 pb-3 sm:pb-4 mb-2 sm:mb-4">
+            <h3 className="w-full text-left font-bold text-lg text-slate-800 dark:text-white border-b border-slate-100 dark:border-[#2E3342] pb-3 sm:pb-4 mb-4">
               Despesas por Categoria
             </h3>
-            <div className="w-full h-62.5 sm:h-75">
+            <div className="w-full h-64 sm:h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -400,7 +458,7 @@ function Comparativo() {
                     cx="50%"
                     cy="50%"
                     innerRadius="45%"
-                    outerRadius="75%"
+                    outerRadius="72%"
                     dataKey="value"
                     stroke="none"
                   >
@@ -416,29 +474,28 @@ function Comparativo() {
                     verticalAlign="bottom"
                     height={36}
                     iconType="circle"
-                    wrapperStyle={{ fontSize: "12px" }}
+                    wrapperStyle={{ fontSize: "12px", color: "#94a3b8" }}
                   />
                 </PieChart>
               </ResponsiveContainer>
             </div>
           </div>
-        ) : (
-          <div
-            className={`${cardClass} xl:col-span-2 items-center justify-center`}
-          >
-            <p className="text-slate-400 text-sm">
+        ) : !loading ? (
+          <div className={`${cardClass} xl:col-span-2 items-center justify-center`}>
+            <p className="text-slate-400 dark:text-[#8E9AA8] text-sm">
               Nenhum gasto para exibir o gráfico.
             </p>
           </div>
-        )}
+        ) : null}
       </div>
 
-      {/* LINHA 2: Barras */}
+      {/* ── LINHA 2: Barras ── */}
       {!loading && transacoes.length > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+          {/* Receitas x Despesas */}
           <div className={cardClass}>
-            <h3 className={titleClass}>Receitas x Despesas</h3>
-            <div className="w-full h-62.5 sm:h-75">
+            <h3 className={titleClass}>Receitas × Despesas</h3>
+            <div className="w-full h-64 sm:h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={dataBalanco}
@@ -447,18 +504,18 @@ function Comparativo() {
                   <CartesianGrid
                     strokeDasharray="3 3"
                     vertical={false}
-                    stroke="#f1f5f9"
+                    stroke={chartColors.gridLight}
                   />
                   <XAxis
                     dataKey="name"
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fontSize: 11, fill: "#94a3b8" }}
+                    tick={{ fontSize: 11, fill: chartColors.tick }}
                   />
                   <YAxis hide />
                   <RechartsTooltip
                     content={<MultiTooltip />}
-                    cursor={{ fill: "#f8fafc" }}
+                    cursor={{ fill: "rgba(148,163,184,0.08)" }}
                   />
                   <Legend
                     iconType="circle"
@@ -466,25 +523,26 @@ function Comparativo() {
                   />
                   <Bar
                     dataKey="Receitas"
-                    fill="#10b981"
-                    radius={[6, 6, 0, 0]}
-                    maxBarSize={60}
+                    fill={chartColors.receita}
+                    radius={[8, 8, 0, 0]}
+                    maxBarSize={64}
                   />
                   <Bar
                     dataKey="Despesas"
-                    fill="#ef4444"
-                    radius={[6, 6, 0, 0]}
-                    maxBarSize={60}
+                    fill={chartColors.despesa}
+                    radius={[8, 8, 0, 0]}
+                    maxBarSize={64}
                   />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
 
+          {/* Top 5 Maiores Despesas */}
           <div className={cardClass}>
             <h3 className={titleClass}>Top 5 Maiores Despesas</h3>
             {topDespesas.length > 0 ? (
-              <div className="w-full h-62.5 sm:h-75">
+              <div className="w-full h-64 sm:h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={topDespesas}
@@ -494,7 +552,7 @@ function Comparativo() {
                     <CartesianGrid
                       strokeDasharray="3 3"
                       horizontal={false}
-                      stroke="#f1f5f9"
+                      stroke={chartColors.gridLight}
                     />
                     <XAxis type="number" hide />
                     <YAxis
@@ -502,14 +560,18 @@ function Comparativo() {
                       type="category"
                       axisLine={false}
                       tickLine={false}
-                      tick={{ fontSize: 11, fill: "#64748b", fontWeight: 600 }}
-                      width={80}
+                      tick={{
+                        fontSize: 11,
+                        fill: "#64748b",
+                        fontWeight: 600,
+                      }}
+                      width={82}
                     />
                     <RechartsTooltip
                       content={<CustomTooltip />}
-                      cursor={{ fill: "#f8fafc" }}
+                      cursor={{ fill: "rgba(148,163,184,0.08)" }}
                     />
-                    <Bar dataKey="valor" radius={[0, 6, 6, 0]} maxBarSize={30}>
+                    <Bar dataKey="valor" radius={[0, 8, 8, 0]} maxBarSize={32}>
                       {topDespesas.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.cor} />
                       ))}
@@ -519,7 +581,7 @@ function Comparativo() {
               </div>
             ) : (
               <div className="flex items-center justify-center h-full">
-                <p className="text-slate-400 text-sm">
+                <p className="text-slate-400 dark:text-[#8E9AA8] text-sm">
                   Nenhuma despesa no período.
                 </p>
               </div>
@@ -528,11 +590,11 @@ function Comparativo() {
         </div>
       )}
 
-      {/* LINHA 3: Área */}
+      {/* ── LINHA 3: Fluxo de Caixa Diário (Área) ── */}
       {!loading && fluxoDiario.length > 0 && (
         <div className={cardClass}>
           <h3 className={titleClass}>Fluxo de Caixa Diário</h3>
-          <div className="w-full h-62.5 sm:h-87.5">
+          <div className="w-full h-64 sm:h-[350px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart
                 data={fluxoDiario}
@@ -540,33 +602,33 @@ function Comparativo() {
               >
                 <defs>
                   <linearGradient id="colorReceita" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.25} />
                     <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="colorDespesa" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
+                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.25} />
                     <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid
                   strokeDasharray="3 3"
                   vertical={false}
-                  stroke="#f1f5f9"
+                  stroke={chartColors.gridLight}
                 />
                 <XAxis
                   dataKey="name"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fontSize: 10, fill: "#94a3b8" }}
+                  tick={{ fontSize: 10, fill: chartColors.tick }}
                   dy={10}
                   minTickGap={15}
                 />
                 <YAxis
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fontSize: 10, fill: "#94a3b8" }}
+                  tick={{ fontSize: 10, fill: chartColors.tick }}
                   tickFormatter={(value) => `R$ ${value}`}
-                  width={70}
+                  width={72}
                 />
                 <RechartsTooltip content={<MultiTooltip />} />
                 <Legend
@@ -578,16 +640,16 @@ function Comparativo() {
                 <Area
                   type="monotone"
                   dataKey="Receitas"
-                  stroke="#10b981"
-                  strokeWidth={3}
+                  stroke={chartColors.receita}
+                  strokeWidth={2.5}
                   fillOpacity={1}
                   fill="url(#colorReceita)"
                 />
                 <Area
                   type="monotone"
                   dataKey="Despesas"
-                  stroke="#ef4444"
-                  strokeWidth={3}
+                  stroke={chartColors.despesa}
+                  strokeWidth={2.5}
                   fillOpacity={1}
                   fill="url(#colorDespesa)"
                 />
@@ -597,7 +659,7 @@ function Comparativo() {
         </div>
       )}
 
-      {/* LINHA 4: TABELA OTIMIZADA E ISOLADA */}
+      {/* ── LINHA 4: Extrato/Tabela filtrada ── */}
       <TabelaFiltrada transacoes={transacoes} />
     </div>
   );

@@ -1,64 +1,38 @@
 import React, { useState, useContext } from "react";
 import { AuthContext } from "../App";
-import { Plus, Edit2, Trash2, Dices } from "lucide-react";
+import { Plus, Edit2, Trash2, Dices, AlertCircle, Tag } from "lucide-react";
+import ConfirmDialog from "./ui/ConfirmDialog";
+import Button from "./ui/Button";
 
 // Paleta expandida com 40 cores otimizadas para leitura
 const PALETTE = [
-  "#ef4444",
-  "#dc2626",
-  "#f87171", // Vermelhos
-  "#f97316",
-  "#ea580c",
-  "#fb923c", // Laranjas
-  "#f59e0b",
-  "#d97706",
-  "#fbbf24", // Âmbares/Amarelos
-  "#84cc16",
-  "#65a30d",
-  "#a3e635", // Limão
-  "#22c55e",
-  "#16a34a",
-  "#4ade80", // Verdes
-  "#10b981",
-  "#059669",
-  "#34d399", // Esmeraldas
-  "#14b8a6",
-  "#0d9488",
-  "#2dd4bf", // Teal (Verde-azulado)
-  "#06b6d4",
-  "#0891b2",
-  "#22d3ee", // Ciano
-  "#0ea5e9",
-  "#0284c7",
-  "#38bdf8", // Sky (Azul Céu)
-  "#3b82f6",
-  "#2563eb",
-  "#60a5fa", // Azuis
-  "#6366f1",
-  "#4f46e5",
-  "#818cf8", // Índigos
-  "#8b5cf6",
-  "#7c3aed",
-  "#a78bfa", // Violetas
-  "#a855f7",
-  "#9333ea",
-  "#c084fc", // Roxos
-  "#d946ef",
-  "#c026d3",
-  "#e879f9", // Fúcsias
-  "#ec4899",
-  "#db2777",
-  "#f472b6", // Rosas
-  "#f43f5e",
-  "#e11d48",
-  "#fb7185", // Roses
-  "#64748b",
-  "#475569", // Slates (Cinzento-azulado)
+  "#ef4444", "#dc2626", "#f87171", // Vermelhos
+  "#f97316", "#ea580c", "#fb923c", // Laranjas
+  "#f59e0b", "#d97706", "#fbbf24", // Âmbares
+  "#84cc16", "#65a30d", "#a3e635", // Limão
+  "#22c55e", "#16a34a", "#4ade80", // Verdes
+  "#10b981", "#059669", "#34d399", // Esmeraldas
+  "#B6FFE2", "#14b8a6", "#0d9488", // Lime Spark & Teal
+  "#06b6d4", "#0891b2", "#22d3ee", // Ciano
+  "#0ea5e9", "#0284c7", "#38bdf8", // Sky
+  "#3b82f6", "#2563eb", "#60a5fa", // Azuis
+  "#6366f1", "#4f46e5", "#818cf8", // Índigos
+  "#8b5cf6", "#7c3aed", "#a78bfa", // Violetas
+  "#a855f7", "#9333ea", "#c084fc", // Roxos
+  "#d946ef", "#c026d3", "#e879f9", // Fúcsias
+  "#ec4899", "#db2777", "#f472b6", // Rosas
+  "#f43f5e", "#e11d48", "#fb7185", // Roses
+  "#64748b", "#475569",             // Slates
 ];
 
 function GerenciarCategorias({ categorias, onCategoriaChange, onEdit }) {
   const [novaCategoria, setNovaCategoria] = useState("");
-  const [cor, setCor] = useState("#3b82f6");
+  const [cor, setCor] = useState("#B6FFE2");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [categoriaParaExcluir, setCategoriaParaExcluir] = useState(null);
+  const [excluindo, setExcluindo] = useState(false);
+
   const { token, API_URL } = useContext(AuthContext);
 
   const getRandomColor = () => {
@@ -82,36 +56,77 @@ function GerenciarCategorias({ categorias, onCategoriaChange, onEdit }) {
   const handleAdd = async (e) => {
     e.preventDefault();
     if (!novaCategoria.trim()) return;
+    setLoading(true);
+    setError("");
+
     try {
-      await fetch(`${API_URL}/categorias`, {
+      const res = await fetch(`${API_URL}/categorias`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ nome: novaCategoria, cor: cor }),
+        body: JSON.stringify({ nome: novaCategoria.trim(), cor: cor }),
       });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erro ao adicionar categoria.");
+
       onCategoriaChange();
       setNovaCategoria("");
       getRandomColor();
-    } catch (error) {
-      alert("Erro ao adicionar");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const confirmarExcluir = async () => {
+    if (!categoriaParaExcluir) return;
+    setExcluindo(true);
+    try {
+      const res = await fetch(`${API_URL}/categorias/${categoriaParaExcluir.id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const d = await res.json();
+        throw new Error(d.error || "Erro ao deletar categoria.");
+      }
+      setCategoriaParaExcluir(null);
+      onCategoriaChange();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setExcluindo(false);
     }
   };
 
   return (
-    <div className="bg-white p-5 md:p-8 rounded-2xl shadow-lg border border-slate-100 flex flex-col h-fit">
-      <h3 className="font-semibold text-lg text-slate-800 border-b border-slate-100 pb-3 mb-5">
-        Categorias
-      </h3>
+    <div className="bg-white dark:bg-[#1E222B] p-5 sm:p-7 rounded-2xl shadow-xs border border-slate-200/80 dark:border-[#2E3342] flex flex-col h-fit transition-colors duration-200">
+      <div className="flex items-center justify-between border-b border-slate-100 dark:border-[#2E3342] pb-3 mb-4">
+        <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100 flex items-center gap-2">
+          <Tag size={18} className="text-[#059669] dark:text-[#B6FFE2]" />
+          Categorias
+        </h3>
+        <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-slate-100 dark:bg-[#14171F] text-slate-600 dark:text-[#8E9AA8] border border-slate-200 dark:border-[#2E3342]">
+          {categorias.length}
+        </span>
+      </div>
 
-      <form
-        onSubmit={handleAdd}
-        className="flex gap-2.5 mb-6 items-center w-full"
-      >
-        <div className="flex flex-1 items-center gap-2 border border-slate-200 rounded-xl p-1.5 focus-within:ring-2 focus-within:ring-emerald-500/20 focus-within:border-emerald-500 bg-white shadow-sm transition-all">
+      {error && (
+        <div className="flex items-center gap-2.5 p-3 rounded-xl bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 text-xs font-semibold border border-red-200 dark:border-red-500/20 mb-4">
+          <AlertCircle size={16} className="shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {/* Formulário de Nova Categoria */}
+      <form onSubmit={handleAdd} className="flex gap-2 mb-4 items-center w-full">
+        <div className="flex flex-1 items-center gap-2 border border-slate-200 dark:border-[#2E3342] rounded-xl p-1.5 focus-within:ring-2 focus-within:ring-[#B6FFE2]/40 focus-within:border-[#B6FFE2] bg-slate-50/50 dark:bg-[#14171F] shadow-xs transition-all">
+          {/* Seletor de cor */}
           <div
-            className="relative w-8 h-8 shrink-0 rounded-full shadow-sm border border-slate-200 overflow-hidden cursor-pointer flex items-center justify-center transition-transform hover:scale-105"
+            className="relative w-7 h-7 shrink-0 rounded-full shadow-xs border border-white/40 overflow-hidden cursor-pointer flex items-center justify-center transition-transform hover:scale-105"
             style={{ backgroundColor: cor }}
             title="Escolher cor manualmente"
           >
@@ -119,73 +134,68 @@ function GerenciarCategorias({ categorias, onCategoriaChange, onEdit }) {
               type="color"
               value={cor}
               onChange={(e) => setCor(e.target.value)}
-              className="absolute inset-0 w-16 h-16 -top-4 -left-4 opacity-0 cursor-pointer"
+              className="absolute inset-0 w-14 h-14 -top-3 -left-3 opacity-0 cursor-pointer"
             />
           </div>
 
           <input
             type="text"
-            className="flex-1 w-full px-1 py-1.5 outline-none text-sm bg-transparent min-w-0 text-slate-700 placeholder:text-slate-400"
+            className="flex-1 w-full px-1 py-1 text-sm bg-transparent outline-none min-w-0 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-[#687082]"
             value={novaCategoria}
             onChange={(e) => setNovaCategoria(e.target.value)}
-            placeholder="Nome da categoria..."
+            placeholder="Nova categoria..."
+            maxLength={50}
           />
 
           <button
             type="button"
             onClick={getRandomColor}
-            className="shrink-0 bg-slate-50 hover:bg-slate-200 text-slate-500 hover:text-emerald-500 p-1.5 rounded-lg transition-colors border border-transparent hover:border-slate-300"
+            className="shrink-0 p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-[#B6FFE2] hover:bg-slate-200 dark:hover:bg-[#23262F] transition-colors cursor-pointer"
             title="Sortear cor aleatória"
           >
-            <Dices size={18} />
+            <Dices size={16} />
           </button>
         </div>
 
         <button
           type="submit"
-          className="shrink-0 bg-emerald-500 hover:bg-emerald-600 text-white p-3 rounded-xl transition-all hover:-translate-y-0.5 shadow-md flex items-center justify-center"
+          disabled={loading || !novaCategoria.trim()}
+          className="shrink-0 bg-[#B6FFE2] hover:bg-[#8DF3CA] text-[#14171F] p-2.5 rounded-xl font-bold shadow-xs hover:shadow-md transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center"
           title="Adicionar Categoria"
         >
-          <Plus size={20} strokeWidth={2.5} />
+          <Plus size={18} strokeWidth={2.5} />
         </button>
       </form>
 
-      <ul className="flex flex-col gap-2.5 max-h-87.5 overflow-y-auto pr-2 custom-scrollbar">
+      {/* Lista de Categorias Cadastradas */}
+      <ul className="flex flex-col gap-2 max-h-72 overflow-y-auto pr-1">
         {categorias.map((cat) => (
           <li
             key={cat.id}
-            className="flex justify-between items-center p-3 bg-white rounded-xl border border-slate-100 hover:border-slate-200 hover:shadow-sm transition-all group"
+            className="flex justify-between items-center p-2.5 bg-slate-50 dark:bg-[#14171F] rounded-xl border border-slate-200/60 dark:border-[#2E3342] hover:border-slate-300 dark:hover:border-[#3E4351] transition-all group"
           >
-            <div className="flex items-center gap-3.5">
-              <div
-                className="w-3.5 h-3.5 rounded-full shadow-sm"
-                style={{ backgroundColor: cat.cor || "#10b981" }}
-              ></div>
-              <span className="font-semibold text-slate-700 text-sm">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <span
+                className="w-3 h-3 rounded-full shrink-0 shadow-xs"
+                style={{ backgroundColor: cat.cor || "#B6FFE2" }}
+              />
+              <span className="font-semibold text-slate-700 dark:text-slate-200 text-xs sm:text-sm truncate">
                 {cat.nome}
               </span>
             </div>
 
-            <div className="flex gap-2 shrink-0 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="flex gap-1 shrink-0 opacity-100 sm:opacity-80 group-hover:opacity-100 transition-opacity">
               <button
                 onClick={() => onEdit(cat)}
-                className="bg-blue-50 text-blue-500 hover:bg-blue-500 hover:text-white p-1.5 rounded-lg transition-all"
-                title="Editar"
+                className="text-slate-500 dark:text-[#8E9AA8] hover:text-[#059669] dark:hover:text-[#B6FFE2] p-1.5 rounded-lg hover:bg-slate-200/60 dark:hover:bg-[#23262F] transition-colors cursor-pointer"
+                title="Editar Categoria"
               >
                 <Edit2 size={14} />
               </button>
               <button
-                onClick={async () => {
-                  if (window.confirm("Deseja mesmo excluir esta categoria?")) {
-                    await fetch(`${API_URL}/categorias/${cat.id}`, {
-                      method: "DELETE",
-                      headers: { Authorization: `Bearer ${token}` },
-                    });
-                    onCategoriaChange();
-                  }
-                }}
-                className="bg-red-50 text-red-500 hover:bg-red-500 hover:text-white p-1.5 rounded-lg transition-all"
-                title="Excluir"
+                onClick={() => setCategoriaParaExcluir(cat)}
+                className="text-slate-500 dark:text-[#8E9AA8] hover:text-red-500 dark:hover:text-red-400 p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors cursor-pointer"
+                title="Excluir Categoria"
               >
                 <Trash2 size={14} />
               </button>
@@ -193,11 +203,22 @@ function GerenciarCategorias({ categorias, onCategoriaChange, onEdit }) {
           </li>
         ))}
         {categorias.length === 0 && (
-          <p className="text-center text-sm text-slate-400 py-4">
-            Você ainda não tem categorias.
+          <p className="text-center text-xs text-slate-400 dark:text-[#8E9AA8] py-4">
+            Você ainda não tem categorias cadastradas.
           </p>
         )}
       </ul>
+
+      {/* Confirmação de exclusão */}
+      <ConfirmDialog
+        isOpen={!!categoriaParaExcluir}
+        onClose={() => setCategoriaParaExcluir(null)}
+        onConfirm={confirmarExcluir}
+        loading={excluindo}
+        title="Excluir Categoria"
+        message={`Deseja realmente excluir a categoria "${categoriaParaExcluir?.nome}"?`}
+        confirmText="Sim, excluir"
+      />
     </div>
   );
 }
