@@ -6,23 +6,56 @@ import Button from "./ui/Button";
 
 // Paleta expandida com cores otimizadas
 const PALETTE = [
-  "#ef4444", "#dc2626", "#f87171",
-  "#f97316", "#ea580c", "#fb923c",
-  "#f59e0b", "#d97706", "#fbbf24",
-  "#84cc16", "#65a30d", "#a3e635",
-  "#22c55e", "#16a34a", "#4ade80",
-  "#10b981", "#059669", "#34d399",
-  "#B6FFE2", "#14b8a6", "#0d9488",
-  "#06b6d4", "#0891b2", "#22d3ee",
-  "#0ea5e9", "#0284c7", "#38bdf8",
-  "#3b82f6", "#2563eb", "#60a5fa",
-  "#6366f1", "#4f46e5", "#818cf8",
-  "#8b5cf6", "#7c3aed", "#a78bfa",
-  "#a855f7", "#9333ea", "#c084fc",
-  "#d946ef", "#c026d3", "#e879f9",
-  "#ec4899", "#db2777", "#f472b6",
-  "#f43f5e", "#e11d48", "#fb7185",
-  "#64748b", "#475569",
+  "#ef4444",
+  "#dc2626",
+  "#f87171",
+  "#f97316",
+  "#ea580c",
+  "#fb923c",
+  "#f59e0b",
+  "#d97706",
+  "#fbbf24",
+  "#84cc16",
+  "#65a30d",
+  "#a3e635",
+  "#22c55e",
+  "#16a34a",
+  "#4ade80",
+  "#10b981",
+  "#059669",
+  "#34d399",
+  "#B6FFE2",
+  "#14b8a6",
+  "#0d9488",
+  "#06b6d4",
+  "#0891b2",
+  "#22d3ee",
+  "#0ea5e9",
+  "#0284c7",
+  "#38bdf8",
+  "#3b82f6",
+  "#2563eb",
+  "#60a5fa",
+  "#6366f1",
+  "#4f46e5",
+  "#818cf8",
+  "#8b5cf6",
+  "#7c3aed",
+  "#a78bfa",
+  "#a855f7",
+  "#9333ea",
+  "#c084fc",
+  "#d946ef",
+  "#c026d3",
+  "#e879f9",
+  "#ec4899",
+  "#db2777",
+  "#f472b6",
+  "#f43f5e",
+  "#e11d48",
+  "#fb7185",
+  "#64748b",
+  "#475569",
 ];
 
 function ModalEditarCategoria({ onClose, categoria, onSave }) {
@@ -64,7 +97,8 @@ function ModalEditarCategoria({ onClose, categoria, onSave }) {
         body: JSON.stringify({ nome: nome.trim(), cor }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Erro ao salvar a categoria");
+      if (!response.ok)
+        throw new Error(data.error || "Erro ao salvar a categoria");
 
       onSave();
       onClose();
@@ -87,12 +121,12 @@ function ModalEditarCategoria({ onClose, categoria, onSave }) {
 
         {/* Nome da categoria */}
         <div>
-          <label className="block mb-1.5 text-slate-500 dark:text-[#8E9AA8] font-bold uppercase tracking-wider text-[0.75rem]">
+          <label className="block mb-1.5 text-slate-500 dark:text-graphite-300 font-bold uppercase tracking-wider text-[0.75rem]">
             Nome da Categoria
           </label>
           <input
             type="text"
-            className="w-full p-3 border border-slate-200 dark:border-[#2E3342] rounded-xl text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-[#14171F] focus:outline-none focus:border-[#B6FFE2] focus:ring-4 focus:ring-[#B6FFE2]/15 transition-all shadow-xs"
+            className="w-full p-3 border border-slate-200 dark:border-graphite-600 rounded-xl text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-graphite-900 focus:outline-none focus:border-lime-spark focus:ring-4 focus:ring-lime-spark/15 transition-all shadow-xs"
             value={nome}
             onChange={(e) => setNome(e.target.value)}
             required
@@ -103,19 +137,19 @@ function ModalEditarCategoria({ onClose, categoria, onSave }) {
         {/* Cor da categoria */}
         <div>
           <div className="flex justify-between items-center mb-2">
-            <label className="text-slate-500 dark:text-[#8E9AA8] font-bold uppercase tracking-wider text-[0.75rem]">
+            <label className="text-slate-500 dark:text-graphite-300 font-bold uppercase tracking-wider text-[0.75rem]">
               Cor de Identificação
             </label>
             <button
               type="button"
               onClick={getRandomColor}
-              className="text-xs font-bold text-slate-500 dark:text-[#8E9AA8] hover:text-[#059669] dark:hover:text-[#B6FFE2] flex items-center gap-1 cursor-pointer transition-colors"
+              className="text-xs font-bold text-slate-500 dark:text-graphite-300 hover:text-[#059669] dark:hover:text-lime-spark flex items-center gap-1 cursor-pointer transition-colors"
             >
               <Dices size={14} /> Cor Aleatória
             </button>
           </div>
 
-          <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-[#14171F] rounded-xl border border-slate-200 dark:border-[#2E3342]">
+          <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-graphite-900 rounded-xl border border-slate-200 dark:border-graphite-600">
             <div
               className="w-8 h-8 rounded-full border-2 border-white/60 shadow-xs cursor-pointer relative shrink-0 overflow-hidden"
               style={{ backgroundColor: cor }}
@@ -134,7 +168,7 @@ function ModalEditarCategoria({ onClose, categoria, onSave }) {
         </div>
 
         {/* Botões de Ação */}
-        <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-[#2E3342]">
+        <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-graphite-600">
           <Button variant="ghost" onClick={onClose} disabled={loading}>
             Cancelar
           </Button>

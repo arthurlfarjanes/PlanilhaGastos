@@ -64,7 +64,8 @@ function ModalEditar({ transacao, onClose, onSave, categorias }) {
         }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Erro ao salvar transação");
+      if (!response.ok)
+        throw new Error(data.error || "Erro ao salvar transação");
       onSave(data);
       onClose();
     } catch (err) {
@@ -82,7 +83,12 @@ function ModalEditar({ transacao, onClose, onSave, categorias }) {
     "block mb-1.5 text-slate-500 dark:text-[#8E9AA8] font-bold uppercase tracking-wider text-[0.75rem]";
 
   return (
-    <Modal isOpen={!!transacao} onClose={onClose} title="Editar Transação" maxWidth="max-w-xl">
+    <Modal
+      isOpen={!!transacao}
+      onClose={onClose}
+      title="Editar Transação"
+      maxWidth="max-w-xl"
+    >
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         {error && (
           <div className="flex items-center gap-2.5 p-3 rounded-xl bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 text-xs font-semibold border border-red-200 dark:border-red-500/20">
@@ -139,7 +145,7 @@ function ModalEditar({ transacao, onClose, onSave, categorias }) {
         {/* Tipo de Transação */}
         <div>
           <label className={labelClass}>Tipo</label>
-          <div className="grid grid-cols-2 bg-slate-100 dark:bg-[#14171F] p-1 rounded-xl border border-slate-200 dark:border-[#2E3342]">
+          <div className="grid grid-cols-2 bg-slate-100 dark:bg-graphite-900 p-1 rounded-xl border border-slate-200 dark:border-graphite-600">
             <button
               type="button"
               onClick={() =>
@@ -148,7 +154,7 @@ function ModalEditar({ transacao, onClose, onSave, categorias }) {
               className={`py-2 text-xs sm:text-sm font-bold rounded-lg transition-all cursor-pointer ${
                 formData.tipo === "despesa"
                   ? "bg-red-500 text-white shadow-xs"
-                  : "text-slate-500 dark:text-[#8E9AA8]"
+                  : "text-slate-500 dark:text-graphite-300"
               }`}
             >
               Despesa
@@ -164,8 +170,8 @@ function ModalEditar({ transacao, onClose, onSave, categorias }) {
               }
               className={`py-2 text-xs sm:text-sm font-bold rounded-lg transition-all cursor-pointer ${
                 formData.tipo === "receita"
-                  ? "bg-[#B6FFE2] text-[#14171F] shadow-xs"
-                  : "text-slate-500 dark:text-[#8E9AA8]"
+                  ? "bg-lime-spark text-graphite-900 shadow-xs"
+                  : "text-slate-500 dark:text-graphite-300"
               }`}
             >
               Receita
@@ -192,11 +198,13 @@ function ModalEditar({ transacao, onClose, onSave, categorias }) {
                     }
                     className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border flex items-center gap-1.5 cursor-pointer ${
                       isSelected
-                        ? "ring-2 ring-offset-1 dark:ring-offset-[#1E222B]"
+                        ? "ring-2 ring-offset-1 dark:ring-offset-graphite-800"
                         : "opacity-80 hover:opacity-100 hover:-translate-y-0.5"
                     }`}
                     style={{
-                      backgroundColor: isSelected ? `${cat.cor}25` : "transparent",
+                      backgroundColor: isSelected
+                        ? `${cat.cor}25`
+                        : "transparent",
                       borderColor: cat.cor || "#2E3342",
                       color: cat.cor || "#B6FFE2",
                       // @ts-ignore
@@ -216,7 +224,7 @@ function ModalEditar({ transacao, onClose, onSave, categorias }) {
         )}
 
         {/* Botões de Ação */}
-        <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-[#2E3342]">
+        <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-graphite-600">
           <Button variant="ghost" onClick={onClose} disabled={loading}>
             Cancelar
           </Button>

@@ -129,10 +129,13 @@ export default function GerenciarGastosFixos() {
     if (!gastoParaDeletar) return;
     setDeletando(true);
     try {
-      const response = await fetch(`${API_URL}/gastos-fixos/${gastoParaDeletar}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetch(
+        `${API_URL}/gastos-fixos/${gastoParaDeletar}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
       if (response.ok) {
         setGastoParaDeletar(null);
         carregarGastos();
@@ -153,28 +156,31 @@ export default function GerenciarGastosFixos() {
 
   const totalMensal = gastos.reduce(
     (acc, g) => acc + parseFloat(g.valor || 0),
-    0
+    0,
   );
 
   return (
     <div className="flex flex-col gap-6 sm:gap-8 w-full max-w-6xl mx-auto">
       {/* Cabeçalho */}
-      <div className="bg-white dark:bg-[#1E222B] p-5 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-[#2E3342] shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="bg-white dark:bg-graphite-800 p-5 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-graphite-600 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2.5">
-            <span className="w-10 h-10 rounded-xl bg-[#B6FFE2]/15 dark:bg-[#B6FFE2]/10 text-[#059669] dark:text-[#B6FFE2] flex items-center justify-center border border-[#B6FFE2]/30">
+            <span className="w-10 h-10 rounded-xl bg-lime-spark/15 dark:bg-lime-spark/10 text-[#059669] dark:text-lime-spark flex items-center justify-center border border-lime-spark/30">
               <CalendarDays size={22} />
             </span>
             Gastos Fixos
           </h1>
-          <p className="text-sm text-slate-500 dark:text-[#8E9AA8] mt-1 ml-12.5">
+          <p className="text-sm text-slate-500 dark:text-graphite-300 mt-1 ml-12.5">
             Despesas recorrentes mensais cadastradas
           </p>
         </div>
         {/* Resumo total */}
         {gastos.length > 0 && (
           <div className="flex items-center gap-3 bg-red-50 dark:bg-red-500/10 px-4 py-3 rounded-xl border border-red-100 dark:border-red-500/20">
-            <DollarSign size={18} className="text-red-500 dark:text-red-400 shrink-0" />
+            <DollarSign
+              size={18}
+              className="text-red-500 dark:text-red-400 shrink-0"
+            />
             <div>
               <p className="text-xs font-semibold text-red-500 dark:text-red-400 uppercase tracking-wide">
                 Total/mês
@@ -206,10 +212,10 @@ export default function GerenciarGastosFixos() {
 
       {/* Formulário de Cadastro/Edição */}
       <div
-        className={`bg-white dark:bg-[#1E222B] p-5 sm:p-6 rounded-2xl border shadow-xs transition-all ${
+        className={`bg-white dark:bg-graphite-800 p-5 sm:p-6 rounded-2xl border shadow-xs transition-all ${
           gastoEditando
             ? "border-blue-300 dark:border-blue-500/40"
-            : "border-slate-200/80 dark:border-[#2E3342]"
+            : "border-slate-200/80 dark:border-graphite-600"
         }`}
       >
         <h2 className="text-base font-bold text-slate-700 dark:text-slate-200 mb-5 flex items-center gap-2">
@@ -220,7 +226,10 @@ export default function GerenciarGastosFixos() {
             </>
           ) : (
             <>
-              <PlusCircle size={18} className="text-[#059669] dark:text-[#B6FFE2]" />
+              <PlusCircle
+                size={18}
+                className="text-[#059669] dark:text-lime-spark"
+              />
               Novo Gasto Fixo
             </>
           )}
@@ -306,7 +315,7 @@ export default function GerenciarGastosFixos() {
               className={`w-full font-bold py-2.5 px-4 rounded-xl transition-all flex items-center justify-center gap-2 text-sm cursor-pointer hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed ${
                 gastoEditando
                   ? "bg-blue-500 hover:bg-blue-600 text-white shadow-[0_4px_12px_rgba(59,130,246,0.3)]"
-                  : "bg-[#B6FFE2] hover:bg-[#8DF3CA] text-[#14171F] shadow-[0_4px_12px_rgba(182,255,226,0.3)]"
+                  : "bg-lime-spark hover:bg-lime-spark-hover text-graphite-900 shadow-[0_4px_12px_rgba(182,255,226,0.3)]"
               }`}
             >
               {loading ? "Salvando..." : gastoEditando ? "Salvar" : "Adicionar"}
@@ -316,7 +325,7 @@ export default function GerenciarGastosFixos() {
               <button
                 type="button"
                 onClick={limparFormulario}
-                className="bg-slate-100 dark:bg-[#23262F] hover:bg-slate-200 dark:hover:bg-[#2E3342] text-slate-600 dark:text-slate-300 p-2.5 rounded-xl transition-all flex items-center justify-center cursor-pointer hover:-translate-y-0.5 border border-slate-200 dark:border-[#2E3342]"
+                className="bg-slate-100 dark:bg-graphite-700 hover:bg-slate-200 dark:hover:bg-graphite-600 text-slate-600 dark:text-slate-300 p-2.5 rounded-xl transition-all flex items-center justify-center cursor-pointer hover:-translate-y-0.5 border border-slate-200 dark:border-graphite-600"
                 title="Cancelar Edição"
               >
                 <X size={20} />
@@ -327,13 +336,13 @@ export default function GerenciarGastosFixos() {
       </div>
 
       {/* Tabela de Listagem */}
-      <div className="bg-white dark:bg-[#1E222B] rounded-2xl border border-slate-200/80 dark:border-[#2E3342] shadow-xs overflow-hidden">
-        <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-[#2E3342] flex items-center justify-between">
+      <div className="bg-white dark:bg-graphite-800 rounded-2xl border border-slate-200/80 dark:border-graphite-600 shadow-xs overflow-hidden">
+        <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-graphite-600 flex items-center justify-between">
           <h2 className="text-base font-bold text-slate-700 dark:text-slate-200">
             Gastos Fixos Cadastrados
           </h2>
           {gastos.length > 0 && (
-            <span className="text-xs font-bold text-slate-400 dark:text-[#8E9AA8] bg-slate-100 dark:bg-[#23262F] px-2.5 py-1 rounded-full">
+            <span className="text-xs font-bold text-slate-400 dark:text-graphite-300 bg-slate-100 dark:bg-graphite-700 px-2.5 py-1 rounded-full">
               {gastos.length} item{gastos.length !== 1 ? "s" : ""}
             </span>
           )}
@@ -342,7 +351,7 @@ export default function GerenciarGastosFixos() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50 dark:bg-[#14171F]/60 border-b border-slate-100 dark:border-[#2E3342] text-slate-400 dark:text-[#687082] text-xs uppercase tracking-wider font-bold">
+              <tr className="bg-slate-50 dark:bg-graphite-900/60 border-b border-slate-100 dark:border-graphite-600 text-slate-400 dark:text-graphite-400 text-xs uppercase tracking-wider font-bold">
                 <th className="py-3.5 px-5">Vencimento</th>
                 <th className="py-3.5 px-5">Descrição</th>
                 <th className="py-3.5 px-5">Categoria</th>
@@ -350,20 +359,27 @@ export default function GerenciarGastosFixos() {
                 <th className="py-3.5 px-5 text-center">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-[#2E3342] text-sm">
+            <tbody className="divide-y divide-slate-100 dark:divide-graphite-600 text-sm">
               {loading && gastos.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="py-10 text-center text-slate-400 dark:text-[#8E9AA8]">
+                  <td
+                    colSpan="5"
+                    className="py-10 text-center text-slate-400 dark:text-graphite-300"
+                  >
                     <p className="animate-pulse">Carregando...</p>
                   </td>
                 </tr>
               ) : gastos.length === 0 ? (
                 <tr>
                   <td colSpan="5" className="py-12 text-center">
-                    <div className="flex flex-col items-center gap-2 text-slate-400 dark:text-[#8E9AA8]">
+                    <div className="flex flex-col items-center gap-2 text-slate-400 dark:text-graphite-300">
                       <CalendarDays size={30} className="opacity-40" />
-                      <p className="font-medium">Nenhum gasto fixo cadastrado.</p>
-                      <p className="text-xs">Use o formulário acima para adicionar.</p>
+                      <p className="font-medium">
+                        Nenhum gasto fixo cadastrado.
+                      </p>
+                      <p className="text-xs">
+                        Use o formulário acima para adicionar.
+                      </p>
                     </div>
                   </td>
                 </tr>
@@ -371,11 +387,11 @@ export default function GerenciarGastosFixos() {
                 gastos.map((gasto) => (
                   <tr
                     key={gasto.id}
-                    className="hover:bg-slate-50 dark:hover:bg-[#14171F]/40 transition-colors"
+                    className="hover:bg-slate-50 dark:hover:bg-graphite-900/40 transition-colors"
                   >
                     {/* Vencimento */}
                     <td className="py-4 px-5">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#B6FFE2]/15 dark:bg-[#B6FFE2]/10 text-[#059669] dark:text-[#B6FFE2] text-xs font-bold border border-[#B6FFE2]/30">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-lime-spark/15 dark:bg-lime-spark/10 text-[#059669] dark:text-lime-spark text-xs font-bold border border-lime-spark/30">
                         <CalendarDays size={12} />
                         Dia {gasto.dia_vencimento}
                       </span>
@@ -398,7 +414,7 @@ export default function GerenciarGastosFixos() {
                           {gasto.categoria_nome}
                         </span>
                       ) : (
-                        <span className="text-slate-400 dark:text-[#8E9AA8] text-xs italic">
+                        <span className="text-slate-400 dark:text-graphite-300 text-xs italic">
                           Sem categoria
                         </span>
                       )}

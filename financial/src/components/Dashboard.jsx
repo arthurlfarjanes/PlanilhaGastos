@@ -7,7 +7,12 @@ import GerenciarCategorias from "./GerenciarCategorias";
 import ModalEditar from "./ModalEditar";
 import ModalEditarCategoria from "./ModalEditarCategoria";
 import ConfirmDialog from "./ui/ConfirmDialog";
-import { TrendingUp, TrendingDown, DollarSign, AlertCircle } from "lucide-react";
+import {
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
+  AlertCircle,
+} from "lucide-react";
 
 const formatCurrency = (value) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
@@ -127,24 +132,24 @@ function Dashboard() {
       {/* 1. Barra de Estatísticas Rápidas no Topo (UX Booster) */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Receitas */}
-        <div className="bg-white dark:bg-[#1E222B] p-5 rounded-2xl border border-slate-200/80 dark:border-[#2E3342] shadow-xs flex items-center justify-between">
+        <div className="bg-white dark:bg-graphite-800 p-5 rounded-2xl border border-slate-200/80 dark:border-graphite-600 shadow-xs flex items-center justify-between">
           <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-[#8E9AA8]">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-graphite-300">
               Receitas Filtradas
             </span>
-            <p className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-[#B6FFE2] mt-1">
+            <p className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-lime-spark mt-1">
               {formatCurrency(resumo.receitas)}
             </p>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-[#B6FFE2]/10 text-emerald-600 dark:text-[#B6FFE2] flex items-center justify-center border border-emerald-200/50 dark:border-[#B6FFE2]/20">
+          <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-lime-spark/10 text-emerald-600 dark:text-lime-spark flex items-center justify-center border border-emerald-200/50 dark:border-lime-spark/20">
             <TrendingUp size={22} />
           </div>
         </div>
 
         {/* Despesas */}
-        <div className="bg-white dark:bg-[#1E222B] p-5 rounded-2xl border border-slate-200/80 dark:border-[#2E3342] shadow-xs flex items-center justify-between">
+        <div className="bg-white dark:bg-graphite-800 p-5 rounded-2xl border border-slate-200/80 dark:border-graphite-600 shadow-xs flex items-center justify-between">
           <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-[#8E9AA8]">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-graphite-300">
               Despesas Filtradas
             </span>
             <p className="text-xl sm:text-2xl font-black text-red-500 dark:text-red-400 mt-1">
@@ -157,22 +162,22 @@ function Dashboard() {
         </div>
 
         {/* Saldo Líquido */}
-        <div className="bg-white dark:bg-[#1E222B] p-5 rounded-2xl border border-slate-200/80 dark:border-[#2E3342] shadow-xs flex items-center justify-between">
+        <div className="bg-white dark:bg-graphite-800 p-5 rounded-2xl border border-slate-200/80 dark:border-graphite-600 shadow-xs flex items-center justify-between">
           <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-[#8E9AA8]">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-graphite-300">
               Saldo do Extrato
             </span>
             <p
               className={`text-xl sm:text-2xl font-black mt-1 ${
                 resumo.balanco >= 0
-                  ? "text-emerald-600 dark:text-[#B6FFE2]"
+                  ? "text-emerald-600 dark:text-lime-spark"
                   : "text-red-500 dark:text-red-400"
               }`}
             >
               {formatCurrency(resumo.balanco)}
             </p>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-[#14171F] text-slate-700 dark:text-[#B6FFE2] flex items-center justify-center border border-slate-200 dark:border-[#2E3342]">
+          <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-graphite-900 text-slate-700 dark:text-lime-spark flex items-center justify-center border border-slate-200 dark:border-graphite-600">
             <DollarSign size={22} />
           </div>
         </div>
@@ -202,8 +207,8 @@ function Dashboard() {
           />
 
           {loading && (
-            <div className="bg-white dark:bg-[#1E222B] rounded-2xl p-8 text-center border border-slate-200/80 dark:border-[#2E3342]">
-              <p className="text-slate-500 dark:text-[#8E9AA8] animate-pulse font-medium">
+            <div className="bg-white dark:bg-graphite-800 rounded-2xl p-8 text-center border border-slate-200/80 dark:border-graphite-600">
+              <p className="text-slate-500 dark:text-graphite-300 animate-pulse font-medium">
                 Carregando transações...
               </p>
             </div>

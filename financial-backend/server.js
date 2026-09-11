@@ -16,6 +16,9 @@ const { iniciarAgendador } = require("./services/agendador");
 const app = express();
 const port = process.env.PORT || 3001;
 
+// 0. Configura o Express para ler o IP real atrás do Proxy
+app.set("trust proxy", 1);
+
 // 1. Oculta cabeçalho de tecnologia e adiciona cabeçalhos defensivos (Helmet)
 app.disable("x-powered-by");
 app.use(helmet());
@@ -26,7 +29,9 @@ const apiLimiter = rateLimit({
   max: 300, // máximo de 300 requisições por IP a cada 15 min
   standardHeaders: true,
   legacyHeaders: false,
-  message: { error: "Muitas requisições deste IP. Tente novamente mais tarde." },
+  message: {
+    error: "Muitas requisições deste IP. Tente novamente mais tarde.",
+  },
 });
 app.use(apiLimiter);
 
@@ -70,9 +75,13 @@ app.use("/gastos-fixos", gastosFixosRoutes);
 app.use((err, req, res, next) => {
   console.error("[ERRO DO SERVIDOR]:", err.message);
   if (err.message === "Bloqueado pela política de CORS") {
-    return res.status(403).json({ error: "Origem não permitida pela política de CORS." });
+    return res
+      .status(403)
+      .json({ error: "Origem não permitida pela política de CORS." });
   }
-  res.status(err.status || 500).json({ error: "Ocorreu um erro interno no servidor." });
+  res
+    .status(err.status || 500)
+    .json({ error: "Ocorreu um erro interno no servidor." });
 });
 
 // Inicia o serviço agendado de gastos fixos
@@ -81,4 +90,3 @@ iniciarAgendador();
 app.listen(port, () => {
   console.log(`Backend seguro rodando em http://localhost:${port}`);
 });
-

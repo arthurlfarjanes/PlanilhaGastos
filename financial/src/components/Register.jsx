@@ -57,21 +57,27 @@ function Register() {
 
   return (
     <div className="w-full max-w-md mx-auto">
-      <div className="bg-white dark:bg-[#1E222B] p-8 rounded-3xl shadow-xl border border-slate-100 dark:border-[#2E3342]">
+      <div className="bg-white dark:bg-graphite-800 p-8 rounded-3xl shadow-xl border border-slate-100 dark:border-graphite-600">
         <div className="text-center mb-8">
           {/* Logo do app */}
           <div className="flex items-center justify-center gap-2.5 mb-5">
-            <div className="w-11 h-11 rounded-xl bg-[#23262F] dark:bg-[#14171F] border border-slate-200 dark:border-[#2E3342] flex items-center justify-center text-[#B6FFE2] shadow-sm">
-              <Wallet size={22} className="drop-shadow-[0_0_8px_rgba(182,255,226,0.5)]" />
+            <div className="w-11 h-11 rounded-xl bg-graphite-700 dark:bg-graphite-900 border border-slate-200 dark:border-graphite-600 flex items-center justify-center text-lime-spark shadow-sm">
+              <Wallet
+                size={22}
+                className="drop-shadow-[0_0_8px_rgba(182,255,226,0.5)]"
+              />
             </div>
             <span className="font-extrabold text-2xl text-slate-900 dark:text-white tracking-tight">
-              Me<span className="text-[#059669] dark:text-[#B6FFE2]">Finance</span>
+              Me
+              <span className="text-[#059669] dark:text-lime-spark">
+                Finance
+              </span>
             </span>
           </div>
           <h2 className="text-xl font-bold text-slate-800 dark:text-white">
             Crie sua conta
           </h2>
-          <p className="text-slate-500 dark:text-[#8E9AA8] text-sm mt-1.5">
+          <p className="text-slate-500 dark:text-graphite-300 text-sm mt-1.5">
             Comece a gerenciar suas finanças hoje mesmo
           </p>
         </div>
@@ -84,7 +90,7 @@ function Register() {
         )}
 
         {message && (
-          <div className="flex items-center gap-3 bg-emerald-50 dark:bg-[#B6FFE2]/10 text-emerald-600 dark:text-[#B6FFE2] p-4 rounded-xl mb-6 border border-emerald-100 dark:border-[#B6FFE2]/20">
+          <div className="flex items-center gap-3 bg-emerald-50 dark:bg-lime-spark/10 text-emerald-600 dark:text-lime-spark p-4 rounded-xl mb-6 border border-emerald-100 dark:border-lime-spark/20">
             <CheckCircle2 size={20} className="shrink-0" />
             <p className="text-sm font-medium">{message}</p>
           </div>
@@ -116,7 +122,7 @@ function Register() {
               />
               <button
                 type="button"
-                className="absolute right-3 text-slate-400 hover:text-[#059669] dark:hover:text-[#B6FFE2] transition-colors p-1"
+                className="absolute right-3 text-slate-400 hover:text-[#059669] dark:hover:text-lime-spark transition-colors p-1"
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -127,7 +133,7 @@ function Register() {
           <button
             disabled={loading}
             type="submit"
-            className="w-full mt-4 bg-[#B6FFE2] hover:bg-[#8DF3CA] text-[#14171F] font-bold py-3.5 px-6 rounded-xl transition-all shadow-[0_4px_14px_rgba(182,255,226,0.3)] hover:shadow-[0_6px_20px_rgba(182,255,226,0.4)] hover:-translate-y-0.5 flex justify-center items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full mt-4 bg-lime-spark hover:bg-lime-spark-hover text-graphite-900 font-bold py-3.5 px-6 rounded-xl transition-all shadow-[0_4px_14px_rgba(182,255,226,0.3)] hover:shadow-[0_6px_20px_rgba(182,255,226,0.4)] hover:-translate-y-0.5 flex justify-center items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {loading ? (
               <Loader2 size={20} className="animate-spin" />
@@ -139,11 +145,11 @@ function Register() {
           </button>
         </form>
 
-        <p className="text-center text-slate-500 dark:text-[#8E9AA8] text-sm mt-8">
+        <p className="text-center text-slate-500 dark:text-graphite-300 text-sm mt-8">
           Já tem uma conta?{" "}
           <Link
             to="/login"
-            className="font-semibold text-[#059669] dark:text-[#B6FFE2] hover:opacity-80 transition-opacity"
+            className="font-semibold text-[#059669] dark:text-lime-spark hover:opacity-80 transition-opacity"
           >
             Faça login
           </Link>

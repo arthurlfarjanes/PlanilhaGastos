@@ -9,8 +9,8 @@ const formatCurrency = (value) =>
 function ListaTransacoes({ transacoes, onEdit, onDelete }) {
   if (transacoes.length === 0)
     return (
-      <div className="bg-white dark:bg-[#1E222B] p-12 rounded-2xl border border-slate-200/80 dark:border-[#2E3342] text-center shadow-xs">
-        <p className="text-slate-400 dark:text-[#8E9AA8] font-medium">
+      <div className="bg-white dark:bg-graphite-800 p-12 rounded-2xl border border-slate-200/80 dark:border-graphite-600 text-center shadow-xs">
+        <p className="text-slate-400 dark:text-graphite-300 font-medium">
           Nenhuma transação encontrada para os filtros selecionados.
         </p>
       </div>
@@ -24,9 +24,9 @@ function ListaTransacoes({ transacoes, onEdit, onDelete }) {
         return (
           <div
             key={t.id}
-            className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-5 bg-white dark:bg-[#1E222B] rounded-2xl shadow-xs border border-slate-200/80 dark:border-[#2E3342] border-l-4 sm:border-l-[6px] transition-all duration-150 hover:shadow-md hover:translate-x-0.5 ${
+            className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-5 bg-white dark:bg-graphite-800 rounded-2xl shadow-xs border border-slate-200/80 dark:border-graphite-600 border-l-4 sm:border-l-[6px] transition-all duration-150 hover:shadow-md hover:translate-x-0.5 ${
               isReceita
-                ? "border-l-emerald-500 dark:border-l-[#B6FFE2]"
+                ? "border-l-emerald-500 dark:border-l-lime-spark"
                 : "border-l-red-500"
             }`}
           >
@@ -35,7 +35,7 @@ function ListaTransacoes({ transacoes, onEdit, onDelete }) {
               <div
                 className={`p-2.5 rounded-xl shrink-0 mt-0.5 ${
                   isReceita
-                    ? "bg-emerald-50 dark:bg-[#B6FFE2]/10 text-emerald-600 dark:text-[#B6FFE2]"
+                    ? "bg-emerald-50 dark:bg-lime-spark/10 text-emerald-600 dark:text-lime-spark"
                     : "bg-red-50 dark:bg-red-500/10 text-red-500 dark:text-red-400"
                 }`}
               >
@@ -52,7 +52,7 @@ function ListaTransacoes({ transacoes, onEdit, onDelete }) {
                 </span>
 
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 text-[0.7rem] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-[#14171F] text-slate-600 dark:text-[#8E9AA8] border border-slate-200 dark:border-[#2E3342]">
+                  <span className="inline-flex items-center gap-1.5 text-[0.7rem] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-graphite-900 text-slate-600 dark:text-graphite-300 border border-slate-200 dark:border-graphite-600">
                     {isReceita ? (
                       "Receita"
                     ) : (
@@ -68,7 +68,7 @@ function ListaTransacoes({ transacoes, onEdit, onDelete }) {
                     )}
                   </span>
 
-                  <span className="text-xs text-slate-400 dark:text-[#687082] font-medium">
+                  <span className="text-xs text-slate-400 dark:text-graphite-400 font-medium">
                     {new Date(t.data).toLocaleDateString("pt-BR", {
                       timeZone: "UTC",
                     })}
@@ -78,11 +78,11 @@ function ListaTransacoes({ transacoes, onEdit, onDelete }) {
             </div>
 
             {/* Valor e Ações */}
-            <div className="flex flex-col sm:items-end gap-2.5 pt-3 sm:pt-0 border-t border-slate-100 dark:border-[#2E3342] sm:border-0 w-full sm:w-auto">
+            <div className="flex flex-col sm:items-end gap-2.5 pt-3 sm:pt-0 border-t border-slate-100 dark:border-graphite-600 sm:border-0 w-full sm:w-auto">
               <span
                 className={`text-xl sm:text-xl font-black self-start sm:self-end ${
                   isReceita
-                    ? "text-emerald-600 dark:text-[#B6FFE2]"
+                    ? "text-emerald-600 dark:text-lime-spark"
                     : "text-red-500 dark:text-red-400"
                 }`}
               >
@@ -92,7 +92,7 @@ function ListaTransacoes({ transacoes, onEdit, onDelete }) {
               <div className="flex gap-2 w-full sm:w-auto">
                 <button
                   onClick={() => onEdit(t)}
-                  className="flex-1 sm:flex-none justify-center bg-slate-100 dark:bg-[#23262F] hover:bg-slate-200 dark:hover:bg-[#2E3342] text-slate-700 dark:text-slate-200 py-2 sm:py-1.5 px-3 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all border border-slate-200 dark:border-[#2E3342] cursor-pointer"
+                  className="flex-1 sm:flex-none justify-center bg-slate-100 dark:bg-graphite-700 hover:bg-slate-200 dark:hover:bg-graphite-600 text-slate-700 dark:text-slate-200 py-2 sm:py-1.5 px-3 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all border border-slate-200 dark:border-graphite-600 cursor-pointer"
                 >
                   <Edit2 size={13} /> Editar
                 </button>

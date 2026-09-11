@@ -62,7 +62,8 @@ function FormularioTransacao({ onTransacaoAdicionada, categorias }) {
         body: JSON.stringify(transacaoData),
       });
       const dataResp = await res.json();
-      if (!res.ok) throw new Error(dataResp.error || "Erro ao salvar transação");
+      if (!res.ok)
+        throw new Error(dataResp.error || "Erro ao salvar transação");
 
       onTransacaoAdicionada();
       setDescricao("");
@@ -88,13 +89,13 @@ function FormularioTransacao({ onTransacaoAdicionada, categorias }) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-white dark:bg-[#1E222B] p-6 sm:p-7 rounded-2xl shadow-xs border border-slate-200/80 dark:border-[#2E3342] flex flex-col gap-5 transition-colors duration-200"
+      className="bg-white dark:bg-graphite-800 p-6 sm:p-7 rounded-2xl shadow-xs border border-slate-200/80 dark:border-graphite-600 flex flex-col gap-5 transition-colors duration-200"
     >
-      <div className="flex items-center justify-between border-b border-slate-100 dark:border-[#2E3342] pb-3">
+      <div className="flex items-center justify-between border-b border-slate-100 dark:border-graphite-600 pb-3">
         <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100 flex items-center gap-2">
           Nova Transação
         </h3>
-        <span className="text-xs px-2.5 py-1 rounded-full font-bold bg-slate-100 dark:bg-[#23262F] text-slate-600 dark:text-[#8E9AA8] border border-slate-200 dark:border-[#2E3342]">
+        <span className="text-xs px-2.5 py-1 rounded-full font-bold bg-slate-100 dark:bg-graphite-700 text-slate-600 dark:text-graphite-300 border border-slate-200 dark:border-graphite-600">
           Rápido
         </span>
       </div>
@@ -151,7 +152,7 @@ function FormularioTransacao({ onTransacaoAdicionada, categorias }) {
       {/* Seletor Tipo: Despesa vs Receita */}
       <div>
         <label className={labelClass}>Tipo de Transação</label>
-        <div className="grid grid-cols-2 bg-slate-100 dark:bg-[#14171F] p-1 rounded-xl border border-slate-200 dark:border-[#2E3342]">
+        <div className="grid grid-cols-2 bg-slate-100 dark:bg-graphite-900 p-1 rounded-xl border border-slate-200 dark:border-graphite-600">
           <button
             type="button"
             onClick={() => {
@@ -161,7 +162,7 @@ function FormularioTransacao({ onTransacaoAdicionada, categorias }) {
             className={`py-2 text-xs sm:text-sm font-bold rounded-lg transition-all cursor-pointer ${
               tipo === "despesa"
                 ? "bg-red-500 text-white shadow-xs"
-                : "text-slate-500 dark:text-[#8E9AA8] hover:text-slate-800 dark:hover:text-white"
+                : "text-slate-500 dark:text-graphite-300 hover:text-slate-800 dark:hover:text-white"
             }`}
           >
             Despesa
@@ -175,8 +176,8 @@ function FormularioTransacao({ onTransacaoAdicionada, categorias }) {
             }}
             className={`py-2 text-xs sm:text-sm font-bold rounded-lg transition-all cursor-pointer ${
               tipo === "receita"
-                ? "bg-[#B6FFE2] text-[#14171F] shadow-xs"
-                : "text-slate-500 dark:text-[#8E9AA8] hover:text-slate-800 dark:hover:text-white"
+                ? "bg-lime-spark text-graphite-900 shadow-xs"
+                : "text-slate-500 dark:text-graphite-300 hover:text-slate-800 dark:hover:text-white"
             }`}
           >
             Receita
@@ -198,11 +199,13 @@ function FormularioTransacao({ onTransacaoAdicionada, categorias }) {
                   onClick={() => setCategoriaId(cat.id)}
                   className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border flex items-center gap-1.5 cursor-pointer ${
                     isSelected
-                      ? "ring-2 ring-offset-1 dark:ring-offset-[#1E222B]"
+                      ? "ring-2 ring-offset-1 dark:ring-offset-graphite-800"
                       : "opacity-80 hover:opacity-100 hover:-translate-y-0.5"
                   }`}
                   style={{
-                    backgroundColor: isSelected ? `${cat.cor}25` : "transparent",
+                    backgroundColor: isSelected
+                      ? `${cat.cor}25`
+                      : "transparent",
                     borderColor: cat.cor || "#2E3342",
                     color: cat.cor || "#B6FFE2",
                     // @ts-ignore
@@ -218,18 +221,18 @@ function FormularioTransacao({ onTransacaoAdicionada, categorias }) {
               );
             })}
             {categorias.length === 0 && (
-              <p className="text-xs text-slate-400 dark:text-[#8E9AA8]">
+              <p className="text-xs text-slate-400 dark:text-graphite-300">
                 Nenhuma categoria cadastrada ainda.
               </p>
             )}
           </div>
 
           {/* Opção de Parcelamento */}
-          <div className="flex items-center gap-3 bg-slate-50 dark:bg-[#14171F] p-3 rounded-xl border border-slate-200 dark:border-[#2E3342] mt-2">
+          <div className="flex items-center gap-3 bg-slate-50 dark:bg-graphite-900 p-3 rounded-xl border border-slate-200 dark:border-graphite-600 mt-2">
             <input
               id="parcela"
               type="checkbox"
-              className="w-4 h-4 rounded text-[#059669] dark:text-[#B6FFE2] accent-[#B6FFE2] cursor-pointer"
+              className="w-4 h-4 rounded text-[#059669] dark:text-lime-spark accent-lime-spark cursor-pointer"
               checked={ehParcelado}
               onChange={(e) => setEhParcelado(e.target.checked)}
             />

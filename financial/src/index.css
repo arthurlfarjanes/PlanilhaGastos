@@ -8,23 +8,23 @@
     Arial, sans-serif;
 
   /* Paleta Lime Spark */
-  --color-lime-spark: #B6FFE2;
-  --color-lime-spark-hover: #8DF3CA;
-  --color-lime-spark-dark: #0D7A57;
+  --color-lime-spark: #b6ffe2;
+  --color-lime-spark-hover: #8df3ca;
+  --color-lime-spark-dark: #0d7a57;
   --color-lime-spark-glow: rgba(182, 255, 226, 0.18);
 
   /* Paleta Graphite */
   --color-graphite-950: #101217;
-  --color-graphite-900: #14171F;
-  --color-graphite-800: #1E222B;
-  --color-graphite-700: #23262F;
-  --color-graphite-600: #2E3342;
-  --color-graphite-500: #3E4351;
+  --color-graphite-900: #14171f;
+  --color-graphite-800: #1e222b;
+  --color-graphite-700: #23262f;
+  --color-graphite-600: #2e3342;
+  --color-graphite-500: #3e4351;
   --color-graphite-400: #687082;
-  --color-graphite-300: #8E9AA8;
-  --color-graphite-200: #E2E8F0;
-  --color-graphite-100: #F1F5F9;
-  --color-graphite-50:  #F8FAFC;
+  --color-graphite-300: #8e9aa8;
+  --color-graphite-200: #e2e8f0;
+  --color-graphite-100: #f1f5f9;
+  --color-graphite-50: #f8fafc;
 }
 
 html {
@@ -36,7 +36,7 @@ html.dark {
 }
 
 body {
-  @apply bg-slate-50 text-slate-900 dark:bg-[#14171F] dark:text-slate-100 antialiased overflow-x-hidden transition-colors duration-200;
+  @apply bg-slate-50 text-slate-900 dark:bg-graphite-900 dark:text-slate-100 antialiased overflow-x-hidden transition-colors duration-200;
   min-height: 100vh;
 }
 

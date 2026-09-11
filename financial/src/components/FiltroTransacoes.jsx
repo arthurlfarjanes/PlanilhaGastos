@@ -25,10 +25,10 @@ function FiltroTransacoes({ filtros, setFiltros, categorias }) {
     "block text-[0.7rem] font-bold text-slate-500 dark:text-[#8E9AA8] uppercase tracking-wider mb-1";
 
   return (
-    <div className="bg-white dark:bg-[#1E222B] p-5 sm:p-7 rounded-2xl shadow-xs border border-slate-200/80 dark:border-[#2E3342] transition-colors duration-200">
-      <div className="flex items-center justify-between border-b border-slate-100 dark:border-[#2E3342] pb-3 mb-4">
+    <div className="bg-white dark:bg-graphite-800 p-5 sm:p-7 rounded-2xl shadow-xs border border-slate-200/80 dark:border-graphite-600 transition-colors duration-200">
+      <div className="flex items-center justify-between border-b border-slate-100 dark:border-graphite-600 pb-3 mb-4">
         <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100 flex items-center gap-2">
-          <Filter size={18} className="text-[#059669] dark:text-[#B6FFE2]" />
+          <Filter size={18} className="text-[#059669] dark:text-lime-spark" />
           Filtrar Transações
         </h3>
 
@@ -49,7 +49,7 @@ function FiltroTransacoes({ filtros, setFiltros, categorias }) {
           <div className="relative flex items-center">
             <Search
               size={16}
-              className="absolute left-3 text-slate-400 dark:text-[#687082] pointer-events-none"
+              className="absolute left-3 text-slate-400 dark:text-graphite-400 pointer-events-none"
             />
             <input
               type="text"

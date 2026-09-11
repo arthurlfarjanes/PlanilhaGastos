@@ -26,7 +26,7 @@ const formatCurrency = (value) =>
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white dark:bg-[#1E222B] p-2.5 sm:p-3 rounded-xl border border-slate-200 dark:border-[#2E3342] shadow-md">
+      <div className="bg-white dark:bg-graphite-800 p-2.5 sm:p-3 rounded-xl border border-slate-200 dark:border-graphite-600 shadow-md">
         <p className="font-semibold text-slate-800 dark:text-slate-100 text-xs sm:text-sm m-0">
           {`${payload[0].name || payload[0].dataKey} : ${formatCurrency(payload[0].value)}`}
         </p>
@@ -39,8 +39,8 @@ const CustomTooltip = ({ active, payload }) => {
 const MultiTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white dark:bg-[#1E222B] p-3 sm:p-4 rounded-xl border border-slate-200 dark:border-[#2E3342] shadow-md">
-        <p className="font-bold text-slate-700 dark:text-slate-200 text-xs sm:text-sm border-b border-slate-100 dark:border-[#2E3342] pb-2 mb-2">
+      <div className="bg-white dark:bg-graphite-800 p-3 sm:p-4 rounded-xl border border-slate-200 dark:border-graphite-600 shadow-md">
+        <p className="font-bold text-slate-700 dark:text-slate-200 text-xs sm:text-sm border-b border-slate-100 dark:border-graphite-600 pb-2 mb-2">
           {label}
         </p>
         {payload.map((entry, index) => (
@@ -101,16 +101,16 @@ const TabelaFiltrada = memo(({ transacoes }) => {
     "w-full md:w-auto px-3 py-2.5 border border-slate-200 dark:border-[#2E3342] rounded-xl text-sm font-medium focus:outline-none focus:border-[#B6FFE2] focus:ring-2 focus:ring-[#B6FFE2]/20 bg-white dark:bg-[#14171F] text-slate-700 dark:text-slate-200 shadow-xs cursor-pointer transition-colors";
 
   return (
-    <div className="bg-white dark:bg-[#1E222B] rounded-2xl border border-slate-200/80 dark:border-[#2E3342] shadow-xs overflow-hidden mt-0">
+    <div className="bg-white dark:bg-graphite-800 rounded-2xl border border-slate-200/80 dark:border-graphite-600 shadow-xs overflow-hidden mt-0">
       {/* Cabeçalho da tabela */}
-      <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-[#2E3342] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-graphite-600 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h3 className="font-bold text-lg text-slate-800 dark:text-white">
           Extrato do Período
         </h3>
         {hasFilter && (
           <button
             onClick={limparFiltros}
-            className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-[#8E9AA8] hover:text-red-500 dark:hover:text-red-400 transition-colors"
+            className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-graphite-300 hover:text-red-500 dark:hover:text-red-400 transition-colors"
           >
             <FilterX size={14} /> Limpar Filtros
           </button>
@@ -118,10 +118,10 @@ const TabelaFiltrada = memo(({ transacoes }) => {
       </div>
 
       {/* Filtros da tabela */}
-      <div className="flex flex-col md:flex-row gap-3 p-4 sm:p-5 border-b border-slate-100 dark:border-[#2E3342] bg-slate-50/50 dark:bg-[#14171F]/40">
+      <div className="flex flex-col md:flex-row gap-3 p-4 sm:p-5 border-b border-slate-100 dark:border-graphite-600 bg-slate-50/50 dark:bg-graphite-900/40">
         <div className="relative flex-1">
           <Search
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-[#687082]"
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-graphite-400"
             size={15}
           />
           <input
@@ -129,7 +129,7 @@ const TabelaFiltrada = memo(({ transacoes }) => {
             placeholder="Buscar por descrição..."
             value={filtroDescricao}
             onChange={(e) => setFiltroDescricao(e.target.value)}
-            className="w-full pl-10 pr-3 py-2.5 border border-slate-200 dark:border-[#2E3342] rounded-xl text-sm focus:outline-none focus:border-[#B6FFE2] focus:ring-2 focus:ring-[#B6FFE2]/20 bg-white dark:bg-[#14171F] text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-[#687082] shadow-xs transition-all"
+            className="w-full pl-10 pr-3 py-2.5 border border-slate-200 dark:border-graphite-600 rounded-xl text-sm focus:outline-none focus:border-lime-spark focus:ring-2 focus:ring-lime-spark/20 bg-white dark:bg-graphite-900 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-graphite-400 shadow-xs transition-all"
           />
         </div>
         <select
@@ -158,8 +158,8 @@ const TabelaFiltrada = memo(({ transacoes }) => {
 
       {/* Tabela */}
       <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse min-w-[600px]">
-          <thead className="bg-slate-50 dark:bg-[#14171F]/60 border-b border-slate-200 dark:border-[#2E3342] text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-[#687082]">
+        <table className="w-full text-left border-collapse min-w-150">
+          <thead className="bg-slate-50 dark:bg-graphite-900/60 border-b border-slate-200 dark:border-graphite-600 text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-graphite-400">
             <tr>
               <th className="p-4 pl-5 sm:pl-6">Descrição</th>
               <th className="p-4">Valor</th>
@@ -168,12 +168,12 @@ const TabelaFiltrada = memo(({ transacoes }) => {
               <th className="p-4">Categoria</th>
             </tr>
           </thead>
-          <tbody className="text-slate-700 dark:text-slate-200 text-sm divide-y divide-slate-100 dark:divide-[#2E3342]">
+          <tbody className="text-slate-700 dark:text-slate-200 text-sm divide-y divide-slate-100 dark:divide-graphite-600">
             {transacoesFiltradas.length > 0 ? (
               transacoesFiltradas.map((t) => (
                 <tr
                   key={t.id}
-                  className="hover:bg-slate-50 dark:hover:bg-[#14171F]/40 transition-colors"
+                  className="hover:bg-slate-50 dark:hover:bg-graphite-900/40 transition-colors"
                 >
                   <td className="p-4 pl-5 sm:pl-6 font-semibold text-slate-800 dark:text-slate-100">
                     {t.descricao}
@@ -181,7 +181,7 @@ const TabelaFiltrada = memo(({ transacoes }) => {
                   <td
                     className={`p-4 font-bold ${
                       t.tipo === "receita"
-                        ? "text-emerald-600 dark:text-[#B6FFE2]"
+                        ? "text-emerald-600 dark:text-lime-spark"
                         : "text-red-500 dark:text-red-400"
                     }`}
                   >
@@ -191,19 +191,19 @@ const TabelaFiltrada = memo(({ transacoes }) => {
                     <span
                       className={`px-2.5 py-1 text-[0.7rem] font-extrabold uppercase tracking-wide rounded-full ${
                         t.tipo === "receita"
-                          ? "bg-emerald-100 dark:bg-[#B6FFE2]/15 text-emerald-700 dark:text-[#B6FFE2]"
+                          ? "bg-emerald-100 dark:bg-lime-spark/15 text-emerald-700 dark:text-lime-spark"
                           : "bg-red-100 dark:bg-red-500/15 text-red-600 dark:text-red-400"
                       }`}
                     >
                       {t.tipo}
                     </span>
                   </td>
-                  <td className="p-4 text-slate-500 dark:text-[#8E9AA8] text-xs sm:text-sm">
+                  <td className="p-4 text-slate-500 dark:text-graphite-300 text-xs sm:text-sm">
                     {new Date(t.data).toLocaleDateString("pt-BR", {
                       timeZone: "UTC",
                     })}
                   </td>
-                  <td className="p-4 font-medium text-slate-500 dark:text-[#8E9AA8] text-xs sm:text-sm">
+                  <td className="p-4 font-medium text-slate-500 dark:text-graphite-300 text-xs sm:text-sm">
                     {t.categoria_nome ? (
                       <span className="flex items-center gap-1.5">
                         <span
@@ -215,7 +215,9 @@ const TabelaFiltrada = memo(({ transacoes }) => {
                         {t.categoria_nome}
                       </span>
                     ) : (
-                      <span className="text-slate-300 dark:text-[#687082]">—</span>
+                      <span className="text-slate-300 dark:text-graphite-400">
+                        —
+                      </span>
                     )}
                   </td>
                 </tr>
@@ -223,7 +225,7 @@ const TabelaFiltrada = memo(({ transacoes }) => {
             ) : (
               <tr>
                 <td colSpan="5" className="p-10 text-center">
-                  <div className="flex flex-col items-center gap-2 text-slate-400 dark:text-[#8E9AA8]">
+                  <div className="flex flex-col items-center gap-2 text-slate-400 dark:text-graphite-300">
                     <Search size={24} className="opacity-40" />
                     <p className="font-medium">
                       Nenhuma transação encontrada com os filtros atuais.
@@ -361,7 +363,7 @@ function Comparativo() {
               Resumo Geral
             </h2>
             <select
-              className="p-2 sm:p-2.5 border border-slate-200 dark:border-[#2E3342] rounded-lg text-xs sm:text-sm font-medium bg-white dark:bg-[#14171F] text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#B6FFE2]/30 cursor-pointer transition-colors"
+              className="p-2 sm:p-2.5 border border-slate-200 dark:border-graphite-600 rounded-lg text-xs sm:text-sm font-medium bg-white dark:bg-graphite-900 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-lime-spark/30 cursor-pointer transition-colors"
               value={periodo}
               onChange={(e) => setPeriodo(e.target.value)}
             >
@@ -374,19 +376,19 @@ function Comparativo() {
 
           {loading ? (
             <div className="flex flex-col gap-3 grow justify-center animate-pulse">
-              <div className="h-6 bg-slate-100 dark:bg-[#23262F] rounded-lg" />
-              <div className="h-6 bg-slate-100 dark:bg-[#23262F] rounded-lg" />
-              <div className="h-24 bg-slate-100 dark:bg-[#23262F] rounded-xl mt-4" />
+              <div className="h-6 bg-slate-100 dark:bg-graphite-700 rounded-lg" />
+              <div className="h-6 bg-slate-100 dark:bg-graphite-700 rounded-lg" />
+              <div className="h-24 bg-slate-100 dark:bg-graphite-700 rounded-xl mt-4" />
             </div>
           ) : comparativo ? (
             <div className="flex flex-col gap-3 sm:gap-4 grow justify-center">
               {/* Receitas */}
-              <div className="flex items-center justify-between p-3.5 rounded-xl bg-emerald-50 dark:bg-[#B6FFE2]/10 border border-emerald-100 dark:border-[#B6FFE2]/20">
-                <div className="flex items-center gap-2.5 text-emerald-700 dark:text-[#B6FFE2]">
+              <div className="flex items-center justify-between p-3.5 rounded-xl bg-emerald-50 dark:bg-lime-spark/10 border border-emerald-100 dark:border-lime-spark/20">
+                <div className="flex items-center gap-2.5 text-emerald-700 dark:text-lime-spark">
                   <TrendingUp size={18} />
                   <span className="text-sm font-semibold">Receitas</span>
                 </div>
-                <strong className="text-emerald-600 dark:text-[#B6FFE2] text-lg">
+                <strong className="text-emerald-600 dark:text-lime-spark text-lg">
                   {formatCurrency(comparativo.totalReceitas)}
                 </strong>
               </div>
@@ -406,7 +408,7 @@ function Comparativo() {
               <div
                 className={`flex flex-col items-center p-5 rounded-xl mt-1 text-center border ${
                   comparativo.balanco >= 0
-                    ? "bg-emerald-50 dark:bg-[#B6FFE2]/10 border-emerald-100 dark:border-[#B6FFE2]/20"
+                    ? "bg-emerald-50 dark:bg-lime-spark/10 border-emerald-100 dark:border-lime-spark/20"
                     : "bg-red-50 dark:bg-red-500/10 border-red-100 dark:border-red-500/20"
                 }`}
               >
@@ -414,17 +416,17 @@ function Comparativo() {
                   size={18}
                   className={
                     comparativo.balanco >= 0
-                      ? "text-emerald-500 dark:text-[#B6FFE2] mb-2"
+                      ? "text-emerald-500 dark:text-lime-spark mb-2"
                       : "text-red-500 dark:text-red-400 mb-2"
                   }
                 />
-                <span className="text-xs font-bold text-slate-500 dark:text-[#8E9AA8] uppercase tracking-wide">
+                <span className="text-xs font-bold text-slate-500 dark:text-graphite-300 uppercase tracking-wide">
                   Balanço Final
                 </span>
                 <strong
                   className={`text-3xl sm:text-4xl font-black mt-1.5 tracking-tight ${
                     comparativo.balanco >= 0
-                      ? "text-emerald-600 dark:text-[#B6FFE2]"
+                      ? "text-emerald-600 dark:text-lime-spark"
                       : "text-red-500 dark:text-red-400"
                   }`}
                 >
@@ -433,7 +435,7 @@ function Comparativo() {
                 <span
                   className={`text-xs font-bold mt-2.5 px-3 py-1 rounded-full ${
                     comparativo.balanco >= 0
-                      ? "bg-emerald-100 dark:bg-[#B6FFE2]/20 text-emerald-700 dark:text-[#B6FFE2]"
+                      ? "bg-emerald-100 dark:bg-lime-spark/20 text-emerald-700 dark:text-lime-spark"
                       : "bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-400"
                   }`}
                 >
@@ -447,10 +449,10 @@ function Comparativo() {
         {/* Gráfico de Pizza: Despesas por Categoria */}
         {!loading && comparativo?.gastosPorCategoria?.length > 0 ? (
           <div className={`${cardClass} xl:col-span-2 items-center`}>
-            <h3 className="w-full text-left font-bold text-lg text-slate-800 dark:text-white border-b border-slate-100 dark:border-[#2E3342] pb-3 sm:pb-4 mb-4">
+            <h3 className="w-full text-left font-bold text-lg text-slate-800 dark:text-white border-b border-slate-100 dark:border-graphite-600 pb-3 sm:pb-4 mb-4">
               Despesas por Categoria
             </h3>
-            <div className="w-full h-64 sm:h-[300px]">
+            <div className="w-full h-64 sm:h-75">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -481,8 +483,10 @@ function Comparativo() {
             </div>
           </div>
         ) : !loading ? (
-          <div className={`${cardClass} xl:col-span-2 items-center justify-center`}>
-            <p className="text-slate-400 dark:text-[#8E9AA8] text-sm">
+          <div
+            className={`${cardClass} xl:col-span-2 items-center justify-center`}
+          >
+            <p className="text-slate-400 dark:text-graphite-300 text-sm">
               Nenhum gasto para exibir o gráfico.
             </p>
           </div>
@@ -495,7 +499,7 @@ function Comparativo() {
           {/* Receitas x Despesas */}
           <div className={cardClass}>
             <h3 className={titleClass}>Receitas × Despesas</h3>
-            <div className="w-full h-64 sm:h-[300px]">
+            <div className="w-full h-64 sm:h-75">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={dataBalanco}
@@ -542,7 +546,7 @@ function Comparativo() {
           <div className={cardClass}>
             <h3 className={titleClass}>Top 5 Maiores Despesas</h3>
             {topDespesas.length > 0 ? (
-              <div className="w-full h-64 sm:h-[300px]">
+              <div className="w-full h-64 sm:h-75">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={topDespesas}
@@ -581,7 +585,7 @@ function Comparativo() {
               </div>
             ) : (
               <div className="flex items-center justify-center h-full">
-                <p className="text-slate-400 dark:text-[#8E9AA8] text-sm">
+                <p className="text-slate-400 dark:text-graphite-300 text-sm">
                   Nenhuma despesa no período.
                 </p>
               </div>
@@ -594,7 +598,7 @@ function Comparativo() {
       {!loading && fluxoDiario.length > 0 && (
         <div className={cardClass}>
           <h3 className={titleClass}>Fluxo de Caixa Diário</h3>
-          <div className="w-full h-64 sm:h-[350px]">
+          <div className="w-full h-64 sm:h-87.5">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart
                 data={fluxoDiario}

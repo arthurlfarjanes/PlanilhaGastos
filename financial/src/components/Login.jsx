@@ -65,25 +65,32 @@ function Login() {
 
   const inputClass =
     "w-full p-3.5 border border-slate-200 dark:border-[#2E3342] rounded-xl text-[0.95rem] text-slate-800 dark:text-slate-100 bg-slate-50 dark:bg-[#14171F] focus:bg-white dark:focus:bg-[#14171F] focus:outline-none focus:border-[#B6FFE2] focus:ring-4 focus:ring-[#B6FFE2]/15 transition-all placeholder-slate-400 dark:placeholder-[#687082]";
-  const labelClass = "block mb-1.5 text-slate-500 dark:text-[#8E9AA8] font-medium text-[0.85rem]";
+  const labelClass =
+    "block mb-1.5 text-slate-500 dark:text-[#8E9AA8] font-medium text-[0.85rem]";
 
   return (
     <div className="w-full max-w-md mx-auto">
-      <div className="bg-white dark:bg-[#1E222B] p-8 rounded-3xl shadow-xl border border-slate-100 dark:border-[#2E3342]">
+      <div className="bg-white dark:bg-graphite-800 p-8 rounded-3xl shadow-xl border border-slate-100 dark:border-graphite-600">
         <div className="text-center mb-8">
           {/* Logo do app */}
           <div className="flex items-center justify-center gap-2.5 mb-5">
-            <div className="w-11 h-11 rounded-xl bg-[#23262F] dark:bg-[#14171F] border border-slate-200 dark:border-[#2E3342] flex items-center justify-center text-[#B6FFE2] shadow-sm">
-              <Wallet size={22} className="drop-shadow-[0_0_8px_rgba(182,255,226,0.5)]" />
+            <div className="w-11 h-11 rounded-xl bg-graphite-700 dark:bg-graphite-900 border border-slate-200 dark:border-graphite-600 flex items-center justify-center text-lime-spark shadow-sm">
+              <Wallet
+                size={22}
+                className="drop-shadow-[0_0_8px_rgba(182,255,226,0.5)]"
+              />
             </div>
             <span className="font-extrabold text-2xl text-slate-900 dark:text-white tracking-tight">
-              Me<span className="text-[#059669] dark:text-[#B6FFE2]">Finance</span>
+              Me
+              <span className="text-[#059669] dark:text-lime-spark">
+                Finance
+              </span>
             </span>
           </div>
           <h2 className="text-xl font-bold text-slate-800 dark:text-white">
             Bem-vindo de volta
           </h2>
-          <p className="text-slate-500 dark:text-[#8E9AA8] text-sm mt-1.5">
+          <p className="text-slate-500 dark:text-graphite-300 text-sm mt-1.5">
             Acesse sua conta para gerenciar suas finanças
           </p>
         </div>
@@ -132,7 +139,7 @@ function Login() {
           <button
             disabled={loading}
             type="submit"
-            className="w-full mt-2 bg-[#B6FFE2] hover:bg-[#8DF3CA] text-[#14171F] font-bold py-3.5 px-6 rounded-xl transition-all shadow-[0_4px_14px_rgba(182,255,226,0.3)] hover:shadow-[0_6px_20px_rgba(182,255,226,0.4)] hover:-translate-y-0.5 flex justify-center items-center gap-2"
+            className="w-full mt-2 bg-lime-spark hover:bg-lime-spark-hover text-graphite-900 font-bold py-3.5 px-6 rounded-xl transition-all shadow-[0_4px_14px_rgba(182,255,226,0.3)] hover:shadow-[0_6px_20px_rgba(182,255,226,0.4)] hover:-translate-y-0.5 flex justify-center items-center gap-2"
           >
             {loading ? (
               <Loader2 size={20} className="animate-spin" />
@@ -146,11 +153,11 @@ function Login() {
 
         {/* NOVO: Divisor visual */}
         <div className="flex items-center my-6">
-          <div className="grow border-t border-slate-200 dark:border-[#2E3342]"></div>
-          <span className="px-4 text-sm text-slate-400 dark:text-[#687082] font-medium">
+          <div className="grow border-t border-slate-200 dark:border-graphite-600"></div>
+          <span className="px-4 text-sm text-slate-400 dark:text-graphite-400 font-medium">
             Ou continue com
           </span>
-          <div className="grow border-t border-slate-200 dark:border-[#2E3342]"></div>
+          <div className="grow border-t border-slate-200 dark:border-graphite-600"></div>
         </div>
 
         {/* NOVO: Botão do Google */}
@@ -166,11 +173,11 @@ function Login() {
           />
         </div>
 
-        <p className="text-center text-slate-500 dark:text-[#8E9AA8] text-sm mt-8">
+        <p className="text-center text-slate-500 dark:text-graphite-300 text-sm mt-8">
           Ainda não tem uma conta?{" "}
           <Link
             to="/register"
-            className="font-semibold text-[#059669] dark:text-[#B6FFE2] hover:opacity-80 transition-opacity"
+            className="font-semibold text-[#059669] dark:text-lime-spark hover:opacity-80 transition-opacity"
           >
             Registre-se
           </Link>

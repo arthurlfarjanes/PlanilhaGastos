@@ -6,23 +6,56 @@ import Button from "./ui/Button";
 
 // Paleta expandida com 40 cores otimizadas para leitura
 const PALETTE = [
-  "#ef4444", "#dc2626", "#f87171", // Vermelhos
-  "#f97316", "#ea580c", "#fb923c", // Laranjas
-  "#f59e0b", "#d97706", "#fbbf24", // Âmbares
-  "#84cc16", "#65a30d", "#a3e635", // Limão
-  "#22c55e", "#16a34a", "#4ade80", // Verdes
-  "#10b981", "#059669", "#34d399", // Esmeraldas
-  "#B6FFE2", "#14b8a6", "#0d9488", // Lime Spark & Teal
-  "#06b6d4", "#0891b2", "#22d3ee", // Ciano
-  "#0ea5e9", "#0284c7", "#38bdf8", // Sky
-  "#3b82f6", "#2563eb", "#60a5fa", // Azuis
-  "#6366f1", "#4f46e5", "#818cf8", // Índigos
-  "#8b5cf6", "#7c3aed", "#a78bfa", // Violetas
-  "#a855f7", "#9333ea", "#c084fc", // Roxos
-  "#d946ef", "#c026d3", "#e879f9", // Fúcsias
-  "#ec4899", "#db2777", "#f472b6", // Rosas
-  "#f43f5e", "#e11d48", "#fb7185", // Roses
-  "#64748b", "#475569",             // Slates
+  "#ef4444",
+  "#dc2626",
+  "#f87171", // Vermelhos
+  "#f97316",
+  "#ea580c",
+  "#fb923c", // Laranjas
+  "#f59e0b",
+  "#d97706",
+  "#fbbf24", // Âmbares
+  "#84cc16",
+  "#65a30d",
+  "#a3e635", // Limão
+  "#22c55e",
+  "#16a34a",
+  "#4ade80", // Verdes
+  "#10b981",
+  "#059669",
+  "#34d399", // Esmeraldas
+  "#B6FFE2",
+  "#14b8a6",
+  "#0d9488", // Lime Spark & Teal
+  "#06b6d4",
+  "#0891b2",
+  "#22d3ee", // Ciano
+  "#0ea5e9",
+  "#0284c7",
+  "#38bdf8", // Sky
+  "#3b82f6",
+  "#2563eb",
+  "#60a5fa", // Azuis
+  "#6366f1",
+  "#4f46e5",
+  "#818cf8", // Índigos
+  "#8b5cf6",
+  "#7c3aed",
+  "#a78bfa", // Violetas
+  "#a855f7",
+  "#9333ea",
+  "#c084fc", // Roxos
+  "#d946ef",
+  "#c026d3",
+  "#e879f9", // Fúcsias
+  "#ec4899",
+  "#db2777",
+  "#f472b6", // Rosas
+  "#f43f5e",
+  "#e11d48",
+  "#fb7185", // Roses
+  "#64748b",
+  "#475569", // Slates
 ];
 
 function GerenciarCategorias({ categorias, onCategoriaChange, onEdit }) {
@@ -69,7 +102,8 @@ function GerenciarCategorias({ categorias, onCategoriaChange, onEdit }) {
         body: JSON.stringify({ nome: novaCategoria.trim(), cor: cor }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Erro ao adicionar categoria.");
+      if (!res.ok)
+        throw new Error(data.error || "Erro ao adicionar categoria.");
 
       onCategoriaChange();
       setNovaCategoria("");
@@ -85,10 +119,13 @@ function GerenciarCategorias({ categorias, onCategoriaChange, onEdit }) {
     if (!categoriaParaExcluir) return;
     setExcluindo(true);
     try {
-      const res = await fetch(`${API_URL}/categorias/${categoriaParaExcluir.id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(
+        `${API_URL}/categorias/${categoriaParaExcluir.id}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
       if (!res.ok) {
         const d = await res.json();
         throw new Error(d.error || "Erro ao deletar categoria.");
@@ -103,13 +140,13 @@ function GerenciarCategorias({ categorias, onCategoriaChange, onEdit }) {
   };
 
   return (
-    <div className="bg-white dark:bg-[#1E222B] p-5 sm:p-7 rounded-2xl shadow-xs border border-slate-200/80 dark:border-[#2E3342] flex flex-col h-fit transition-colors duration-200">
-      <div className="flex items-center justify-between border-b border-slate-100 dark:border-[#2E3342] pb-3 mb-4">
+    <div className="bg-white dark:bg-graphite-800 p-5 sm:p-7 rounded-2xl shadow-xs border border-slate-200/80 dark:border-graphite-600 flex flex-col h-fit transition-colors duration-200">
+      <div className="flex items-center justify-between border-b border-slate-100 dark:border-graphite-600 pb-3 mb-4">
         <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100 flex items-center gap-2">
-          <Tag size={18} className="text-[#059669] dark:text-[#B6FFE2]" />
+          <Tag size={18} className="text-[#059669] dark:text-lime-spark" />
           Categorias
         </h3>
-        <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-slate-100 dark:bg-[#14171F] text-slate-600 dark:text-[#8E9AA8] border border-slate-200 dark:border-[#2E3342]">
+        <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-slate-100 dark:bg-graphite-900 text-slate-600 dark:text-graphite-300 border border-slate-200 dark:border-graphite-600">
           {categorias.length}
         </span>
       </div>
@@ -122,8 +159,11 @@ function GerenciarCategorias({ categorias, onCategoriaChange, onEdit }) {
       )}
 
       {/* Formulário de Nova Categoria */}
-      <form onSubmit={handleAdd} className="flex gap-2 mb-4 items-center w-full">
-        <div className="flex flex-1 items-center gap-2 border border-slate-200 dark:border-[#2E3342] rounded-xl p-1.5 focus-within:ring-2 focus-within:ring-[#B6FFE2]/40 focus-within:border-[#B6FFE2] bg-slate-50/50 dark:bg-[#14171F] shadow-xs transition-all">
+      <form
+        onSubmit={handleAdd}
+        className="flex gap-2 mb-4 items-center w-full"
+      >
+        <div className="flex flex-1 items-center gap-2 border border-slate-200 dark:border-graphite-600 rounded-xl p-1.5 focus-within:ring-2 focus-within:ring-lime-spark/40 focus-within:border-lime-spark bg-slate-50/50 dark:bg-graphite-900 shadow-xs transition-all">
           {/* Seletor de cor */}
           <div
             className="relative w-7 h-7 shrink-0 rounded-full shadow-xs border border-white/40 overflow-hidden cursor-pointer flex items-center justify-center transition-transform hover:scale-105"
@@ -140,7 +180,7 @@ function GerenciarCategorias({ categorias, onCategoriaChange, onEdit }) {
 
           <input
             type="text"
-            className="flex-1 w-full px-1 py-1 text-sm bg-transparent outline-none min-w-0 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-[#687082]"
+            className="flex-1 w-full px-1 py-1 text-sm bg-transparent outline-none min-w-0 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-graphite-400"
             value={novaCategoria}
             onChange={(e) => setNovaCategoria(e.target.value)}
             placeholder="Nova categoria..."
@@ -150,7 +190,7 @@ function GerenciarCategorias({ categorias, onCategoriaChange, onEdit }) {
           <button
             type="button"
             onClick={getRandomColor}
-            className="shrink-0 p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-[#B6FFE2] hover:bg-slate-200 dark:hover:bg-[#23262F] transition-colors cursor-pointer"
+            className="shrink-0 p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-lime-spark hover:bg-slate-200 dark:hover:bg-graphite-700 transition-colors cursor-pointer"
             title="Sortear cor aleatória"
           >
             <Dices size={16} />
@@ -160,7 +200,7 @@ function GerenciarCategorias({ categorias, onCategoriaChange, onEdit }) {
         <button
           type="submit"
           disabled={loading || !novaCategoria.trim()}
-          className="shrink-0 bg-[#B6FFE2] hover:bg-[#8DF3CA] text-[#14171F] p-2.5 rounded-xl font-bold shadow-xs hover:shadow-md transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center"
+          className="shrink-0 bg-lime-spark hover:bg-lime-spark-hover text-graphite-900 p-2.5 rounded-xl font-bold shadow-xs hover:shadow-md transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center"
           title="Adicionar Categoria"
         >
           <Plus size={18} strokeWidth={2.5} />
@@ -172,7 +212,7 @@ function GerenciarCategorias({ categorias, onCategoriaChange, onEdit }) {
         {categorias.map((cat) => (
           <li
             key={cat.id}
-            className="flex justify-between items-center p-2.5 bg-slate-50 dark:bg-[#14171F] rounded-xl border border-slate-200/60 dark:border-[#2E3342] hover:border-slate-300 dark:hover:border-[#3E4351] transition-all group"
+            className="flex justify-between items-center p-2.5 bg-slate-50 dark:bg-graphite-900 rounded-xl border border-slate-200/60 dark:border-graphite-600 hover:border-slate-300 dark:hover:border-graphite-500 transition-all group"
           >
             <div className="flex items-center gap-2.5 min-w-0">
               <span
@@ -187,14 +227,14 @@ function GerenciarCategorias({ categorias, onCategoriaChange, onEdit }) {
             <div className="flex gap-1 shrink-0 opacity-100 sm:opacity-80 group-hover:opacity-100 transition-opacity">
               <button
                 onClick={() => onEdit(cat)}
-                className="text-slate-500 dark:text-[#8E9AA8] hover:text-[#059669] dark:hover:text-[#B6FFE2] p-1.5 rounded-lg hover:bg-slate-200/60 dark:hover:bg-[#23262F] transition-colors cursor-pointer"
+                className="text-slate-500 dark:text-graphite-300 hover:text-[#059669] dark:hover:text-lime-spark p-1.5 rounded-lg hover:bg-slate-200/60 dark:hover:bg-graphite-700 transition-colors cursor-pointer"
                 title="Editar Categoria"
               >
                 <Edit2 size={14} />
               </button>
               <button
                 onClick={() => setCategoriaParaExcluir(cat)}
-                className="text-slate-500 dark:text-[#8E9AA8] hover:text-red-500 dark:hover:text-red-400 p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors cursor-pointer"
+                className="text-slate-500 dark:text-graphite-300 hover:text-red-500 dark:hover:text-red-400 p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors cursor-pointer"
                 title="Excluir Categoria"
               >
                 <Trash2 size={14} />
@@ -203,7 +243,7 @@ function GerenciarCategorias({ categorias, onCategoriaChange, onEdit }) {
           </li>
         ))}
         {categorias.length === 0 && (
-          <p className="text-center text-xs text-slate-400 dark:text-[#8E9AA8] py-4">
+          <p className="text-center text-xs text-slate-400 dark:text-graphite-300 py-4">
             Você ainda não tem categorias cadastradas.
           </p>
         )}
