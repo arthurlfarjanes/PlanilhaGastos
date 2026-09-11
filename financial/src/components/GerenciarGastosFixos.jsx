@@ -182,7 +182,7 @@ export default function GerenciarGastosFixos() {
             Transações Fixas
           </h1>
           <p className="text-sm text-slate-500 dark:text-graphite-300 mt-1 ml-12.5">
-            Gerencie receitas e despesas recorrentes mensais[cite: 12]
+            Gerencie receitas e despesas recorrentes mensais
           </p>
         </div>
 
