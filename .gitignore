@@ -1,0 +1,17 @@
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+
+# Agent skills & local ide data
+.agents/
+.skills/
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

@@ -5,11 +5,38 @@ exports.criarGastoFixo = async (req, res) => {
   const { descricao, valor, dia_vencimento, categoria_id } = req.body;
   const userId = req.user.userId;
 
-  // Validação simples de campos obrigatórios
-  if (!descricao || !valor || !dia_vencimento) {
+  if (!descricao || valor === undefined || dia_vencimento === undefined) {
     return res.status(400).json({
       error: "Descrição, valor e dia de vencimento são obrigatórios.",
     });
+  }
+
+  const numValor = parseFloat(valor);
+  if (isNaN(numValor) || numValor <= 0) {
+    return res.status(400).json({ error: "O valor deve ser um número positivo." });
+  }
+
+  const diaVenc = parseInt(dia_vencimento);
+  if (isNaN(diaVenc) || diaVenc < 1 || diaVenc > 31) {
+    return res.status(400).json({ error: "O dia de vencimento deve estar entre 1 e 31." });
+  }
+
+  let finalCategoriaId = null;
+  if (categoria_id) {
+    const catIdNum = parseInt(categoria_id);
+    if (isNaN(catIdNum)) {
+      return res.status(400).json({ error: "ID de categoria inválido." });
+    }
+
+    // Validação de posse da categoria
+    const catCheck = await pool.query(
+      "SELECT id FROM categorias WHERE id = $1 AND user_id = $2",
+      [catIdNum, userId],
+    );
+    if (catCheck.rows.length === 0) {
+      return res.status(403).json({ error: "Categoria inválida ou não autorizada." });
+    }
+    finalCategoriaId = catIdNum;
   }
 
   try {
@@ -20,19 +47,17 @@ exports.criarGastoFixo = async (req, res) => {
     `;
     const valores = [
       userId,
-      descricao,
-      parseFloat(valor),
-      parseInt(dia_vencimento),
-      categoria_id || null,
+      descricao.toString().trim().substring(0, 100),
+      numValor,
+      diaVenc,
+      finalCategoriaId,
     ];
 
     const result = await pool.query(query, valores);
     res.status(201).json(result.rows[0]);
   } catch (err) {
-    console.error("Erro ao criar gasto fixo:", err);
-    res
-      .status(500)
-      .json({ error: "Erro interno do servidor ao criar gasto fixo." });
+    console.error("Erro ao criar gasto fixo:", err.message);
+    res.status(500).json({ error: "Erro interno do servidor ao criar gasto fixo." });
   }
 };
 
@@ -53,10 +78,8 @@ exports.listarGastosFixos = async (req, res) => {
     const result = await pool.query(query, [userId]);
     res.json(result.rows);
   } catch (err) {
-    console.error("Erro ao buscar gastos fixos:", err);
-    res
-      .status(500)
-      .json({ error: "Erro interno do servidor ao buscar gastos fixos." });
+    console.error("Erro ao buscar gastos fixos:", err.message);
+    res.status(500).json({ error: "Erro interno do servidor ao buscar gastos fixos." });
   }
 };
 
@@ -65,10 +88,15 @@ exports.deletarGastoFixo = async (req, res) => {
   const { id } = req.params;
   const userId = req.user.userId;
 
+  const gastoId = parseInt(id);
+  if (isNaN(gastoId)) {
+    return res.status(400).json({ error: "ID de gasto fixo inválido." });
+  }
+
   try {
     const result = await pool.query(
       "DELETE FROM gastos_fixos WHERE id = $1 AND usuario_id = $2 RETURNING id",
-      [id, userId],
+      [gastoId, userId],
     );
 
     if (result.rowCount === 0) {
@@ -79,10 +107,8 @@ exports.deletarGastoFixo = async (req, res) => {
 
     res.status(204).send();
   } catch (err) {
-    console.error("Erro ao deletar gasto fixo:", err);
-    res
-      .status(500)
-      .json({ error: "Erro interno do servidor ao deletar gasto fixo." });
+    console.error("Erro ao deletar gasto fixo:", err.message);
+    res.status(500).json({ error: "Erro interno do servidor ao deletar gasto fixo." });
   }
 };
 
@@ -92,11 +118,43 @@ exports.atualizarGastoFixo = async (req, res) => {
   const { descricao, valor, dia_vencimento, categoria_id } = req.body;
   const userId = req.user.userId;
 
-  // Validação simples de campos obrigatórios
-  if (!descricao || !valor || !dia_vencimento) {
+  const gastoId = parseInt(id);
+  if (isNaN(gastoId)) {
+    return res.status(400).json({ error: "ID de gasto fixo inválido." });
+  }
+
+  if (!descricao || valor === undefined || dia_vencimento === undefined) {
     return res.status(400).json({
       error: "Descrição, valor e dia de vencimento são obrigatórios.",
     });
+  }
+
+  const numValor = parseFloat(valor);
+  if (isNaN(numValor) || numValor <= 0) {
+    return res.status(400).json({ error: "O valor deve ser um número positivo." });
+  }
+
+  const diaVenc = parseInt(dia_vencimento);
+  if (isNaN(diaVenc) || diaVenc < 1 || diaVenc > 31) {
+    return res.status(400).json({ error: "O dia de vencimento deve estar entre 1 e 31." });
+  }
+
+  let finalCategoriaId = null;
+  if (categoria_id) {
+    const catIdNum = parseInt(categoria_id);
+    if (isNaN(catIdNum)) {
+      return res.status(400).json({ error: "ID de categoria inválido." });
+    }
+
+    // Validação de posse da categoria
+    const catCheck = await pool.query(
+      "SELECT id FROM categorias WHERE id = $1 AND user_id = $2",
+      [catIdNum, userId],
+    );
+    if (catCheck.rows.length === 0) {
+      return res.status(403).json({ error: "Categoria inválida ou não autorizada." });
+    }
+    finalCategoriaId = catIdNum;
   }
 
   try {
@@ -107,11 +165,11 @@ exports.atualizarGastoFixo = async (req, res) => {
       RETURNING *;
     `;
     const valores = [
-      descricao,
-      parseFloat(valor),
-      parseInt(dia_vencimento),
-      categoria_id || null,
-      id,
+      descricao.toString().trim().substring(0, 100),
+      numValor,
+      diaVenc,
+      finalCategoriaId,
+      gastoId,
       userId,
     ];
 
@@ -125,9 +183,7 @@ exports.atualizarGastoFixo = async (req, res) => {
 
     res.json(result.rows[0]);
   } catch (err) {
-    console.error("Erro ao atualizar gasto fixo:", err);
-    res
-      .status(500)
-      .json({ error: "Erro interno do servidor ao atualizar gasto fixo." });
+    console.error("Erro ao atualizar gasto fixo:", err.message);
+    res.status(500).json({ error: "Erro interno do servidor ao atualizar gasto fixo." });
   }
 };
