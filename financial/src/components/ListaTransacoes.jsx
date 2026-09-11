@@ -17,7 +17,7 @@ function ListaTransacoes({ transacoes, onEdit, onDelete }) {
     );
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3 max-h-228.75 overflow-y-auto pr-1 custom-scrollbar">
       {transacoes.map((t) => {
         const isReceita = t.tipo === "receita";
 

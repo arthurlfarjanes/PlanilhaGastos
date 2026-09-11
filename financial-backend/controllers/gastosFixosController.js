@@ -1,8 +1,7 @@
 const pool = require("../config/db");
 
-// 1. Criar um novo gasto fixo
 exports.criarGastoFixo = async (req, res) => {
-  const { descricao, valor, dia_vencimento, categoria_id } = req.body;
+  const { descricao, valor, dia_vencimento, categoria_id, tipo } = req.body;
   const userId = req.user.userId;
 
   if (!descricao || valor === undefined || dia_vencimento === undefined) {
@@ -11,14 +10,20 @@ exports.criarGastoFixo = async (req, res) => {
     });
   }
 
+  const tipoTransacao = tipo === "receita" ? "receita" : "despesa";
+
   const numValor = parseFloat(valor);
   if (isNaN(numValor) || numValor <= 0) {
-    return res.status(400).json({ error: "O valor deve ser um número positivo." });
+    return res
+      .status(400)
+      .json({ error: "O valor deve ser um número positivo." });
   }
 
   const diaVenc = parseInt(dia_vencimento);
   if (isNaN(diaVenc) || diaVenc < 1 || diaVenc > 31) {
-    return res.status(400).json({ error: "O dia de vencimento deve estar entre 1 e 31." });
+    return res
+      .status(400)
+      .json({ error: "O dia de vencimento deve estar entre 1 e 31." });
   }
 
   let finalCategoriaId = null;
@@ -28,21 +33,22 @@ exports.criarGastoFixo = async (req, res) => {
       return res.status(400).json({ error: "ID de categoria inválido." });
     }
 
-    // Validação de posse da categoria
     const catCheck = await pool.query(
       "SELECT id FROM categorias WHERE id = $1 AND user_id = $2",
       [catIdNum, userId],
     );
     if (catCheck.rows.length === 0) {
-      return res.status(403).json({ error: "Categoria inválida ou não autorizada." });
+      return res
+        .status(403)
+        .json({ error: "Categoria inválida ou não autorizada." });
     }
     finalCategoriaId = catIdNum;
   }
 
   try {
     const query = `
-      INSERT INTO gastos_fixos (usuario_id, descricao, valor, dia_vencimento, categoria_id)
-      VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO gastos_fixos (usuario_id, descricao, valor, dia_vencimento, categoria_id, tipo)
+      VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *;
     `;
     const valores = [
@@ -51,23 +57,25 @@ exports.criarGastoFixo = async (req, res) => {
       numValor,
       diaVenc,
       finalCategoriaId,
+      tipoTransacao,
     ];
 
     const result = await pool.query(query, valores);
     res.status(201).json(result.rows[0]);
   } catch (err) {
-    console.error("Erro ao criar gasto fixo:", err.message);
-    res.status(500).json({ error: "Erro interno do servidor ao criar gasto fixo." });
+    console.error("Erro ao criar transação fixa:", err.message);
+    res
+      .status(500)
+      .json({ error: "Erro interno do servidor ao criar transação fixa." });
   }
 };
 
-// 2. Listar todos os gastos fixos do usuário logado
 exports.listarGastosFixos = async (req, res) => {
   const userId = req.user.userId;
 
   try {
     const query = `
-      SELECT gf.id, gf.descricao, gf.valor, gf.dia_vencimento, gf.categoria_id, 
+      SELECT gf.id, gf.descricao, gf.valor, gf.dia_vencimento, gf.categoria_id, gf.tipo,
              c.nome as categoria_nome, c.cor as categoria_cor
       FROM gastos_fixos gf
       LEFT JOIN categorias c ON gf.categoria_id = c.id
@@ -78,19 +86,20 @@ exports.listarGastosFixos = async (req, res) => {
     const result = await pool.query(query, [userId]);
     res.json(result.rows);
   } catch (err) {
-    console.error("Erro ao buscar gastos fixos:", err.message);
-    res.status(500).json({ error: "Erro interno do servidor ao buscar gastos fixos." });
+    console.error("Erro ao buscar transações fixas:", err.message);
+    res
+      .status(500)
+      .json({ error: "Erro interno do servidor ao buscar transações fixas." });
   }
 };
 
-// 3. Deletar um gasto fixo
 exports.deletarGastoFixo = async (req, res) => {
   const { id } = req.params;
   const userId = req.user.userId;
 
   const gastoId = parseInt(id);
   if (isNaN(gastoId)) {
-    return res.status(400).json({ error: "ID de gasto fixo inválido." });
+    return res.status(400).json({ error: "ID de transação fixa inválido." });
   }
 
   try {
@@ -101,26 +110,27 @@ exports.deletarGastoFixo = async (req, res) => {
 
     if (result.rowCount === 0) {
       return res.status(404).json({
-        error: "Gasto fixo não encontrado ou sem permissão para excluir.",
+        error: "Transação fixa não encontrada ou sem permissão para excluir.",
       });
     }
 
     res.status(204).send();
   } catch (err) {
-    console.error("Erro ao deletar gasto fixo:", err.message);
-    res.status(500).json({ error: "Erro interno do servidor ao deletar gasto fixo." });
+    console.error("Erro ao deletar transação fixa:", err.message);
+    res
+      .status(500)
+      .json({ error: "Erro interno do servidor ao deletar transação fixa." });
   }
 };
 
-// 4. Atualizar um gasto fixo
 exports.atualizarGastoFixo = async (req, res) => {
   const { id } = req.params;
-  const { descricao, valor, dia_vencimento, categoria_id } = req.body;
+  const { descricao, valor, dia_vencimento, categoria_id, tipo } = req.body;
   const userId = req.user.userId;
 
   const gastoId = parseInt(id);
   if (isNaN(gastoId)) {
-    return res.status(400).json({ error: "ID de gasto fixo inválido." });
+    return res.status(400).json({ error: "ID de transação fixa inválido." });
   }
 
   if (!descricao || valor === undefined || dia_vencimento === undefined) {
@@ -129,14 +139,20 @@ exports.atualizarGastoFixo = async (req, res) => {
     });
   }
 
+  const tipoTransacao = tipo === "receita" ? "receita" : "despesa";
+
   const numValor = parseFloat(valor);
   if (isNaN(numValor) || numValor <= 0) {
-    return res.status(400).json({ error: "O valor deve ser um número positivo." });
+    return res
+      .status(400)
+      .json({ error: "O valor deve ser um número positivo." });
   }
 
   const diaVenc = parseInt(dia_vencimento);
   if (isNaN(diaVenc) || diaVenc < 1 || diaVenc > 31) {
-    return res.status(400).json({ error: "O dia de vencimento deve estar entre 1 e 31." });
+    return res
+      .status(400)
+      .json({ error: "O dia de vencimento deve estar entre 1 e 31." });
   }
 
   let finalCategoriaId = null;
@@ -146,13 +162,14 @@ exports.atualizarGastoFixo = async (req, res) => {
       return res.status(400).json({ error: "ID de categoria inválido." });
     }
 
-    // Validação de posse da categoria
     const catCheck = await pool.query(
       "SELECT id FROM categorias WHERE id = $1 AND user_id = $2",
       [catIdNum, userId],
     );
     if (catCheck.rows.length === 0) {
-      return res.status(403).json({ error: "Categoria inválida ou não autorizada." });
+      return res
+        .status(403)
+        .json({ error: "Categoria inválida ou não autorizada." });
     }
     finalCategoriaId = catIdNum;
   }
@@ -160,8 +177,8 @@ exports.atualizarGastoFixo = async (req, res) => {
   try {
     const query = `
       UPDATE gastos_fixos 
-      SET descricao = $1, valor = $2, dia_vencimento = $3, categoria_id = $4
-      WHERE id = $5 AND usuario_id = $6
+      SET descricao = $1, valor = $2, dia_vencimento = $3, categoria_id = $4, tipo = $5
+      WHERE id = $6 AND usuario_id = $7
       RETURNING *;
     `;
     const valores = [
@@ -169,6 +186,7 @@ exports.atualizarGastoFixo = async (req, res) => {
       numValor,
       diaVenc,
       finalCategoriaId,
+      tipoTransacao,
       gastoId,
       userId,
     ];
@@ -177,13 +195,15 @@ exports.atualizarGastoFixo = async (req, res) => {
 
     if (result.rowCount === 0) {
       return res.status(404).json({
-        error: "Gasto fixo não encontrado ou sem permissão para editar.",
+        error: "Transação fixa não encontrada ou sem permissão para editar.",
       });
     }
 
     res.json(result.rows[0]);
   } catch (err) {
-    console.error("Erro ao atualizar gasto fixo:", err.message);
-    res.status(500).json({ error: "Erro interno do servidor ao atualizar gasto fixo." });
+    console.error("Erro ao atualizar transação fixa:", err.message);
+    res
+      .status(500)
+      .json({ error: "Erro interno do servidor ao atualizar transação fixa." });
   }
 };

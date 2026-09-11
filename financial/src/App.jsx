@@ -37,6 +37,8 @@ import GerenciarGastosFixos from "./components/GerenciarGastosFixos";
 import NotFound from "./components/NotFound";
 import ServerError from "./components/ServerError";
 import CookieBanner from "./components/CookieBanner";
+import Footer from "./components/Footer";
+import ScrollUpButton from "./components/ScrollUpButton";
 import "./index.css";
 
 export const AuthContext = createContext(null);
@@ -166,6 +168,8 @@ function AppShell() {
         </Routes>
       </main>
 
+      {!isAuthPage && <Footer />}
+      {!isAuthPage && <ScrollUpButton />}
       <CookieBanner />
     </div>
   );
@@ -284,7 +288,7 @@ function Header() {
                   }`
                 }
               >
-                <CalendarDays size={17} /> Gastos Fixos
+                <CalendarDays size={17} /> Transações Fixas
               </NavLink>
             </>
           )}

@@ -1,6 +1,6 @@
 import React, { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { AuthContext } from "../App";
+import { AuthContext, ThemeContext } from "../App";
 import { Eye, EyeOff, LogIn, Loader2, AlertCircle, Wallet } from "lucide-react";
 import { GoogleLogin } from "@react-oauth/google";
 
@@ -12,6 +12,7 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false);
 
   const { login, API_URL } = useContext(AuthContext);
+  const { theme } = useContext(ThemeContext);
   const navigate = useNavigate();
 
   // Login Convencional
@@ -160,15 +161,13 @@ function Login() {
           <div className="grow border-t border-slate-200 dark:border-graphite-600"></div>
         </div>
 
-        {/* NOVO: Botão do Google */}
         <div className="flex justify-center">
           <GoogleLogin
             onSuccess={handleGoogleSuccess}
             onError={() => setError("O login com o Google falhou.")}
-            theme="outline"
+            theme={theme === "dark" ? "filled_black" : "outline"}
             size="large"
             shape="rectangular"
-            // width="100%"
             text="continue_with"
           />
         </div>
