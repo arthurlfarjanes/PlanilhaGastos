@@ -36,6 +36,7 @@ import Comparativo from "./components/Comparativo";
 import GerenciarGastosFixos from "./components/GerenciarGastosFixos";
 import NotFound from "./components/NotFound";
 import ServerError from "./components/ServerError";
+import CookieBanner from "./components/CookieBanner";
 import "./index.css";
 
 export const AuthContext = createContext(null);
@@ -164,6 +165,8 @@ function AppShell() {
           <Route path="/500" element={<ServerError />} />
         </Routes>
       </main>
+
+      <CookieBanner />
     </div>
   );
 }
