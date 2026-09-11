@@ -6,7 +6,7 @@ export default function CookieBanner() {
   const injetarAnalytics = () => {
     if (window.dataLayer) return;
 
-    const trackingId = "G-6GFZ6C9GRG";
+    const trackingId = "G-H87RWLRY0W";
 
     const script1 = document.createElement("script");
     script1.async = true;
