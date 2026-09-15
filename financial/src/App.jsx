@@ -40,6 +40,7 @@ import GerenciarGastosFixos from "./components/GerenciarGastosFixos";
 import AdminPanel from "./components/AdminPanel";
 import NotFound from "./components/NotFound";
 import ServerError from "./components/ServerError";
+import LandingPage from "./components/LandingPage";
 import CookieBanner from "./components/CookieBanner";
 import Footer from "./components/Footer";
 import ScrollUpButton from "./components/ScrollUpButton";
@@ -53,7 +54,7 @@ export const ThemeContext = createContext(null);
 const API_URL = import.meta.env.VITE_BACKEND_URL;
 
 // Rotas onde o Header NÃO deve aparecer
-const AUTH_ROUTES = ["/login", "/register"];
+const AUTH_ROUTES = ["/login", "/register", "/"];
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem("token"));
@@ -146,10 +147,11 @@ function AppShell() {
           }`}
       >
         <Routes>
+          <Route path="/" element={<LandingPage />} />
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
           <Route
-            path="/"
+            path="/dashboard"
             element={
               <PrivateRoute>
                 <Dashboard />
@@ -272,7 +274,7 @@ function Header() {
           {token && (
             <>
               <NavLink
-                to="/"
+                to="/dashboard"
                 end
                 className={({ isActive }) =>
                   `flex items-center gap-2 font-semibold text-sm px-4 py-2.5 rounded-xl transition-all ${isActive

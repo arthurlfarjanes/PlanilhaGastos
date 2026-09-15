@@ -33,7 +33,7 @@ function Login() {
       if (!response.ok) throw new Error(data.error || "Erro ao fazer login.");
 
       login(data.token, username, null, data.role);
-      navigate("/");
+      navigate("/dashboard");
     } catch (err) {
       setError(err.message || "Falha no login. Verifique suas credenciais.");
     } finally {
@@ -58,7 +58,8 @@ function Login() {
         throw new Error(data.error || "Erro no login com Google.");
 
       login(data.token, data.username, data.picture, data.role);
-      navigate("/");
+      toast.success("Login com Google bem-sucedido!");
+      navigate("/dashboard");
     } catch (err) {
       setError(err.message || "Falha ao autenticar com o servidor.");
     } finally {
