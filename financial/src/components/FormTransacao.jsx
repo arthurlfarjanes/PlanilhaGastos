@@ -2,7 +2,7 @@ import React, { useState, useContext } from "react";
 import { AuthContext } from "../App";
 import { PlusCircle, AlertCircle } from "lucide-react";
 import { NumericFormat } from "react-number-format";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 
 const getTodayDateString = () => {
   const today = new Date();

@@ -3,7 +3,7 @@ import { AuthContext } from "../App";
 import { Save, AlertCircle } from "lucide-react";
 import { NumericFormat } from "react-number-format";
 import Modal from "./ui/Modal";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 
 function ModalEditar({ transacao, onClose, onSave, categorias }) {
   const [formData, setFormData] = useState({

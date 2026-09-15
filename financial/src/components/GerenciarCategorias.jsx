@@ -2,7 +2,7 @@ import React, { useState, useContext } from "react";
 import { AuthContext } from "../App";
 import { Plus, Edit2, Trash2, Dices, AlertCircle, Tag } from "lucide-react";
 import ConfirmDialog from "./ui/ConfirmDialog";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 
 // Paleta expandida com 40 cores otimizadas para leitura
 const PALETTE = [

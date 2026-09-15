@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../App";
 import { Dices, Save, AlertCircle } from "lucide-react";
 import Modal from "./ui/Modal";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 
 // Paleta expandida com cores otimizadas
 const PALETTE = [

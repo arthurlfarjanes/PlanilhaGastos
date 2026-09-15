@@ -3,9 +3,9 @@ import { useNavigate, Link } from "react-router-dom";
 import { AuthContext, ThemeContext } from "../App";
 import { Eye, EyeOff, LogIn, Loader2, AlertCircle, Wallet } from "lucide-react";
 import { GoogleLogin } from "@react-oauth/google";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Label } from "@/components/ui/Label";
 function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");

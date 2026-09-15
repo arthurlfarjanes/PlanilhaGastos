@@ -43,7 +43,7 @@ import ServerError from "./components/ServerError";
 import CookieBanner from "./components/CookieBanner";
 import Footer from "./components/Footer";
 import ScrollUpButton from "./components/ScrollUpButton";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/Tooltip";
 import { ModalTrocarSenha } from "./components/ModalTrocarSenha";
 import "./index.css";
 
