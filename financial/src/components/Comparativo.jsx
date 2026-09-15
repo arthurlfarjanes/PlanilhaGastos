@@ -17,10 +17,7 @@ import {
 } from "recharts";
 import { Search, FilterX, TrendingUp, TrendingDown, Scale } from "lucide-react";
 
-const formatCurrency = (value) =>
-  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
-    parseFloat(value) || 0,
-  );
+import { formatCurrency } from "../utils/formatters";
 
 // ─── Tooltips personalizados ───────────────────────────────────────────────────
 const CustomTooltip = ({ active, payload }) => {
@@ -472,15 +469,25 @@ function Comparativo() {
                     ))}
                   </Pie>
                   <RechartsTooltip content={<CustomTooltip />} />
-                  <Legend
-                    verticalAlign="bottom"
-                    height={36}
-                    iconType="circle"
-                    wrapperStyle={{ fontSize: "12px", color: "#94a3b8" }}
-                  />
                 </PieChart>
               </ResponsiveContainer>
             </div>
+            
+            {/* Legenda Customizada Externa */}
+            <ul className="flex flex-wrap justify-center gap-2 overflow-y-auto max-h-32 custom-scrollbar pt-3 mt-4 border-t border-slate-100 dark:border-graphite-700 w-full">
+              {comparativo.gastosPorCategoria.map((entry, index) => (
+                <li
+                  key={`item-${index}`}
+                  className="flex items-center text-[10px] sm:text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-graphite-900 px-2.5 py-1.5 rounded-full border border-slate-200 dark:border-graphite-600"
+                >
+                  <span
+                    className="w-2.5 h-2.5 rounded-full mr-2 shadow-xs"
+                    style={{ backgroundColor: entry.cor || "#10b981" }}
+                  ></span>
+                  {entry.name || entry.categoria}
+                </li>
+              ))}
+            </ul>
           </div>
         ) : !loading ? (
           <div
@@ -631,7 +638,7 @@ function Comparativo() {
                   axisLine={false}
                   tickLine={false}
                   tick={{ fontSize: 10, fill: chartColors.tick }}
-                  tickFormatter={(value) => `R$ ${value}`}
+                  tickFormatter={(value) => formatCurrency(value)}
                   width={72}
                 />
                 <RechartsTooltip content={<MultiTooltip />} />

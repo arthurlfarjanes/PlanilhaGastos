@@ -1,7 +1,7 @@
 import React, { useState, useContext } from "react";
 import { AuthContext } from "../App";
 import { PlusCircle, AlertCircle } from "lucide-react";
-import { NumericFormat } from "react-number-format";
+import { CurrencyInput } from "./CurrencyInput";
 import { Button } from "@/components/ui/Button";
 
 const getTodayDateString = () => {
@@ -124,16 +124,10 @@ function FormularioTransacao({ onTransacaoAdicionada, categorias }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className={labelClass}>Valor</label>
-          <NumericFormat
+          <CurrencyInput
             className={inputClass}
             value={valor}
-            onValueChange={(v) => setValor(v.value)}
-            thousandSeparator="."
-            decimalSeparator=","
-            prefix="R$ "
-            decimalScale={2}
-            fixedDecimalScale={true}
-            placeholder="R$ 0,00"
+            onValueChange={(val) => setValor(val)}
             required
           />
         </div>

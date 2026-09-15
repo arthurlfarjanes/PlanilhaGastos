@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext, useMemo } from "react";
 import { AuthContext } from "../App";
 import toast from "react-hot-toast";
+import { formatCurrency } from "../utils/formatters";
 import { ShieldAlert, Users, Activity, FileText, Search, UserPlus, Power, Trash2, Mail, Lock, Shield, CheckCircle2, ChevronRight, Filter, Download, ArrowUpRight, ArrowDownRight, LayoutDashboard, SearchX, Copy, Loader2, UserX, RefreshCw, TrendingUp, Edit2, Terminal, AlertTriangle, AlertOctagon, Info, BarChart2 } from "lucide-react";
 import ConfirmDialog from "./ui/ConfirmDialog";
 import FiltroTransacoes from "./FiltroTransacoes";
@@ -825,11 +826,11 @@ function AdminPanel() {
                     <div className="flex gap-6">
                       <div>
                         <p className="text-xs text-slate-500">Receitas</p>
-                        <p className="text-emerald-500 font-extrabold">R$ {dashboardData?.totalReceitas.toFixed(2) || '0.00'}</p>
+                        <p className="text-emerald-500 font-extrabold">{formatCurrency(dashboardData?.totalReceitas || 0)}</p>
                       </div>
                       <div>
                         <p className="text-xs text-slate-500">Despesas</p>
-                        <p className="text-red-500 font-extrabold">R$ {dashboardData?.totalDespesas.toFixed(2) || '0.00'}</p>
+                        <p className="text-red-500 font-extrabold">{formatCurrency(dashboardData?.totalDespesas || 0)}</p>
                       </div>
                     </div>
                   </div>
@@ -849,7 +850,7 @@ function AdminPanel() {
                           <p className="text-xs text-slate-500 font-bold uppercase mb-1 flex items-center gap-1"><TrendingUp size={14} /> Maior Gasto</p>
                           {dashboardData.maiorGasto ? (
                             <>
-                              <p className="text-red-500 font-black text-xl">R$ {parseFloat(dashboardData.maiorGasto.valor).toFixed(2)}</p>
+                              <p className="text-red-500 font-black text-xl">{formatCurrency(dashboardData.maiorGasto.valor)}</p>
                               <p className="text-xs text-slate-400 mt-1 truncate">{dashboardData.maiorGasto.descricao}</p>
                             </>
                           ) : <p className="text-slate-400 text-sm">Nenhum gasto</p>}
@@ -857,13 +858,13 @@ function AdminPanel() {
                         <div className="bg-slate-50 dark:bg-graphite-900 p-5 rounded-2xl border border-slate-100 dark:border-graphite-700">
                           <p className="text-xs text-slate-500 font-bold uppercase mb-1">Ticket Médio (Despesas)</p>
                           <p className="text-slate-800 dark:text-slate-100 font-black text-xl">
-                            R$ {dashboardData.totalDespesas > 0 ? (dashboardData.totalDespesas / transacoesFiltradas.filter(t => t.tipo === 'despesa').length).toFixed(2) : '0.00'}
+                            {formatCurrency(dashboardData.totalDespesas > 0 ? (dashboardData.totalDespesas / transacoesFiltradas.filter(t => t.tipo === 'despesa').length) : 0)}
                           </p>
                         </div>
                         <div className="bg-slate-50 dark:bg-graphite-900 p-5 rounded-2xl border border-slate-100 dark:border-graphite-700">
                           <p className="text-xs text-slate-500 font-bold uppercase mb-1">Total Movimentado</p>
                           <p className="text-slate-800 dark:text-slate-100 font-black text-xl">
-                            R$ {(dashboardData.totalReceitas + dashboardData.totalDespesas).toFixed(2)}
+                            {formatCurrency(dashboardData.totalReceitas + dashboardData.totalDespesas)}
                           </p>
                         </div>
                       </div>
@@ -890,7 +891,7 @@ function AdminPanel() {
                                     ))}
                                   </Pie>
                                   <RechartsTooltip
-                                    formatter={(value) => `R$ ${value.toFixed(2)}`}
+                                    formatter={(value) => formatCurrency(value)}
                                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                                   />
                                 </PieChart>
@@ -910,9 +911,9 @@ function AdminPanel() {
                                 <LineChart data={dashboardData.lineData}>
                                   <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
                                   <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#64748b' }} tickMargin={10} />
-                                  <YAxis tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(v) => `R$${v}`} width={60} />
+                                  <YAxis tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(v) => formatCurrency(v)} width={60} />
                                   <RechartsTooltip
-                                    formatter={(value) => `R$ ${value.toFixed(2)}`}
+                                    formatter={(value) => formatCurrency(value)}
                                     labelStyle={{ color: '#0f172a' }}
                                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                                   />

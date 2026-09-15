@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { AuthContext, ThemeContext } from "../App";
 import { Eye, EyeOff, LogIn, Loader2, AlertCircle, Wallet } from "lucide-react";
 import { GoogleLogin } from "@react-oauth/google";
+import toast from "react-hot-toast";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";

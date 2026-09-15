@@ -14,10 +14,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 
-const formatCurrency = (value) =>
-  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
-    parseFloat(value) || 0,
-  );
+import { formatCurrency } from "../utils/formatters";
 
 function Dashboard() {
   const [transacoes, setTransacoes] = useState([]);

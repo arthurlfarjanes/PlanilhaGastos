@@ -15,6 +15,8 @@ import {
   Wallet,
 } from "lucide-react";
 import ConfirmDialog from "./ui/ConfirmDialog";
+import { formatCurrency } from "../utils/formatters";
+import { CurrencyInput } from "./CurrencyInput";
 
 export default function GerenciarGastosFixos() {
   const { token, API_URL } = useContext(AuthContext);
@@ -195,10 +197,7 @@ export default function GerenciarGastosFixos() {
                 Receitas
               </p>
               <p className="text-sm font-black text-emerald-600 dark:text-emerald-400">
-                {new Intl.NumberFormat("pt-BR", {
-                  style: "currency",
-                  currency: "BRL",
-                }).format(totalReceitas)}
+                {formatCurrency(totalReceitas)}
               </p>
             </div>
           </div>
@@ -210,10 +209,7 @@ export default function GerenciarGastosFixos() {
                 Despesas
               </p>
               <p className="text-sm font-black text-red-600 dark:text-red-400">
-                {new Intl.NumberFormat("pt-BR", {
-                  style: "currency",
-                  currency: "BRL",
-                }).format(totalDespesas)}
+                {formatCurrency(totalDespesas)}
               </p>
             </div>
           </div>
@@ -231,10 +227,7 @@ export default function GerenciarGastosFixos() {
                 Balanço
               </p>
               <p className="text-sm font-black">
-                {new Intl.NumberFormat("pt-BR", {
-                  style: "currency",
-                  currency: "BRL",
-                }).format(balancoMensal)}
+                {formatCurrency(balancoMensal)}
               </p>
             </div>
           </div>
@@ -311,16 +304,12 @@ export default function GerenciarGastosFixos() {
 
           <div className="flex flex-col">
             <label className={labelClass}>
-              <DollarSign size={13} /> Valor (R$)
+              <DollarSign size={13} /> Valor
             </label>
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              placeholder="0,00"
-              value={valor}
-              onChange={(e) => setValor(e.target.value)}
+            <CurrencyInput
               className={inputClass}
+              value={valor}
+              onValueChange={(val) => setValor(val)}
               required
             />
           </div>
@@ -495,11 +484,10 @@ export default function GerenciarGastosFixos() {
                             : "text-red-500 dark:text-red-400"
                         }`}
                       >
-                        {isReceita ? "+ " : "- "}
-                        {new Intl.NumberFormat("pt-BR", {
-                          style: "currency",
-                          currency: "BRL",
-                        }).format(parseFloat(gasto.valor))}
+                        <div className="font-bold whitespace-nowrap">
+                          {isReceita ? "+ " : "- "}
+                          {formatCurrency(parseFloat(gasto.valor))}
+                        </div>
                       </td>
 
                       <td className="py-4 px-5">

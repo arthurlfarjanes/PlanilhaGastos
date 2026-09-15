@@ -1,10 +1,7 @@
 import React from "react";
 import { Edit2, Trash2, ArrowUpRight, ArrowDownRight, Tag } from "lucide-react";
 
-const formatCurrency = (value) =>
-  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
-    parseFloat(value) || 0,
-  );
+import { formatCurrency } from "../utils/formatters";
 
 function ListaTransacoes({ transacoes, onEdit, onDelete }) {
   if (transacoes.length === 0)

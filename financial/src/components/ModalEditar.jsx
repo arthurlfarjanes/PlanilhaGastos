@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../App";
 import { Save, AlertCircle } from "lucide-react";
-import { NumericFormat } from "react-number-format";
+import { CurrencyInput } from "./CurrencyInput";
 import Modal from "./ui/Modal";
 import { Button } from "@/components/ui/Button";
 
@@ -115,17 +115,12 @@ function ModalEditar({ transacao, onClose, onSave, categorias }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className={labelClass}>Valor</label>
-            <NumericFormat
+            <CurrencyInput
               className={inputClass}
               value={formData.valor || ""}
-              onValueChange={(values) => {
-                setFormData((prev) => ({ ...prev, valor: values.value }));
+              onValueChange={(val) => {
+                setFormData((prev) => ({ ...prev, valor: val }));
               }}
-              thousandSeparator="."
-              decimalSeparator=","
-              prefix="R$ "
-              decimalScale={2}
-              fixedDecimalScale={true}
               required
             />
           </div>
