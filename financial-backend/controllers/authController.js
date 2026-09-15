@@ -2,6 +2,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { OAuth2Client } = require("google-auth-library");
 const pool = require("../config/db");
+const { logSystemEvent } = require("../utils/logger");
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
@@ -76,15 +77,32 @@ exports.login = async (req, res, next) => {
     // Mitigação contra Timing Attacks (enumeração de contas válidas via tempo de resposta)
     if (!user || !user.password_hash) {
       await bcrypt.compare("fake_pass", DUMMY_HASH);
+      await logSystemEvent({
+        message: `Tentativa de login falha (Usuário não existe): ${trimmedUsername}`,
+        route: "/login",
+        level: "warning",
+      });
       return res.status(400).json({ error: "Credenciais inválidas." });
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password_hash);
     if (!isPasswordValid) {
+      await logSystemEvent({
+        message: `Tentativa de login falha (Senha incorreta): ${user.username}`,
+        route: "/login",
+        userId: user.id,
+        level: "warning",
+      });
       return res.status(400).json({ error: "Credenciais inválidas." });
     }
 
     if (!user.is_active) {
+      await logSystemEvent({
+        message: `Tentativa de login em conta desativada: ${user.username}`,
+        route: "/login",
+        userId: user.id,
+        level: "warning",
+      });
       return res.status(403).json({ error: "Esta conta está desativada. Entre em contato com o suporte." });
     }
 
@@ -155,6 +173,12 @@ exports.googleAuth = async (req, res, next) => {
     }
 
     if (!user.is_active) {
+      await logSystemEvent({
+        message: `Tentativa de login Google em conta desativada: ${user.email}`,
+        route: "/auth/google",
+        userId: user.id,
+        level: "warning",
+      });
       return res.status(403).json({ error: "Esta conta está desativada. Entre em contato com o suporte." });
     }
 

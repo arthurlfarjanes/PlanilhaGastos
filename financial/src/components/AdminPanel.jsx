@@ -340,6 +340,7 @@ function AdminPanel() {
     const errorsByUser = {};
     let totalErrors = 0;
     let totalInfos = 0;
+    let totalWarnings = 0;
 
     systemLogs.forEach(log => {
       if (log.level === 'error' || log.level === 'critical') {
@@ -349,6 +350,8 @@ function AdminPanel() {
 
         const userName = log.username || (log.user_id ? `ID: ${log.user_id}` : 'Sistema');
         errorsByUser[userName] = (errorsByUser[userName] || 0) + 1;
+      } else if (log.level === 'warning') {
+        totalWarnings++;
       } else {
         totalInfos++;
       }
@@ -362,7 +365,7 @@ function AdminPanel() {
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value);
 
-    return { dateData, userData, totalErrors, totalInfos };
+    return { dateData, userData, totalErrors, totalWarnings, totalInfos };
   }, [systemLogs]);
 
   if (loading && users.length === 0) {
@@ -590,12 +593,22 @@ function AdminPanel() {
 
             {logsDashboardData && (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="bg-slate-50 dark:bg-graphite-900 p-5 rounded-2xl border border-slate-100 dark:border-graphite-700 flex flex-col justify-center items-center text-center">
-                  <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400 flex items-center justify-center mb-3">
-                    <AlertTriangle size={24} />
+                <div className="flex flex-col gap-6">
+                  <div className="bg-slate-50 dark:bg-graphite-900 p-5 rounded-2xl border border-slate-100 dark:border-graphite-700 flex flex-col justify-center items-center text-center flex-1">
+                    <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400 flex items-center justify-center mb-3">
+                      <AlertOctagon size={24} />
+                    </div>
+                    <h3 className="text-sm font-bold text-slate-500 mb-1">Total de Erros</h3>
+                    <p className="text-4xl font-black text-slate-800 dark:text-slate-100">{logsDashboardData.totalErrors}</p>
                   </div>
-                  <h3 className="text-sm font-bold text-slate-500 mb-1">Total de Erros</h3>
-                  <p className="text-4xl font-black text-slate-800 dark:text-slate-100">{logsDashboardData.totalErrors}</p>
+                  
+                  <div className="bg-slate-50 dark:bg-graphite-900 p-5 rounded-2xl border border-slate-100 dark:border-graphite-700 flex flex-col justify-center items-center text-center flex-1">
+                    <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400 flex items-center justify-center mb-3">
+                      <AlertTriangle size={24} />
+                    </div>
+                    <h3 className="text-sm font-bold text-slate-500 mb-1">Avisos (Ativ. Suspeita)</h3>
+                    <p className="text-4xl font-black text-slate-800 dark:text-slate-100">{logsDashboardData.totalWarnings}</p>
+                  </div>
                 </div>
 
                 <div className="bg-slate-50 dark:bg-graphite-900 p-5 rounded-2xl border border-slate-100 dark:border-graphite-700 col-span-2">
