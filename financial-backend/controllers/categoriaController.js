@@ -5,7 +5,7 @@ const isValidHexColor = (color) => {
   return /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(color);
 };
 
-exports.listarCategorias = async (req, res) => {
+exports.listarCategorias = async (req, res, next) => {
   try {
     const result = await pool.query(
       "SELECT id, nome, cor FROM categorias WHERE user_id = $1 ORDER BY nome ASC",
@@ -13,12 +13,11 @@ exports.listarCategorias = async (req, res) => {
     );
     res.json(result.rows);
   } catch (err) {
-    console.error("Erro ao buscar categorias:", err.message);
-    res.status(500).json({ error: "Erro interno do servidor ao buscar categorias." });
+    next(err);
   }
 };
 
-exports.criarCategoria = async (req, res) => {
+exports.criarCategoria = async (req, res, next) => {
   const { nome, cor } = req.body;
 
   if (!nome || typeof nome !== "string" || !nome.trim()) {
@@ -35,12 +34,11 @@ exports.criarCategoria = async (req, res) => {
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
-    console.error("Erro ao adicionar categoria:", err.message);
-    res.status(500).json({ error: "Erro interno do servidor ao adicionar categoria." });
+    next(err);
   }
 };
 
-exports.editarCategoria = async (req, res) => {
+exports.editarCategoria = async (req, res, next) => {
   const { id } = req.params;
   const { nome, cor } = req.body;
 
@@ -66,12 +64,11 @@ exports.editarCategoria = async (req, res) => {
     }
     res.json(result.rows[0]);
   } catch (err) {
-    console.error("Erro ao editar categoria:", err.message);
-    res.status(500).json({ error: "Erro interno do servidor ao editar categoria." });
+    next(err);
   }
 };
 
-exports.deletarCategoria = async (req, res) => {
+exports.deletarCategoria = async (req, res, next) => {
   const { id } = req.params;
 
   const catId = parseInt(id);
@@ -89,7 +86,6 @@ exports.deletarCategoria = async (req, res) => {
     }
     res.status(204).send();
   } catch (err) {
-    console.error("Erro ao deletar categoria:", err.message);
-    res.status(500).json({ error: "Erro interno do servidor ao deletar categoria." });
+    next(err);
   }
 };

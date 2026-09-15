@@ -3,7 +3,9 @@ import { useNavigate, Link } from "react-router-dom";
 import { AuthContext, ThemeContext } from "../App";
 import { Eye, EyeOff, LogIn, Loader2, AlertCircle, Wallet } from "lucide-react";
 import { GoogleLogin } from "@react-oauth/google";
-
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -30,7 +32,7 @@ function Login() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Erro ao fazer login.");
 
-      login(data.token, username);
+      login(data.token, username, null, data.role);
       navigate("/");
     } catch (err) {
       setError(err.message || "Falha no login. Verifique suas credenciais.");
@@ -55,7 +57,7 @@ function Login() {
       if (!response.ok)
         throw new Error(data.error || "Erro no login com Google.");
 
-      login(data.token, data.username, data.picture);
+      login(data.token, data.username, data.picture, data.role);
       navigate("/");
     } catch (err) {
       setError(err.message || "Falha ao autenticar com o servidor.");
@@ -64,22 +66,15 @@ function Login() {
     }
   };
 
-  const inputClass =
-    "w-full p-3.5 border border-slate-200 dark:border-[#2E3342] rounded-xl text-[0.95rem] text-slate-800 dark:text-slate-100 bg-slate-50 dark:bg-[#14171F] focus:bg-white dark:focus:bg-[#14171F] focus:outline-none focus:border-[#B6FFE2] focus:ring-4 focus:ring-[#B6FFE2]/15 transition-all placeholder-slate-400 dark:placeholder-[#687082]";
-  const labelClass =
-    "block mb-1.5 text-slate-500 dark:text-[#8E9AA8] font-medium text-[0.85rem]";
-
+  // Removidas as classes utilitárias hardcoded para label e input, usaremos os componentes do Shadcn.
   return (
     <div className="w-full max-w-md mx-auto">
       <div className="bg-white dark:bg-graphite-800 p-8 rounded-3xl shadow-xl border border-slate-100 dark:border-graphite-600">
         <div className="text-center mb-8">
           {/* Logo do app */}
           <div className="flex items-center justify-center gap-2.5 mb-5">
-            <div className="w-11 h-11 rounded-xl bg-graphite-700 dark:bg-graphite-900 border border-slate-200 dark:border-graphite-600 flex items-center justify-center text-lime-spark shadow-sm">
-              <Wallet
-                size={22}
-                className="drop-shadow-[0_0_8px_rgba(182,255,226,0.5)]"
-              />
+            <div className="w-11 h-11 rounded-xl border border-slate-200 dark:border-graphite-600 flex items-center justify-center shadow-xs overflow-hidden">
+              <img src="/logo.png" alt="MeFinance Logo" className="w-10 h-10 object-scale-down" />
             </div>
             <span className="font-extrabold text-2xl text-slate-900 dark:text-white tracking-tight">
               Me
@@ -104,24 +99,26 @@ function Login() {
         )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-          <div>
-            <label className={labelClass}>Usuário</label>
-            <input
+          <div className="space-y-1.5">
+            <Label htmlFor="username">Usuário</Label>
+            <Input
+              id="username"
               type="text"
-              className={inputClass}
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
               placeholder="Seu nome de usuário"
+              className="bg-slate-50 dark:bg-graphite-900 border-slate-200 dark:border-graphite-700 h-12"
             />
           </div>
 
-          <div>
-            <label className={labelClass}>Senha</label>
+          <div className="space-y-1.5">
+            <Label htmlFor="password">Senha</Label>
             <div className="relative flex items-center">
-              <input
+              <Input
+                id="password"
                 type={showPassword ? "text" : "password"}
-                className={`${inputClass} pr-12`}
+                className="bg-slate-50 dark:bg-graphite-900 border-slate-200 dark:border-graphite-700 h-12 pr-12"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -137,19 +134,18 @@ function Login() {
             </div>
           </div>
 
-          <button
+          <Button
             disabled={loading}
             type="submit"
-            className="w-full mt-2 bg-lime-spark hover:bg-lime-spark-hover text-graphite-900 font-bold py-3.5 px-6 rounded-xl transition-all shadow-[0_4px_14px_rgba(182,255,226,0.3)] hover:shadow-[0_6px_20px_rgba(182,255,226,0.4)] hover:-translate-y-0.5 flex justify-center items-center gap-2"
+            className="cursor-pointer w-full mt-2 h-12 bg-lime-spark hover:bg-lime-spark-hover text-graphite-900 font-bold rounded-xl shadow-[0_4px_14px_rgba(182,255,226,0.3)] hover:shadow-[0_6px_20px_rgba(182,255,226,0.4)]"
           >
             {loading ? (
-              <Loader2 size={20} className="animate-spin" />
+              <Loader2 size={20} className="animate-spin mr-2" />
             ) : (
-              <>
-                <LogIn size={20} /> Entrar
-              </>
+              <LogIn size={20} className="mr-2" />
             )}
-          </button>
+            Entrar
+          </Button>
         </form>
 
         {/* NOVO: Divisor visual */}

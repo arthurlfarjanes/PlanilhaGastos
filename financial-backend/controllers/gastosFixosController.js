@@ -1,6 +1,6 @@
 const pool = require("../config/db");
 
-exports.criarGastoFixo = async (req, res) => {
+exports.criarGastoFixo = async (req, res, next) => {
   const { descricao, valor, dia_vencimento, categoria_id, tipo } = req.body;
   const userId = req.user.userId;
 
@@ -63,14 +63,11 @@ exports.criarGastoFixo = async (req, res) => {
     const result = await pool.query(query, valores);
     res.status(201).json(result.rows[0]);
   } catch (err) {
-    console.error("Erro ao criar transação fixa:", err.message);
-    res
-      .status(500)
-      .json({ error: "Erro interno do servidor ao criar transação fixa." });
+    next(err);
   }
 };
 
-exports.listarGastosFixos = async (req, res) => {
+exports.listarGastosFixos = async (req, res, next) => {
   const userId = req.user.userId;
 
   try {
@@ -86,14 +83,11 @@ exports.listarGastosFixos = async (req, res) => {
     const result = await pool.query(query, [userId]);
     res.json(result.rows);
   } catch (err) {
-    console.error("Erro ao buscar transações fixas:", err.message);
-    res
-      .status(500)
-      .json({ error: "Erro interno do servidor ao buscar transações fixas." });
+    next(err);
   }
 };
 
-exports.deletarGastoFixo = async (req, res) => {
+exports.deletarGastoFixo = async (req, res, next) => {
   const { id } = req.params;
   const userId = req.user.userId;
 
@@ -116,14 +110,11 @@ exports.deletarGastoFixo = async (req, res) => {
 
     res.status(204).send();
   } catch (err) {
-    console.error("Erro ao deletar transação fixa:", err.message);
-    res
-      .status(500)
-      .json({ error: "Erro interno do servidor ao deletar transação fixa." });
+    next(err);
   }
 };
 
-exports.atualizarGastoFixo = async (req, res) => {
+exports.atualizarGastoFixo = async (req, res, next) => {
   const { id } = req.params;
   const { descricao, valor, dia_vencimento, categoria_id, tipo } = req.body;
   const userId = req.user.userId;
@@ -201,9 +192,6 @@ exports.atualizarGastoFixo = async (req, res) => {
 
     res.json(result.rows[0]);
   } catch (err) {
-    console.error("Erro ao atualizar transação fixa:", err.message);
-    res
-      .status(500)
-      .json({ error: "Erro interno do servidor ao atualizar transação fixa." });
+    next(err);
   }
 };

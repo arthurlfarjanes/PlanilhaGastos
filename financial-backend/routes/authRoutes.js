@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const rateLimit = require("express-rate-limit");
 const authController = require("../controllers/authController");
+const authenticateToken = require("../middlewares/authMiddleware");
 
 // Limitador de taxa estrito para prevenção de força bruta e DoS de CPU (Bcrypt)
 const authLimiter = rateLimit({
@@ -15,6 +16,7 @@ const authLimiter = rateLimit({
 router.post("/register", authLimiter, authController.register);
 router.post("/login", authLimiter, authController.login);
 router.post("/auth/google", authLimiter, authController.googleAuth);
+router.post("/change-password", authenticateToken, authLimiter, authController.changePassword);
 
 module.exports = router;
 

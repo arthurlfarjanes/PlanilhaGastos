@@ -10,7 +10,7 @@ const isValidDateString = (dateStr) => {
   return /^\d{4}-\d{2}-\d{2}$/.test(dateStr);
 };
 
-exports.listarTransacoes = async (req, res) => {
+exports.listarTransacoes = async (req, res, next) => {
   const userId = req.user.userId;
   const { tipo, categoriaId, dataInicio, dataFim, descricao } = req.query;
 
@@ -54,12 +54,11 @@ exports.listarTransacoes = async (req, res) => {
     const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (err) {
-    console.error("Erro ao buscar transações:", err.message);
-    res.status(500).json({ error: "Erro interno do servidor ao buscar transações." });
+    next(err);
   }
 };
 
-exports.criarTransacao = async (req, res) => {
+exports.criarTransacao = async (req, res, next) => {
   const { descricao, valor, tipo, data, categoria_id } = req.body;
   const userId = req.user.userId;
 
@@ -115,12 +114,11 @@ exports.criarTransacao = async (req, res) => {
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
-    console.error("Erro ao adicionar transação:", err.message);
-    res.status(500).json({ error: "Erro interno do servidor ao adicionar transação." });
+    next(err);
   }
 };
 
-exports.criarTransacaoParcelada = async (req, res) => {
+exports.criarTransacaoParcelada = async (req, res, next) => {
   const { descricao, valor, categoria_id, data, parcelas } = req.body;
   const userId = req.user.userId;
 
@@ -194,16 +192,13 @@ exports.criarTransacaoParcelada = async (req, res) => {
     });
   } catch (err) {
     await client.query("ROLLBACK");
-    console.error("Erro ao adicionar compra parcelada:", err.message);
-    res.status(500).json({
-      error: "Erro interno do servidor ao adicionar compra parcelada.",
-    });
+    next(err);
   } finally {
     client.release();
   }
 };
 
-exports.editarTransacao = async (req, res) => {
+exports.editarTransacao = async (req, res, next) => {
   const { id } = req.params;
   const { descricao, valor, tipo, data, categoria_id } = req.body;
   const userId = req.user.userId;
@@ -284,12 +279,11 @@ exports.editarTransacao = async (req, res) => {
 
     res.json(updatedResult.rows[0]);
   } catch (err) {
-    console.error("Erro ao editar transação:", err.message);
-    res.status(500).json({ error: "Erro interno do servidor ao editar transação." });
+    next(err);
   }
 };
 
-exports.deletarTransacao = async (req, res) => {
+exports.deletarTransacao = async (req, res, next) => {
   const { id } = req.params;
   const userId = req.user.userId;
 
@@ -310,12 +304,11 @@ exports.deletarTransacao = async (req, res) => {
     }
     res.status(204).send();
   } catch (err) {
-    console.error("Erro ao deletar transação:", err.message);
-    res.status(500).json({ error: "Erro interno do servidor ao deletar transação." });
+    next(err);
   }
 };
 
-exports.obterComparativo = async (req, res) => {
+exports.obterComparativo = async (req, res, next) => {
   const userId = req.user.userId;
   const { dataInicio, dataFim } = req.query;
 
@@ -363,7 +356,6 @@ exports.obterComparativo = async (req, res) => {
       })),
     });
   } catch (err) {
-    console.error("Erro ao obter comparativo:", err.message);
-    res.status(500).json({ error: "Erro interno do servidor ao obter comparativo." });
+    next(err);
   }
 };

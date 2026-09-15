@@ -27,18 +27,24 @@ import {
   Sun,
   Moon,
   ChevronDown,
+  ShieldAlert,
+  Lock,
 } from "lucide-react";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import { Toaster } from "react-hot-toast";
 import Login from "./components/Login";
 import Register from "./components/Register";
 import Dashboard from "./components/Dashboard";
 import Comparativo from "./components/Comparativo";
 import GerenciarGastosFixos from "./components/GerenciarGastosFixos";
+import AdminPanel from "./components/AdminPanel";
 import NotFound from "./components/NotFound";
 import ServerError from "./components/ServerError";
 import CookieBanner from "./components/CookieBanner";
 import Footer from "./components/Footer";
 import ScrollUpButton from "./components/ScrollUpButton";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { ModalTrocarSenha } from "./components/ModalTrocarSenha";
 import "./index.css";
 
 export const AuthContext = createContext(null);
@@ -55,6 +61,7 @@ function App() {
   const [profilePic, setProfilePic] = useState(
     localStorage.getItem("profilePic"),
   );
+  const [role, setRole] = useState(localStorage.getItem("role") || "user");
 
   const [theme, setTheme] = useState(() => {
     const savedTheme = localStorage.getItem("mefinance-theme");
@@ -76,12 +83,14 @@ function App() {
     setTheme((prev) => (prev === "dark" ? "light" : "dark"));
   };
 
-  const login = (newToken, newUsername, newProfilePic = null) => {
+  const login = (newToken, newUsername, newProfilePic = null, newRole = "user") => {
     setToken(newToken);
     setUsername(newUsername);
     setProfilePic(newProfilePic);
+    setRole(newRole);
     localStorage.setItem("token", newToken);
     localStorage.setItem("username", newUsername);
+    localStorage.setItem("role", newRole);
     if (newProfilePic) {
       localStorage.setItem("profilePic", newProfilePic);
     } else {
@@ -93,9 +102,11 @@ function App() {
     setToken(null);
     setUsername(null);
     setProfilePic(null);
+    setRole("user");
     localStorage.removeItem("token");
     localStorage.removeItem("username");
     localStorage.removeItem("profilePic");
+    localStorage.removeItem("role");
   };
 
   return (
@@ -106,11 +117,14 @@ function App() {
     >
       <ThemeContext.Provider value={{ theme, toggleTheme }}>
         <AuthContext.Provider
-          value={{ token, username, profilePic, login, logout, API_URL }}
+          value={{ token, username, profilePic, role, login, logout, API_URL }}
         >
-          <Router>
-            <AppShell />
-          </Router>
+          <TooltipProvider>
+            <Router>
+              <Toaster position="top-right" />
+              <AppShell />
+            </Router>
+          </TooltipProvider>
         </AuthContext.Provider>
       </ThemeContext.Provider>
     </GoogleOAuthProvider>
@@ -126,11 +140,10 @@ function AppShell() {
     <div className="flex flex-col min-h-screen w-full bg-slate-50 dark:bg-graphite-900 text-slate-900 dark:text-slate-100 transition-colors duration-200">
       {!isAuthPage && <Header />}
       <main
-        className={`grow w-full max-w-7xl mx-auto ${
-          isAuthPage
-            ? "flex items-center justify-center p-4 sm:p-6 min-h-screen"
-            : "p-4 sm:p-6 md:p-8"
-        }`}
+        className={`grow w-full max-w-7xl mx-auto ${isAuthPage
+          ? "flex items-center justify-center p-4 sm:p-6 min-h-screen"
+          : "p-4 sm:p-6 md:p-8"
+          }`}
       >
         <Routes>
           <Route path="/register" element={<Register />} />
@@ -159,6 +172,14 @@ function AppShell() {
               </PrivateRoute>
             }
           />
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminPanel />
+              </AdminRoute>
+            }
+          />
 
           {/* Rota Pega-Tudo para 404 */}
           <Route path="*" element={<NotFound />} />
@@ -176,12 +197,13 @@ function AppShell() {
 }
 
 function Header() {
-  const { token, username, profilePic, logout } = useContext(AuthContext);
+  const { token, username, profilePic, role, logout } = useContext(AuthContext);
   const { theme, toggleTheme } = useContext(ThemeContext);
   const navigate = useNavigate();
   const location = useLocation();
   const [menuAberto, setMenuAberto] = useState(false);
   const [dropdownAberto, setDropdownAberto] = useState(false);
+  const [modalSenhaOpen, setModalSenhaOpen] = useState(false);
   const dropdownRef = useRef(null);
 
   // Fecha o dropdown ao clicar fora
@@ -221,11 +243,8 @@ function Header() {
           to="/"
           className="font-extrabold text-2xl text-slate-900 dark:text-white tracking-tight hover:opacity-90 transition-opacity flex items-center gap-2.5"
         >
-          <div className="w-10 h-10 rounded-xl bg-graphite-700 dark:bg-graphite-900 border border-slate-200 dark:border-graphite-600 flex items-center justify-center text-lime-spark shadow-xs">
-            <Wallet
-              size={22}
-              className="drop-shadow-[0_0_8px_rgba(182,255,226,0.4)]"
-            />
+          <div className="w-11 h-11 rounded-xl border border-slate-200 dark:border-graphite-600 flex items-center justify-center shadow-xs overflow-hidden">
+            <img src="/logo.png" alt="MeFinance Logo" className="w-10 h-10 object-scale-down" />
           </div>
           <span>
             Me
@@ -245,9 +264,8 @@ function Header() {
 
       {/* Navegação + Ações */}
       <div
-        className={`absolute top-20 left-0 w-full bg-white dark:bg-graphite-800 shadow-xl border-b border-slate-200 dark:border-graphite-600 md:static md:w-auto md:bg-transparent md:dark:bg-transparent md:shadow-none md:border-none flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-3 p-5 md:p-0 transition-all ${
-          menuAberto ? "flex" : "hidden md:flex"
-        }`}
+        className={`absolute top-20 left-0 w-full bg-white dark:bg-graphite-800 shadow-xl border-b border-slate-200 dark:border-graphite-600 md:static md:w-auto md:bg-transparent md:dark:bg-transparent md:shadow-none md:border-none flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-3 p-5 md:p-0 transition-all ${menuAberto ? "flex" : "hidden md:flex"
+          }`}
       >
         {/* Nav links */}
         <nav className="flex flex-col md:flex-row gap-1 w-full md:w-auto">
@@ -257,10 +275,9 @@ function Header() {
                 to="/"
                 end
                 className={({ isActive }) =>
-                  `flex items-center gap-2 font-semibold text-sm px-4 py-2.5 rounded-xl transition-all ${
-                    isActive
-                      ? "bg-lime-spark text-graphite-900 font-bold shadow-[0_2px_12px_rgba(182,255,226,0.3)]"
-                      : "text-slate-600 dark:text-graphite-300 hover:bg-slate-100 dark:hover:bg-graphite-700 hover:text-slate-900 dark:hover:text-white"
+                  `flex items-center gap-2 font-semibold text-sm px-4 py-2.5 rounded-xl transition-all ${isActive
+                    ? "bg-lime-spark text-graphite-900 font-bold shadow-[0_2px_12px_rgba(182,255,226,0.3)]"
+                    : "text-slate-600 dark:text-graphite-300 hover:bg-slate-100 dark:hover:bg-graphite-700 hover:text-slate-900 dark:hover:text-white"
                   }`
                 }
               >
@@ -269,10 +286,9 @@ function Header() {
               <NavLink
                 to="/comparativo"
                 className={({ isActive }) =>
-                  `flex items-center gap-2 font-semibold text-sm px-4 py-2.5 rounded-xl transition-all ${
-                    isActive
-                      ? "bg-lime-spark text-graphite-900 font-bold shadow-[0_2px_12px_rgba(182,255,226,0.3)]"
-                      : "text-slate-600 dark:text-graphite-300 hover:bg-slate-100 dark:hover:bg-graphite-700 hover:text-slate-900 dark:hover:text-white"
+                  `flex items-center gap-2 font-semibold text-sm px-4 py-2.5 rounded-xl transition-all ${isActive
+                    ? "bg-lime-spark text-graphite-900 font-bold shadow-[0_2px_12px_rgba(182,255,226,0.3)]"
+                    : "text-slate-600 dark:text-graphite-300 hover:bg-slate-100 dark:hover:bg-graphite-700 hover:text-slate-900 dark:hover:text-white"
                   }`
                 }
               >
@@ -281,15 +297,27 @@ function Header() {
               <NavLink
                 to="/gastos-fixos"
                 className={({ isActive }) =>
-                  `flex items-center gap-2 font-semibold text-sm px-4 py-2.5 rounded-xl transition-all ${
-                    isActive
-                      ? "bg-lime-spark text-graphite-900 font-bold shadow-[0_2px_12px_rgba(182,255,226,0.3)]"
-                      : "text-slate-600 dark:text-graphite-300 hover:bg-slate-100 dark:hover:bg-graphite-700 hover:text-slate-900 dark:hover:text-white"
+                  `flex items-center gap-2 font-semibold text-sm px-4 py-2.5 rounded-xl transition-all ${isActive
+                    ? "bg-lime-spark text-graphite-900 font-bold shadow-[0_2px_12px_rgba(182,255,226,0.3)]"
+                    : "text-slate-600 dark:text-graphite-300 hover:bg-slate-100 dark:hover:bg-graphite-700 hover:text-slate-900 dark:hover:text-white"
                   }`
                 }
               >
                 <CalendarDays size={17} /> Transações Fixas
               </NavLink>
+              {role === "admin" && (
+                <NavLink
+                  to="/admin"
+                  className={({ isActive }) =>
+                    `flex items-center gap-2 font-semibold text-sm px-4 py-2.5 rounded-xl transition-all ${isActive
+                      ? "bg-red-500 text-white font-bold shadow-[0_2px_12px_rgba(239,68,68,0.3)]"
+                      : "text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10"
+                    }`
+                  }
+                >
+                  <ShieldAlert size={17} /> Painel Admin
+                </NavLink>
+              )}
             </>
           )}
         </nav>
@@ -338,9 +366,8 @@ function Header() {
                 </span>
                 <ChevronDown
                   size={15}
-                  className={`hidden md:block text-slate-400 dark:text-graphite-400 transition-transform duration-200 ${
-                    dropdownAberto ? "rotate-180" : ""
-                  }`}
+                  className={`hidden md:block text-slate-400 dark:text-graphite-400 transition-transform duration-200 ${dropdownAberto ? "rotate-180" : ""
+                    }`}
                 />
               </button>
 
@@ -356,6 +383,18 @@ function Header() {
                       {username}
                     </p>
                   </div>
+
+                  {/* Item: Trocar Senha */}
+                  <button
+                    onClick={() => {
+                      setModalSenhaOpen(true);
+                      setDropdownAberto(false);
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-graphite-900 transition-colors cursor-pointer"
+                  >
+                    <Lock size={16} className="text-lime-spark shrink-0" />
+                    Trocar Senha
+                  </button>
 
                   {/* Item: Alternar tema */}
                   <button
@@ -402,6 +441,16 @@ function Header() {
               <div className="md:hidden mt-2 flex flex-col gap-1 border-t border-slate-100 dark:border-graphite-600 pt-3">
                 <button
                   onClick={() => {
+                    setModalSenhaOpen(true);
+                    setMenuAberto(false);
+                  }}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-graphite-700 transition-colors"
+                >
+                  <Lock size={16} className="text-lime-spark shrink-0" />
+                  Trocar Senha
+                </button>
+                <button
+                  onClick={() => {
                     toggleTheme();
                     setMenuAberto(false);
                   }}
@@ -426,6 +475,7 @@ function Header() {
           )}
         </div>
       </div>
+      <ModalTrocarSenha isOpen={modalSenhaOpen} onClose={() => setModalSenhaOpen(false)} />
     </header>
   );
 }
@@ -437,6 +487,19 @@ function PrivateRoute({ children }) {
     if (!token) navigate("/login");
   }, [token, navigate]);
   return token ? children : null;
+}
+
+function AdminRoute({ children }) {
+  const { token, role } = useContext(AuthContext);
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!token) {
+      navigate("/login");
+    } else if (role !== "admin") {
+      navigate("/");
+    }
+  }, [token, role, navigate]);
+  return token && role === "admin" ? children : null;
 }
 
 export default App;

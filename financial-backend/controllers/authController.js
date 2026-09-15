@@ -14,7 +14,7 @@ const googleClient = GOOGLE_CLIENT_ID ? new OAuth2Client(GOOGLE_CLIENT_ID) : nul
 // Hash fictício pré-calculado com custo 12 para mitigar timing attacks no login
 const DUMMY_HASH = "$2a$12$e8Y5t1P5cKzE9nKxN4nNhe0d2gA.N9Fp8rE9a4qP5e5d1gA2b3c4e";
 
-exports.register = async (req, res) => {
+exports.register = async (req, res, next) => {
   const { username, password } = req.body;
 
   if (!username || typeof username !== "string") {
@@ -54,12 +54,11 @@ exports.register = async (req, res) => {
     if (err.code === "23505") {
       return res.status(409).json({ error: "Nome de usuário já existe." });
     }
-    console.error("Erro ao registrar usuário:", err.message);
-    res.status(500).json({ error: "Erro interno do servidor ao registrar usuário." });
+    next(err); // Repassa erro para o errorHandler
   }
 };
 
-exports.login = async (req, res) => {
+exports.login = async (req, res, next) => {
   const { username, password } = req.body;
   if (!username || !password || typeof username !== "string" || typeof password !== "string" || password.length > 72) {
     return res.status(400).json({ error: "Credenciais inválidas." });
@@ -69,7 +68,7 @@ exports.login = async (req, res) => {
 
   try {
     const result = await pool.query(
-      "SELECT id, username, password_hash FROM usuarios WHERE username = $1",
+      "SELECT id, username, password_hash, role, is_active FROM usuarios WHERE username = $1",
       [trimmedUsername],
     );
     const user = result.rows[0];
@@ -85,8 +84,12 @@ exports.login = async (req, res) => {
       return res.status(400).json({ error: "Credenciais inválidas." });
     }
 
+    if (!user.is_active) {
+      return res.status(403).json({ error: "Esta conta está desativada. Entre em contato com o suporte." });
+    }
+
     const token = jwt.sign(
-      { userId: user.id, username: user.username },
+      { userId: user.id, username: user.username, role: user.role },
       JWT_SECRET,
       { expiresIn: "2h" },
     );
@@ -95,14 +98,14 @@ exports.login = async (req, res) => {
       message: "Login bem-sucedido!",
       token,
       username: user.username,
+      role: user.role,
     });
   } catch (err) {
-    console.error("Erro ao fazer login:", err.message);
-    res.status(500).json({ error: "Erro interno do servidor ao fazer login." });
+    next(err);
   }
 };
 
-exports.googleAuth = async (req, res) => {
+exports.googleAuth = async (req, res, next) => {
   const { token } = req.body;
   if (!token) {
     return res.status(400).json({ error: "Token de autenticação é obrigatório." });
@@ -131,7 +134,7 @@ exports.googleAuth = async (req, res) => {
     const baseUsername = email.split("@")[0].replace(/[^a-zA-Z0-9_-]/g, "").substring(0, 20) || "usuario";
 
     let userResult = await pool.query(
-      "SELECT id, username, email FROM usuarios WHERE email = $1",
+      "SELECT id, username, email, role, is_active FROM usuarios WHERE email = $1",
       [email],
     );
     let user = userResult.rows[0];
@@ -151,8 +154,12 @@ exports.googleAuth = async (req, res) => {
       user = insertResult.rows[0];
     }
 
+    if (!user.is_active) {
+      return res.status(403).json({ error: "Esta conta está desativada. Entre em contato com o suporte." });
+    }
+
     const appToken = jwt.sign(
-      { userId: user.id, username: user.username },
+      { userId: user.id, username: user.username, role: user.role },
       JWT_SECRET,
       { expiresIn: "2h" },
     );
@@ -162,10 +169,46 @@ exports.googleAuth = async (req, res) => {
       token: appToken,
       username: user.username,
       picture: picture,
+      role: user.role,
     });
   } catch (err) {
-    console.error("Erro na autenticação com Google:", err.message);
-    res.status(401).json({ error: "Falha ao autenticar com o Google." });
+    err.status = 401; // Adiciona status code 401 ao erro
+    err.message = err.message || "Falha ao autenticar com o Google.";
+    next(err);
   }
 };
 
+// Trocar senha (usuário logado)
+exports.changePassword = async (req, res, next) => {
+  const { currentPassword, newPassword } = req.body;
+  const userId = req.user.userId; // Preenchido pelo middleware authenticateToken
+
+  if (!newPassword) {
+    return res.status(400).json({ error: "A nova senha é obrigatória." });
+  }
+
+  if (newPassword.length < 8 || newPassword.length > 72) {
+    return res.status(400).json({ error: "A nova senha deve ter entre 8 e 72 caracteres." });
+  }
+
+  try {
+    const result = await pool.query("SELECT password_hash FROM usuarios WHERE id = $1", [userId]);
+    if (result.rows.length === 0) return res.status(404).json({ error: "Usuário não encontrado." });
+    const currentHash = result.rows[0].password_hash;
+
+    // Só exige e verifica a senha atual se o usuário já tiver uma configurada
+    if (currentHash) {
+      if (!currentPassword) {
+        return res.status(400).json({ error: "A senha atual é obrigatória." });
+      }
+      const isMatch = await bcrypt.compare(currentPassword, currentHash);
+      if (!isMatch) return res.status(403).json({ error: "Senha atual incorreta." });
+    }
+    const hashedNewPassword = await bcrypt.hash(newPassword, 12);
+    await pool.query("UPDATE usuarios SET password_hash = $1 WHERE id = $2", [hashedNewPassword, userId]);
+
+    res.json({ message: "Senha alterada com sucesso." });
+  } catch (err) {
+    next(err);
+  }
+};

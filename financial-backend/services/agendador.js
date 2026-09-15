@@ -1,5 +1,6 @@
 const cron = require("node-cron");
 const pool = require("../config/db");
+const { logSystemEvent } = require("../utils/logger");
 
 const processarGastosFixos = async () => {
   const hoje = new Date();
@@ -56,8 +57,20 @@ const processarGastosFixos = async () => {
         );
       }
     }
+    
+    await logSystemEvent({
+      level: "info",
+      route: "cron/gastos_fixos",
+      message: `Verificação diária de gastos fixos concluída. ${gastos.length} gastos verificados.`,
+    });
   } catch (error) {
     console.error("[AUTOMAÇÃO] Erro ao processar transações fixas:", error);
+    await logSystemEvent({
+      level: "error",
+      route: "cron/gastos_fixos",
+      message: "Erro ao processar transações fixas: " + error.message,
+      stack: error.stack
+    });
   }
 };
 

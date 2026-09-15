@@ -3,7 +3,7 @@ import { AuthContext } from "../App";
 import { Save, AlertCircle } from "lucide-react";
 import { NumericFormat } from "react-number-format";
 import Modal from "./ui/Modal";
-import Button from "./ui/Button";
+import { Button } from "@/components/ui/button";
 
 function ModalEditar({ transacao, onClose, onSave, categorias }) {
   const [formData, setFormData] = useState({
@@ -228,7 +228,7 @@ function ModalEditar({ transacao, onClose, onSave, categorias }) {
           <Button variant="ghost" onClick={onClose} disabled={loading}>
             Cancelar
           </Button>
-          <Button type="submit" variant="primary" loading={loading}>
+          <Button type="submit" variant="primary" disabled={loading}>
             <Save size={16} /> Salvar Alterações
           </Button>
         </div>

@@ -2,7 +2,7 @@ import React, { useState, useContext } from "react";
 import { AuthContext } from "../App";
 import { PlusCircle, AlertCircle } from "lucide-react";
 import { NumericFormat } from "react-number-format";
-import Button from "./ui/Button";
+import { Button } from "@/components/ui/button";
 
 const getTodayDateString = () => {
   const today = new Date();
@@ -265,8 +265,8 @@ function FormularioTransacao({ onTransacaoAdicionada, categorias }) {
         type="submit"
         variant="primary"
         size="lg"
-        loading={loading}
-        className="w-full mt-2"
+        disabled={loading}
+        className="w-full mt-2 cursor-pointer bg-lime-spark text-graphite-900 hover:bg-lime-spark-hover"
       >
         <PlusCircle size={18} />
         Adicionar Transação

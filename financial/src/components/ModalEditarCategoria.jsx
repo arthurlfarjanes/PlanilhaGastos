@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../App";
 import { Dices, Save, AlertCircle } from "lucide-react";
 import Modal from "./ui/Modal";
-import Button from "./ui/Button";
+import { Button } from "@/components/ui/button";
 
 // Paleta expandida com cores otimizadas
 const PALETTE = [
@@ -172,7 +172,7 @@ function ModalEditarCategoria({ onClose, categoria, onSave }) {
           <Button variant="ghost" onClick={onClose} disabled={loading}>
             Cancelar
           </Button>
-          <Button type="submit" variant="primary" loading={loading}>
+          <Button type="submit" variant="primary" disabled={loading}>
             <Save size={16} /> Salvar Alterações
           </Button>
         </div>

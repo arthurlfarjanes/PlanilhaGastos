@@ -61,11 +61,8 @@ function Register() {
         <div className="text-center mb-8">
           {/* Logo do app */}
           <div className="flex items-center justify-center gap-2.5 mb-5">
-            <div className="w-11 h-11 rounded-xl bg-graphite-700 dark:bg-graphite-900 border border-slate-200 dark:border-graphite-600 flex items-center justify-center text-lime-spark shadow-sm">
-              <Wallet
-                size={22}
-                className="drop-shadow-[0_0_8px_rgba(182,255,226,0.5)]"
-              />
+            <div className="w-11 h-11 rounded-xl border border-slate-200 dark:border-graphite-600 flex items-center justify-center shadow-xs overflow-hidden">
+              <img src="/logo.png" alt="MeFinance Logo" className="w-10 h-10 object-scale-down" />
             </div>
             <span className="font-extrabold text-2xl text-slate-900 dark:text-white tracking-tight">
               Me

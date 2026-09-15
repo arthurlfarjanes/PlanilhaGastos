@@ -9,9 +9,13 @@ const authRoutes = require("./routes/authRoutes");
 const categoriaRoutes = require("./routes/categoriaRoutes");
 const transacaoRoutes = require("./routes/transacaoRoutes");
 const gastosFixosRoutes = require("./routes/gastosFixosRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 
 // Importação Cron
 const { iniciarAgendador } = require("./services/agendador");
+
+// Importação Middleware de Erro Centralizado
+const errorHandler = require("./middlewares/errorHandler");
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -51,7 +55,7 @@ const corsOptions = {
       callback(new Error("Bloqueado pela política de CORS"));
     }
   },
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
   optionsSuccessStatus: 200,
@@ -70,19 +74,10 @@ app.use("/", authRoutes); // Registra /register, /login, /auth/google
 app.use("/categorias", categoriaRoutes);
 app.use("/transacoes", transacaoRoutes);
 app.use("/gastos-fixos", gastosFixosRoutes);
+app.use("/admin", adminRoutes);
 
-// 5. Middleware global de tratamento de erros (Sem vazamento de stack traces ou detalhes do banco)
-app.use((err, req, res, next) => {
-  console.error("[ERRO DO SERVIDOR]:", err.message);
-  if (err.message === "Bloqueado pela política de CORS") {
-    return res
-      .status(403)
-      .json({ error: "Origem não permitida pela política de CORS." });
-  }
-  res
-    .status(err.status || 500)
-    .json({ error: "Ocorreu um erro interno no servidor." });
-});
+// 5. Middleware global de tratamento de erros 
+app.use(errorHandler);
 
 // Inicia o serviço agendado de gastos fixos
 iniciarAgendador();
