@@ -1,7 +1,7 @@
 import React from "react";
 import { Modal } from "./Modal";
 import { Button } from "./Button";
-import { Input } from "./input";
+import { Input } from "./Input";
 import { AlertTriangle, KeyRound } from "lucide-react";
 
 export function ConfirmDialog({
