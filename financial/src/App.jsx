@@ -136,15 +136,20 @@ function App() {
 function AppShell() {
   const location = useLocation();
   const isAuthPage = AUTH_ROUTES.includes(location.pathname);
+  const isLanding = location.pathname === "/";
 
   return (
     <div className="flex flex-col min-h-screen w-full bg-slate-50 dark:bg-graphite-900 text-slate-900 dark:text-slate-100 transition-colors duration-200">
       {!isAuthPage && <Header />}
       <main
-        className={`grow w-full max-w-7xl mx-auto ${isAuthPage
-          ? "flex items-center justify-center p-4 sm:p-6 min-h-screen"
-          : "p-4 sm:p-6 md:p-8"
-          }`}
+        className={
+          isLanding
+            ? "grow w-full"
+            : `grow w-full max-w-7xl mx-auto ${isAuthPage
+              ? "flex items-center justify-center p-4 sm:p-6 min-h-screen"
+              : "p-4 sm:p-6 md:p-8"
+              }`
+        }
       >
         <Routes>
           <Route path="/" element={<LandingPage />} />
