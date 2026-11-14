@@ -6,12 +6,16 @@
 
 ## ✨ Funcionalidades Principais
 
-*   **🔐 Autenticação Dupla:** Suporte para login tradicional (usuário e senha criptografada) e **Login com o Google** (OAuth 2.0).
-*   **📊 Dashboard Interativo:** Gráficos responsivos (Pizza, Barras e Área) para análise de Receitas vs. Despesas, Top 5 Gastos e Fluxo Diário.
-*   **💸 Gestão de Transações:** Registro de receitas, despesas e suporte nativo para **compras parceladas**.
-*   **🏷️ Categorias Inteligentes:** Criação de categorias personalizadas com seletor de cores e algoritmo de sorteio de cores (para facilitar a visualização nos gráficos).
-*   **🔍 Filtros em Tempo Real:** Tabela de extrato com filtros avançados no lado do cliente (por descrição, tipo e categoria) garantindo máxima performance sem recarregar a página.
-*   **📱 Design Responsivo:** Interface "Mobile-First" construída com Tailwind CSS para funcionar perfeitamente em celulares, tablets e desktops.
+*   **🔐 Autenticação Dupla e Segurança:** Login tradicional (usuário e senha com hash Bcrypt), **Login com o Google** (OAuth 2.0), troca de senha e painel administrativo para gestão de usuários.
+*   **💸 Gestão de Transações & Parcelas Vincendas:** Registro de receitas, despesas e **compras parceladas** com máscara monetária (`BRL`), vínculo opcional a cartão de crédito, filtro para exibir parcelas subsequentes apenas na data de vencimento e aba dedicada de **Parcelas Vincendas** com contagem de dias e busca.
+*   **📊 Dashboard & Comparativos:** Painel com resumo instantâneo, widgets de **Próximos Vencimentos** e **Alertas de Orçamento**, além da página de **Comparativo** com gráficos interativos (Receitas vs. Despesas, Top Gastos e Fluxo Diário).
+*   **🏷️ Categorias Inteligentes:** Criação e edição de categorias personalizadas com seletor de cores dinâmicas.
+*   **📅 Contas Fixas, Vencimentos e Assinaturas (`/gastos-fixos`):** Controle mensal de despesas/receitas fixas e assinaturas, com baixa rápida, lançamento opcional no extrato sem duplicidade e estorno por competência.
+*   **🎯 Orçamentos por Categoria (`/orcamentos`):** Definição de limites mensais por categoria com acompanhamento de consumo em tempo real e alertas de proximidade/excesso no Dashboard.
+*   **📉 Dívidas, Amortizações e Simulador (`/dividas`):** Cadastro inteligente (cálculo automático de juros e valor da parcela via Tabela Price a partir do saldo/parcelas, mantendo liberdade de edição), comparação entre estratégias **Avalanche** e **Bola de Neve**, simulador de aporte extra e **estorno bidirecional** sincronizado com as transações.
+*   **💳 Cartões de Crédito & Faturas (`/cartoes`):** Gestão de cartões, compras à vista ou parceladas integradas às transações, faturas calculadas pelo dia de fechamento, liquidação/estorno sem duplicidade, barra de progresso segmentada (fatura do mês vs. outras faturas em aberto com atalhos clicáveis) e indicação visual para transações de cartões excluídos.
+*   **⚙️ Configurações & Personalização (`/configuracoes`):** Preferências persistidas por usuário no servidor: modo **Claro** (paleta suave) e **Escuro**, alternância entre **Navbar** (menu suspenso) e **Sidebar** recolhível, cor de destaque, acessibilidade (tamanho de fonte, densidade, alto contraste e redução de animações) e ciclo financeiro/fuso horário.
+*   **📱 Design Responsivo:** Interface adaptada para celulares, tablets e desktops com React, Tailwind CSS v4 e Lucide Icons.
 
 ---
 
@@ -65,9 +69,15 @@ FRONTEND_PROD_URL=[https://mefinance.netlify.app](https://mefinance.netlify.app)
 GOOGLE_CLIENT_ID=seu_client_id_do_google.apps.googleusercontent.com
 ```
 
-Inicie o servidor:
+Execute as migrations no banco PostgreSQL e inicie o servidor:
 ```bash
-npm run dev # ou node server.js
+npm run migrate
+npm start
+```
+
+Para executar a suíte de testes unitários do backend:
+```bash
+npm test
 ```
 
 ### 3. Configurando o Frontend
