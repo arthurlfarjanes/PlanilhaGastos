@@ -1,7 +1,7 @@
 import React from "react";
-import { Edit2, Trash2, ArrowUpRight, ArrowDownRight, Tag } from "lucide-react";
+import { Edit2, Trash2, ArrowUpRight, ArrowDownRight, CreditCard } from "lucide-react";
 
-import { formatCurrency } from "../utils/formatters";
+import { formatCurrency, formatDate } from "../utils/formatters";
 
 function ListaTransacoes({ transacoes, onEdit, onDelete }) {
   if (transacoes.length === 0)
@@ -66,10 +66,25 @@ function ListaTransacoes({ transacoes, onEdit, onDelete }) {
                   </span>
 
                   <span className="text-xs text-slate-400 dark:text-graphite-400 font-medium">
-                    {new Date(t.data).toLocaleDateString("pt-BR", {
-                      timeZone: "UTC",
-                    })}
+                    {formatDate(t.data)}
                   </span>
+
+                  {!isReceita && t.cartao_nome && (
+                    <span className="inline-flex items-center gap-1 text-[0.7rem] font-semibold px-2 py-0.5 rounded-full bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-500/20">
+                      <CreditCard size={11} />
+                      {t.cartao_nome}
+                    </span>
+                  )}
+
+                  {!isReceita && !t.cartao_id && t.cartao_excluido_nome && (
+                    <span
+                      title="Esta transação foi lançada em um cartão que não está mais cadastrado."
+                      className="inline-flex items-center gap-1 text-[0.7rem] font-semibold px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-500/10 text-amber-800 dark:text-amber-300 border border-dashed border-amber-300 dark:border-amber-500/35"
+                    >
+                      <CreditCard size={11} />
+                      Cartão excluído ({t.cartao_excluido_nome})
+                    </span>
+                  )}
                 </div>
               </div>
             </div>

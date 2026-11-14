@@ -143,7 +143,7 @@ function ModalEditarCategoria({ onClose, categoria, onSave }) {
             <button
               type="button"
               onClick={getRandomColor}
-              className="text-xs font-bold text-slate-500 dark:text-graphite-300 hover:text-[#059669] dark:hover:text-lime-spark flex items-center gap-1 cursor-pointer transition-colors"
+              className="text-xs font-bold text-slate-500 dark:text-graphite-300 hover:text-[var(--accent-strong)] dark:hover:text-lime-spark flex items-center gap-1 cursor-pointer transition-colors"
             >
               <Dices size={14} /> Cor Aleatória
             </button>

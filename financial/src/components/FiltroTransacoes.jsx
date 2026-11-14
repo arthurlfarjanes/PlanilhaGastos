@@ -14,13 +14,14 @@ function FiltroTransacoes({ filtros, setFiltros, categorias }) {
       categoriaId: "",
       dataInicio: "",
       dataFim: "",
+      ocultarParcelasFuturas: "",
     });
   };
 
   const hasFiltrosAtivos = Object.values(filtros).some((valor) => valor !== "");
 
   const inputClass =
-    "w-full p-2.5 border border-slate-200 dark:border-[#2E3342] rounded-xl text-xs sm:text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-[#14171F] focus:outline-none focus:border-[#B6FFE2] focus:ring-4 focus:ring-[#B6FFE2]/15 transition-all shadow-xs";
+    "w-full p-2.5 border border-slate-200 dark:border-[#2E3342] rounded-xl text-xs sm:text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-[#14171F] focus:outline-none focus:border-[var(--color-lime-spark)] focus:ring-4 focus:ring-[var(--color-lime-spark)]/15 transition-all shadow-xs";
   const labelClass =
     "block text-[0.7rem] font-bold text-slate-500 dark:text-[#8E9AA8] uppercase tracking-wider mb-1";
 
@@ -28,7 +29,7 @@ function FiltroTransacoes({ filtros, setFiltros, categorias }) {
     <div className="bg-white dark:bg-graphite-800 p-5 sm:p-7 rounded-2xl shadow-xs border border-slate-200/80 dark:border-graphite-600 transition-colors duration-200">
       <div className="flex items-center justify-between border-b border-slate-100 dark:border-graphite-600 pb-3 mb-4">
         <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100 flex items-center gap-2">
-          <Filter size={18} className="text-[#059669] dark:text-lime-spark" />
+          <Filter size={18} className="text-[var(--accent-strong)] dark:text-lime-spark" />
           Filtrar Transações
         </h3>
 
@@ -119,6 +120,26 @@ function FiltroTransacoes({ filtros, setFiltros, categorias }) {
             onChange={handleInputChange}
           />
         </div>
+      </div>
+
+      <div className="mt-4 pt-3.5 border-t border-slate-100 dark:border-graphite-600 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <label className="inline-flex items-center gap-2.5 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={filtros.ocultarParcelasFuturas === "true"}
+            onChange={(e) =>
+              setFiltros((prev) => ({
+                ...prev,
+                ocultarParcelasFuturas: e.target.checked ? "true" : "",
+              }))
+            }
+            className="w-4 h-4 rounded border-slate-300 dark:border-graphite-500 text-emerald-600 focus:ring-emerald-500 accent-[var(--color-lime-spark)] cursor-pointer"
+          />
+          <span>Mostrar parcelas subsequentes apenas na data de vencimento</span>
+        </label>
+        <span className="text-[0.7rem] text-slate-400 dark:text-graphite-400">
+          Oculta parcelas futuras (2/N em diante) antes do vencimento
+        </span>
       </div>
     </div>
   );

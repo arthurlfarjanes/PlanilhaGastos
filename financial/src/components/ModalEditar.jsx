@@ -5,10 +5,11 @@ import { CurrencyInput } from "./CurrencyInput";
 import Modal from "./ui/Modal";
 import { Button } from "@/components/ui/Button";
 
-function ModalEditar({ transacao, onClose, onSave, categorias }) {
+function ModalEditar({ transacao, onClose, onSave, categorias, cartoes = [] }) {
   const [formData, setFormData] = useState({
     ...transacao,
     data: transacao?.data ? transacao.data.split("T")[0] : "",
+    cartao_id: transacao?.cartao_id ? String(transacao.cartao_id) : "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -23,6 +24,7 @@ function ModalEditar({ transacao, onClose, onSave, categorias }) {
         categoria_id: transacao.categoria_id
           ? parseInt(transacao.categoria_id)
           : "",
+        cartao_id: transacao.cartao_id ? String(transacao.cartao_id) : "",
       });
     }
   }, [transacao]);
@@ -61,6 +63,10 @@ function ModalEditar({ transacao, onClose, onSave, categorias }) {
             formData.tipo === "despesa"
               ? parseInt(formData.categoria_id)
               : null,
+          cartao_id:
+            formData.tipo === "despesa" && formData.cartao_id
+              ? parseInt(formData.cartao_id, 10)
+              : null,
         }),
       });
       const data = await response.json();
@@ -78,7 +84,7 @@ function ModalEditar({ transacao, onClose, onSave, categorias }) {
   if (!transacao) return null;
 
   const inputClass =
-    "w-full p-3 border border-slate-200 dark:border-[#2E3342] rounded-xl text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-[#14171F] focus:outline-none focus:border-[#B6FFE2] focus:ring-4 focus:ring-[#B6FFE2]/15 transition-all shadow-xs";
+    "w-full p-3 border border-slate-200 dark:border-[#2E3342] rounded-xl text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-[#14171F] focus:outline-none focus:border-[var(--color-lime-spark)] focus:ring-4 focus:ring-[var(--color-lime-spark)]/15 transition-all shadow-xs";
   const labelClass =
     "block mb-1.5 text-slate-500 dark:text-[#8E9AA8] font-bold uppercase tracking-wider text-[0.75rem]";
 
@@ -161,6 +167,7 @@ function ModalEditar({ transacao, onClose, onSave, categorias }) {
                   ...prev,
                   tipo: "receita",
                   categoria_id: null,
+                  cartao_id: "",
                 }))
               }
               className={`py-2 text-xs sm:text-sm font-bold rounded-lg transition-all cursor-pointer ${
@@ -215,6 +222,54 @@ function ModalEditar({ transacao, onClose, onSave, categorias }) {
                 );
               })}
             </div>
+
+            {!formData.cartao_id && formData.cartao_excluido_nome && (
+              <div className="mt-2 flex items-start justify-between gap-3 p-3 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-dashed border-amber-300 dark:border-amber-500/35 text-xs text-amber-800 dark:text-amber-300">
+                <div className="flex items-start gap-2">
+                  <AlertCircle size={15} className="shrink-0 mt-0.5" />
+                  <span>
+                    Esta transação veio do cartão <strong>{formData.cartao_excluido_nome}</strong>, que não está mais cadastrado.
+                    Você pode manter essa indicação histórica ou vinculá-la a outro cartão abaixo.
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      cartao_excluido_nome: null,
+                      limpar_cartao_excluido: true,
+                    }))
+                  }
+                  className="shrink-0 font-bold underline hover:opacity-80 cursor-pointer"
+                >
+                  Limpar aviso
+                </button>
+              </div>
+            )}
+
+            {cartoes.some((c) => c.ativo !== false || String(c.id) === String(formData.cartao_id)) && (
+              <div className="mt-2">
+                <label className={labelClass}>Cartão vinculado (Opcional)</label>
+                <select
+                  name="cartao_id"
+                  className={inputClass}
+                  value={formData.cartao_id || ""}
+                  onChange={handleChange}
+                >
+                  <option value="">Sem cartão (à vista / conta)</option>
+                  {cartoes
+                    .filter((c) => c.ativo !== false || String(c.id) === String(formData.cartao_id))
+                    .map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.nome}
+                        {c.bandeira ? ` (${c.bandeira})` : ""}
+                        {c.ativo === false ? " — Inativo" : ""}
+                      </option>
+                    ))}
+                </select>
+              </div>
+            )}
           </div>
         )}
 

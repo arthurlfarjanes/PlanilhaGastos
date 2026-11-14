@@ -201,40 +201,32 @@ body {
 }
 
 :root {
-  --background:
-    oklch(1 0 0);
+  --background: #e4e9f0;
   --foreground:
-    oklch(0.145 0 0);
-  --card:
-    oklch(1 0 0);
+    oklch(0.18 0.01 255);
+  --card: #f3f5f8;
   --card-foreground:
-    oklch(0.145 0 0);
-  --popover:
-    oklch(1 0 0);
+    oklch(0.18 0.01 255);
+  --popover: #f3f5f8;
   --popover-foreground:
-    oklch(0.145 0 0);
+    oklch(0.18 0.01 255);
   --primary:
     oklch(0.205 0 0);
   --primary-foreground:
     oklch(0.985 0 0);
-  --secondary:
-    oklch(0.97 0 0);
+  --secondary: #dde3ec;
   --secondary-foreground:
     oklch(0.205 0 0);
-  --muted:
-    oklch(0.97 0 0);
+  --muted: #dde3ec;
   --muted-foreground:
-    oklch(0.556 0 0);
-  --accent:
-    oklch(0.97 0 0);
+    oklch(0.48 0.02 255);
+  --accent: #dde3ec;
   --accent-foreground:
     oklch(0.205 0 0);
   --destructive:
     oklch(0.577 0.245 27.325);
-  --border:
-    oklch(0.922 0 0);
-  --input:
-    oklch(0.922 0 0);
+  --border: #c8d1de;
+  --input: #c8d1de;
   --ring:
     oklch(0.708 0 0);
   --chart-1:
@@ -249,20 +241,17 @@ body {
     oklch(0.269 0 0);
   --radius:
     0.625rem;
-  --sidebar:
-    oklch(0.985 0 0);
+  --sidebar: #edf0f5;
   --sidebar-foreground:
-    oklch(0.145 0 0);
+    oklch(0.18 0.01 255);
   --sidebar-primary:
     oklch(0.205 0 0);
   --sidebar-primary-foreground:
     oklch(0.985 0 0);
-  --sidebar-accent:
-    oklch(0.97 0 0);
+  --sidebar-accent: #dde3ec;
   --sidebar-accent-foreground:
     oklch(0.205 0 0);
-  --sidebar-border:
-    oklch(0.922 0 0);
+  --sidebar-border: #c8d1de;
   --sidebar-ring:
     oklch(0.708 0 0);
 }
@@ -341,5 +330,111 @@ body {
   }
   html {
     @apply font-sans;
+  }
+}
+
+/* ============================================================
+   Personalização (preferências do usuário persistidas no servidor)
+   Atributos aplicados em <html> por PreferencesContext.
+   ============================================================ */
+:root {
+  --accent-strong: #059669;
+}
+
+/* Cores de destaque: remapeiam o tom escuro (lime-spark), o tom forte do modo claro
+   e a escala emerald usada nas telas. */
+html[data-accent="blue"] {
+  --color-lime-spark: #bfdbfe; --color-lime-spark-hover: #93c5fd; --color-lime-spark-dark: #1d4ed8;
+  --color-lime-spark-glow: rgba(191, 219, 254, 0.18); --accent-strong: #2563eb;
+  --color-emerald-50: #eff6ff; --color-emerald-100: #dbeafe; --color-emerald-200: #bfdbfe;
+  --color-emerald-400: #60a5fa; --color-emerald-500: #3b82f6; --color-emerald-600: #2563eb; --color-emerald-700: #1d4ed8;
+}
+html[data-accent="violet"] {
+  --color-lime-spark: #ddd6fe; --color-lime-spark-hover: #c4b5fd; --color-lime-spark-dark: #6d28d9;
+  --color-lime-spark-glow: rgba(221, 214, 254, 0.18); --accent-strong: #7c3aed;
+  --color-emerald-50: #f5f3ff; --color-emerald-100: #ede9fe; --color-emerald-200: #ddd6fe;
+  --color-emerald-400: #a78bfa; --color-emerald-500: #8b5cf6; --color-emerald-600: #7c3aed; --color-emerald-700: #6d28d9;
+}
+html[data-accent="amber"] {
+  --color-lime-spark: #fde68a; --color-lime-spark-hover: #fcd34d; --color-lime-spark-dark: #b45309;
+  --color-lime-spark-glow: rgba(253, 230, 138, 0.18); --accent-strong: #d97706;
+  --color-emerald-50: #fffbeb; --color-emerald-100: #fef3c7; --color-emerald-200: #fde68a;
+  --color-emerald-400: #fbbf24; --color-emerald-500: #f59e0b; --color-emerald-600: #d97706; --color-emerald-700: #b45309;
+}
+html[data-accent="rose"] {
+  --color-lime-spark: #fecdd3; --color-lime-spark-hover: #fda4af; --color-lime-spark-dark: #be123c;
+  --color-lime-spark-glow: rgba(254, 205, 211, 0.18); --accent-strong: #e11d48;
+  --color-emerald-50: #fff1f2; --color-emerald-100: #ffe4e6; --color-emerald-200: #fecdd3;
+  --color-emerald-400: #fb7185; --color-emerald-500: #f43f5e; --color-emerald-600: #e11d48; --color-emerald-700: #be123c;
+}
+
+/* Tamanho do texto (acessibilidade): escala toda a UI baseada em rem */
+html[data-font-scale="large"] { font-size: 112.5%; }
+html[data-font-scale="xlarge"] { font-size: 125%; }
+
+/* Densidade compacta: reduz espaçamentos de cartões e do conteúdo principal */
+html[data-density="compact"] main { padding: 0.75rem; }
+html[data-density="compact"] main .gap-6,
+html[data-density="compact"] main .sm\:gap-8 { gap: 0.75rem; }
+html[data-density="compact"] main .p-5 { padding: 0.75rem; }
+html[data-density="compact"] main .p-4 { padding: 0.625rem; }
+html[data-density="compact"] main .p-6 { padding: 1rem; }
+html[data-density="compact"] main .p-8 { padding: 1.25rem; }
+
+/* Alto contraste: bordas e textos secundários mais fortes */
+html[data-contrast="high"] { --color-graphite-300: #cbd5e1; --color-graphite-600: #64748b; }
+html[data-contrast="high"]:not(.dark) { --color-graphite-300: #334155; }
+html[data-contrast="high"] *:focus-visible { outline: 3px solid var(--accent-strong); outline-offset: 2px; }
+html[data-contrast="high"] .text-slate-500 { color: #334155; }
+html[data-contrast="high"].dark .text-slate-500 { color: #cbd5e1; }
+
+/* Redução de animações */
+html[data-reduce-motion="true"] *,
+html[data-reduce-motion="true"] *::before,
+html[data-reduce-motion="true"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* ============================================================
+   Modo claro suavizado: reduz ofuscamento de branco puro (#fff)
+   mantendo contraste confortável e o modo escuro intacto.
+   ============================================================ */
+html:not(.dark) {
+  --color-slate-50: #eaeef3;
+  --color-slate-100: #dde3ec;
+  --color-slate-200: #c8d1de;
+  --color-slate-300: #b2becd;
+}
+
+html:not(.dark) body {
+  background-color: #e4e9f0;
+  color: #1e293b;
+}
+
+@layer utilities {
+  html:not(.dark) .bg-white {
+    background-color: #f3f5f8;
+  }
+  html:not(.dark) :is(input, select, textarea).bg-white {
+    background-color: #eaeef4;
+  }
+  html:not(.dark) .bg-white\/95 {
+    background-color: rgba(243, 245, 248, 0.95);
+  }
+  html:not(.dark) .bg-white\/90 {
+    background-color: rgba(243, 245, 248, 0.9);
+  }
+  html:not(.dark) .bg-white\/80,
+  html:not(.dark) .hover\:bg-white\/80:hover {
+    background-color: rgba(243, 245, 248, 0.84);
+  }
+  html:not(.dark) .bg-white\/50 {
+    background-color: rgba(243, 245, 248, 0.65);
+  }
+  html:not(.dark) .bg-white\/40 {
+    background-color: rgba(243, 245, 248, 0.55);
   }
 }

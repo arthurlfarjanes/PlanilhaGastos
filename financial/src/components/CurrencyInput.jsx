@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { formatCurrency } from '../utils/formatters';
 
-export function CurrencyInput({ value, onValueChange, className, placeholder, required, id }) {
+export function CurrencyInput({ value, onValueChange, onBlur, className, placeholder, required, id, disabled = false }) {
   const [displayValue, setDisplayValue] = useState('');
 
   // Atualiza o display interno quando o prop value mudar (útil para edição)
@@ -44,8 +44,10 @@ export function CurrencyInput({ value, onValueChange, className, placeholder, re
       className={className}
       value={displayValue}
       onChange={handleChange}
+      onBlur={onBlur}
       placeholder={placeholder || 'R$ 0,00'}
       required={required}
+      disabled={disabled}
     />
   );
 }

@@ -80,7 +80,7 @@ function Login() {
             </div>
             <span className="font-extrabold text-2xl text-slate-900 dark:text-white tracking-tight">
               Me
-              <span className="text-[#059669] dark:text-lime-spark">
+              <span className="text-[var(--accent-strong)] dark:text-lime-spark">
                 Finance
               </span>
             </span>
@@ -174,7 +174,7 @@ function Login() {
           Ainda não tem uma conta?{" "}
           <Link
             to="/register"
-            className="font-semibold text-[#059669] dark:text-lime-spark hover:opacity-80 transition-opacity"
+            className="font-semibold text-[var(--accent-strong)] dark:text-lime-spark hover:opacity-80 transition-opacity"
           >
             Registre-se
           </Link>

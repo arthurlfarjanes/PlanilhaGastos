@@ -51,7 +51,7 @@ function Register() {
   };
 
   const inputClass =
-    "w-full p-3.5 border border-slate-200 dark:border-[#2E3342] rounded-xl text-[0.95rem] text-slate-800 dark:text-slate-100 bg-slate-50 dark:bg-[#14171F] focus:bg-white dark:focus:bg-[#14171F] focus:outline-none focus:border-[#B6FFE2] focus:ring-4 focus:ring-[#B6FFE2]/15 transition-all placeholder-slate-400 dark:placeholder-[#687082]";
+    "w-full p-3.5 border border-slate-200 dark:border-[#2E3342] rounded-xl text-[0.95rem] text-slate-800 dark:text-slate-100 bg-slate-50 dark:bg-[#14171F] focus:bg-white dark:focus:bg-[#14171F] focus:outline-none focus:border-[var(--color-lime-spark)] focus:ring-4 focus:ring-[var(--color-lime-spark)]/15 transition-all placeholder-slate-400 dark:placeholder-[#687082]";
   const labelClass =
     "block mb-1.5 text-slate-500 dark:text-[#8E9AA8] font-medium text-[0.85rem]";
 
@@ -66,7 +66,7 @@ function Register() {
             </div>
             <span className="font-extrabold text-2xl text-slate-900 dark:text-white tracking-tight">
               Me
-              <span className="text-[#059669] dark:text-lime-spark">
+              <span className="text-[var(--accent-strong)] dark:text-lime-spark">
                 Finance
               </span>
             </span>
@@ -119,7 +119,7 @@ function Register() {
               />
               <button
                 type="button"
-                className="absolute right-3 text-slate-400 hover:text-[#059669] dark:hover:text-lime-spark transition-colors p-1"
+                className="absolute right-3 text-slate-400 hover:text-[var(--accent-strong)] dark:hover:text-lime-spark transition-colors p-1"
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -146,7 +146,7 @@ function Register() {
           Já tem uma conta?{" "}
           <Link
             to="/login"
-            className="font-semibold text-[#059669] dark:text-lime-spark hover:opacity-80 transition-opacity"
+            className="font-semibold text-[var(--accent-strong)] dark:text-lime-spark hover:opacity-80 transition-opacity"
           >
             Faça login
           </Link>

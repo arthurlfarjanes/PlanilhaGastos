@@ -143,7 +143,7 @@ function GerenciarCategorias({ categorias, onCategoriaChange, onEdit }) {
     <div className="bg-white dark:bg-graphite-800 p-5 sm:p-7 rounded-2xl shadow-xs border border-slate-200/80 dark:border-graphite-600 flex flex-col h-fit transition-colors duration-200">
       <div className="flex items-center justify-between border-b border-slate-100 dark:border-graphite-600 pb-3 mb-4">
         <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100 flex items-center gap-2">
-          <Tag size={18} className="text-[#059669] dark:text-lime-spark" />
+          <Tag size={18} className="text-[var(--accent-strong)] dark:text-lime-spark" />
           Categorias
         </h3>
         <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-slate-100 dark:bg-graphite-900 text-slate-600 dark:text-graphite-300 border border-slate-200 dark:border-graphite-600">
@@ -227,7 +227,7 @@ function GerenciarCategorias({ categorias, onCategoriaChange, onEdit }) {
             <div className="flex gap-1 shrink-0 opacity-100 sm:opacity-80 group-hover:opacity-100 transition-opacity">
               <button
                 onClick={() => onEdit(cat)}
-                className="text-slate-500 dark:text-graphite-300 hover:text-[#059669] dark:hover:text-lime-spark p-1.5 rounded-lg hover:bg-slate-200/60 dark:hover:bg-graphite-700 transition-colors cursor-pointer"
+                className="text-slate-500 dark:text-graphite-300 hover:text-[var(--accent-strong)] dark:hover:text-lime-spark p-1.5 rounded-lg hover:bg-slate-200/60 dark:hover:bg-graphite-700 transition-colors cursor-pointer"
                 title="Editar Categoria"
               >
                 <Edit2 size={14} />

@@ -15,3 +15,9 @@ node_modules/
 Thumbs.db
 .vscode/
 .idea/
+
+# Prompts
+prompts/
+
+# Documentos de desenvolvimento
+docs/

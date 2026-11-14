@@ -10,6 +10,10 @@ const categoriaRoutes = require("./routes/categoriaRoutes");
 const transacaoRoutes = require("./routes/transacaoRoutes");
 const gastosFixosRoutes = require("./routes/gastosFixosRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const preferenciasRoutes = require("./routes/preferenciasRoutes");
+const orcamentosRoutes = require("./routes/orcamentosRoutes");
+const dividasRoutes = require("./routes/dividasRoutes");
+const cartoesRoutes = require("./routes/cartoesRoutes");
 
 // Importação Cron
 const { iniciarAgendador } = require("./services/agendador");
@@ -75,6 +79,10 @@ app.use("/categorias", categoriaRoutes);
 app.use("/transacoes", transacaoRoutes);
 app.use("/gastos-fixos", gastosFixosRoutes);
 app.use("/admin", adminRoutes);
+app.use("/preferencias", preferenciasRoutes);
+app.use("/orcamentos", orcamentosRoutes);
+app.use("/dividas", dividasRoutes);
+app.use("/cartoes", cartoesRoutes);
 
 // 5. Middleware global de tratamento de erros 
 app.use(errorHandler);
@@ -82,6 +90,18 @@ app.use(errorHandler);
 // Inicia o serviço agendado de gastos fixos
 iniciarAgendador();
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`Backend seguro rodando em http://localhost:${port}`);
 });
+
+// Encerramento gracioso: para de aceitar requisições e fecha o pool do Neon
+const pool = require("./config/db");
+const shutdown = (signal) => {
+  console.log(`${signal} recebido. Encerrando...`);
+  server.close(() => {
+    pool.end().finally(() => process.exit(0));
+  });
+  setTimeout(() => process.exit(1), 10000).unref();
+};
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));

@@ -17,7 +17,7 @@ import {
 } from "recharts";
 import { Search, FilterX, TrendingUp, TrendingDown, Scale } from "lucide-react";
 
-import { formatCurrency } from "../utils/formatters";
+import { formatCurrency, formatDate } from "../utils/formatters";
 
 // ─── Tooltips personalizados ───────────────────────────────────────────────────
 const CustomTooltip = ({ active, payload }) => {
@@ -95,7 +95,7 @@ const TabelaFiltrada = memo(({ transacoes }) => {
     filtroDescricao || filtroTipo !== "todos" || filtroCategoria !== "todas";
 
   const selectClass =
-    "w-full md:w-auto px-3 py-2.5 border border-slate-200 dark:border-[#2E3342] rounded-xl text-sm font-medium focus:outline-none focus:border-[#B6FFE2] focus:ring-2 focus:ring-[#B6FFE2]/20 bg-white dark:bg-[#14171F] text-slate-700 dark:text-slate-200 shadow-xs cursor-pointer transition-colors";
+    "w-full md:w-auto px-3 py-2.5 border border-slate-200 dark:border-[#2E3342] rounded-xl text-sm font-medium focus:outline-none focus:border-[var(--color-lime-spark)] focus:ring-2 focus:ring-[var(--color-lime-spark)]/20 bg-white dark:bg-[#14171F] text-slate-700 dark:text-slate-200 shadow-xs cursor-pointer transition-colors";
 
   return (
     <div className="bg-white dark:bg-graphite-800 rounded-2xl border border-slate-200/80 dark:border-graphite-600 shadow-xs overflow-hidden mt-0">
@@ -196,9 +196,7 @@ const TabelaFiltrada = memo(({ transacoes }) => {
                     </span>
                   </td>
                   <td className="p-4 text-slate-500 dark:text-graphite-300 text-xs sm:text-sm">
-                    {new Date(t.data).toLocaleDateString("pt-BR", {
-                      timeZone: "UTC",
-                    })}
+                    {formatDate(t.data)}
                   </td>
                   <td className="p-4 font-medium text-slate-500 dark:text-graphite-300 text-xs sm:text-sm">
                     {t.categoria_nome ? (
@@ -320,11 +318,7 @@ function Comparativo() {
     [...transacoes]
       .sort((a, b) => new Date(a.data) - new Date(b.data))
       .forEach((t) => {
-        const dia = new Date(t.data).toLocaleDateString("pt-BR", {
-          timeZone: "UTC",
-          day: "2-digit",
-          month: "2-digit",
-        });
+        const dia = formatDate(t.data, { short: true });
         if (!mapaDias[dia])
           mapaDias[dia] = { name: dia, Receitas: 0, Despesas: 0 };
         if (t.tipo === "receita") mapaDias[dia].Receitas += parseFloat(t.valor);

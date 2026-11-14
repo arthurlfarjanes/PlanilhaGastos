@@ -56,7 +56,7 @@ export default function Footer() {
             </button>
 
             <div className="flex flex-col items-center text-center gap-2 mt-1">
-              <div className="w-12 h-12 rounded-2xl bg-lime-spark/20 text-[#059669] dark:text-lime-spark flex items-center justify-center border border-lime-spark/40 mb-1">
+              <div className="w-12 h-12 rounded-2xl bg-lime-spark/20 text-[var(--accent-strong)] dark:text-lime-spark flex items-center justify-center border border-lime-spark/40 mb-1">
                 <LifeBuoy size={24} />
               </div>
               <h3 className="text-lg font-bold">Suporte em Desenvolvimento</h3>

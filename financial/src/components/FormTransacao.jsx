@@ -12,12 +12,13 @@ const getTodayDateString = () => {
     .split("T")[0];
 };
 
-function FormularioTransacao({ onTransacaoAdicionada, categorias }) {
+function FormularioTransacao({ onTransacaoAdicionada, categorias, cartoes = [] }) {
   const [descricao, setDescricao] = useState("");
   const [valor, setValor] = useState("");
   const [tipo, setTipo] = useState("despesa");
   const [data, setData] = useState(getTodayDateString());
   const [categoriaId, setCategoriaId] = useState("");
+  const [cartaoId, setCartaoId] = useState("");
   const [ehParcelado, setEhParcelado] = useState(false);
   const [parcelas, setParcelas] = useState(2);
   const [loading, setLoading] = useState(false);
@@ -49,6 +50,7 @@ function FormularioTransacao({ onTransacaoAdicionada, categorias }) {
       tipo,
       data,
       categoria_id: tipo === "despesa" ? parseInt(categoriaId) : null,
+      cartao_id: tipo === "despesa" && cartaoId ? parseInt(cartaoId, 10) : null,
       ...(ehParcelado && { parcelas: parseInt(parcelas) }),
     };
 
@@ -71,6 +73,7 @@ function FormularioTransacao({ onTransacaoAdicionada, categorias }) {
       setTipo("despesa");
       setData(getTodayDateString());
       setCategoriaId("");
+      setCartaoId("");
       setEhParcelado(false);
       setParcelas(2);
       setFormError("");
@@ -82,7 +85,7 @@ function FormularioTransacao({ onTransacaoAdicionada, categorias }) {
   };
 
   const inputClass =
-    "w-full p-3 border border-slate-200 dark:border-[#2E3342] rounded-xl text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-[#14171F] focus:outline-none focus:border-[#B6FFE2] focus:ring-4 focus:ring-[#B6FFE2]/15 transition-all shadow-xs placeholder-slate-400 dark:placeholder-[#687082]";
+    "w-full p-3 border border-slate-200 dark:border-[#2E3342] rounded-xl text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-[#14171F] focus:outline-none focus:border-[var(--color-lime-spark)] focus:ring-4 focus:ring-[var(--color-lime-spark)]/15 transition-all shadow-xs placeholder-slate-400 dark:placeholder-[#687082]";
   const labelClass =
     "block mb-1.5 text-slate-500 dark:text-[#8E9AA8] font-bold uppercase tracking-wider text-[0.75rem]";
 
@@ -166,6 +169,7 @@ function FormularioTransacao({ onTransacaoAdicionada, categorias }) {
             onClick={() => {
               setTipo("receita");
               setCategoriaId("");
+              setCartaoId("");
               setEhParcelado(false);
             }}
             className={`py-2 text-xs sm:text-sm font-bold rounded-lg transition-all cursor-pointer ${
@@ -221,12 +225,34 @@ function FormularioTransacao({ onTransacaoAdicionada, categorias }) {
             )}
           </div>
 
+          {/* Cartão vinculado (opcional) */}
+          {cartoes.some((c) => c.ativo !== false) && (
+            <div className="mt-2">
+              <label className={labelClass}>Atrelar ao Cartão (Opcional)</label>
+              <select
+                className={inputClass}
+                value={cartaoId}
+                onChange={(e) => setCartaoId(e.target.value)}
+              >
+                <option value="">Sem cartão (à vista / conta)</option>
+                {cartoes
+                  .filter((c) => c.ativo !== false)
+                  .map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.nome}
+                      {c.bandeira ? ` (${c.bandeira})` : ""}
+                    </option>
+                  ))}
+              </select>
+            </div>
+          )}
+
           {/* Opção de Parcelamento */}
           <div className="flex items-center gap-3 bg-slate-50 dark:bg-graphite-900 p-3 rounded-xl border border-slate-200 dark:border-graphite-600 mt-2">
             <input
               id="parcela"
               type="checkbox"
-              className="w-4 h-4 rounded text-[#059669] dark:text-lime-spark accent-lime-spark cursor-pointer"
+              className="w-4 h-4 rounded text-[var(--accent-strong)] dark:text-lime-spark accent-lime-spark cursor-pointer"
               checked={ehParcelado}
               onChange={(e) => setEhParcelado(e.target.checked)}
             />
