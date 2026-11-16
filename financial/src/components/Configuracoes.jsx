@@ -1,13 +1,26 @@
-import React, { useContext, useState } from "react";
-import { useSearchParams } from "react-router-dom";
-import { Palette, LayoutDashboard, Wallet, UserCircle, Lock, RotateCcw, ArrowUp, ArrowDown } from "lucide-react";
+import React, { useContext, useState, useEffect, useCallback } from "react";
+import { useSearchParams, Link } from "react-router-dom";
+import {
+  Palette,
+  LayoutDashboard,
+  Wallet,
+  UserCircle,
+  Lock,
+  RotateCcw,
+  ArrowUp,
+  ArrowDown,
+  Bell,
+  AlertTriangle,
+  CheckCircle2,
+  ArrowRight,
+} from "lucide-react";
 import toast from "react-hot-toast";
 import { AuthContext } from "../App";
 import { usePreferences } from "../context/PreferencesContext";
 import { ModalTrocarSenha } from "./ModalTrocarSenha";
-import { formatCurrency, formatDate } from "../utils/formatters";
+import { formatCurrency, formatDate, todayInTimezone } from "../utils/formatters";
 
-const TABS = [
+const TABS_BASE = [
   { id: "perfil", label: "Perfil e conta", icon: UserCircle },
   { id: "aparencia", label: "Aparência", icon: Palette },
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -95,20 +108,81 @@ function Switch({ checked, onChange, id }) {
 }
 
 export default function Configuracoes() {
-  const { username, role } = useContext(AuthContext);
+  const { username, role, token, API_URL } = useContext(AuthContext);
   const { prefs, loaded, updatePreferences, resetPreferences } = usePreferences();
   // A aba fica na URL: sobrevive à remontagem causada por mudança de moeda/data.
   const [params, setParams] = useSearchParams();
-  const tab = TABS.some((x) => x.id === params.get("aba")) ? params.get("aba") : "perfil";
-  const setTab = (id) => setParams({ aba: id }, { replace: true });
   const [senhaOpen, setSenhaOpen] = useState(false);
+  const [lembretes, setLembretes] = useState([]);
+  const [lembretesResumo, setLembretesResumo] = useState({ total: 0, alta: 0, media: 0, baixa: 0 });
+  const [loadingNotif, setLoadingNotif] = useState(false);
+
   const a = prefs.appearance;
   const d = prefs.dashboard;
   const f = prefs.financial;
+  const n = prefs.notifications || {
+    enabled: true,
+    daysAhead: 5,
+    remindBills: true,
+    remindCards: true,
+    remindBudgets: true,
+    remindGoals: true,
+  };
+  const timezone = f?.timezone || "America/Sao_Paulo";
+
+  const carregarLembretes = useCallback(async () => {
+    if (!token) return;
+    setLoadingNotif(true);
+    try {
+      const refToday = todayInTimezone(timezone);
+      const res = await fetch(`${API_URL}/notificacoes?refDate=${encodeURIComponent(refToday)}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      setLembretes(Array.isArray(data.lembretes) ? data.lembretes : []);
+      setLembretesResumo(data.resumo || { total: 0, alta: 0, media: 0, baixa: 0 });
+    } catch {
+      // silencioso
+    } finally {
+      setLoadingNotif(false);
+    }
+  }, [token, API_URL, timezone]);
+
+  useEffect(() => {
+    carregarLembretes();
+  }, [carregarLembretes, prefs.notifications]);
+
+  const mostrarAbaNotificacoes =
+    lembretesResumo.total > 0 ||
+    params.get("aba") === "notificacoes" ||
+    n.enabled === false;
+
+  const tabsDisponiveis = mostrarAbaNotificacoes
+    ? [
+        ...TABS_BASE,
+        {
+          id: "notificacoes",
+          label: "Notificações",
+          icon: Bell,
+          badge: lembretesResumo.total,
+        },
+      ]
+    : TABS_BASE;
+
+  const tab = tabsDisponiveis.some((x) => x.id === params.get("aba"))
+    ? params.get("aba")
+    : "perfil";
+  const setTab = (id) => setParams({ aba: id }, { replace: true });
 
   const setA = (patch) => updatePreferences({ appearance: patch });
   const setD = (patch) => updatePreferences({ dashboard: patch });
   const setF = (patch) => updatePreferences({ financial: patch });
+  const setN = async (patch) => {
+    await updatePreferences({ notifications: patch });
+    window.dispatchEvent(new Event("mefinance:notificacoes-updated"));
+  };
 
   const moveCard = (id, delta) => {
     const order = [...d.cardOrder];
@@ -140,7 +214,7 @@ export default function Configuracoes() {
 
       <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-6 items-start">
         <nav aria-label="Seções de configurações" className="flex md:flex-col gap-1 overflow-x-auto pb-1 md:pb-0">
-          {TABS.map((item) => (
+          {tabsDisponiveis.map((item) => (
             <button
               key={item.id}
               type="button"
@@ -153,7 +227,12 @@ export default function Configuracoes() {
               }`}
             >
               {React.createElement(item.icon, { size: 17, className: "shrink-0" })}
-              {item.label}
+              <span>{item.label}</span>
+              {item.badge > 0 && (
+                <span className="ml-auto text-[0.65rem] font-bold px-1.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300">
+                  {item.badge}
+                </span>
+              )}
             </button>
           ))}
         </nav>
@@ -287,6 +366,116 @@ export default function Configuracoes() {
                 </select>
               </Row>
             </Section>
+          )}
+
+          {tab === "notificacoes" && (
+            <>
+              <Section
+                title="Lembretes ativos"
+                description="Alertas gerados automaticamente a partir das suas contas, faturas de cartão, orçamentos e prazos de objetivos."
+              >
+                {loadingNotif ? (
+                  <p className="text-sm text-slate-500 dark:text-graphite-300">Carregando lembretes...</p>
+                ) : lembretes.length === 0 ? (
+                  <div className="flex items-center gap-3 p-4 rounded-xl bg-emerald-50 dark:bg-lime-spark/10 border border-emerald-200 dark:border-lime-spark/20 text-sm text-emerald-800 dark:text-lime-spark">
+                    <CheckCircle2 size={18} className="shrink-0" />
+                    <span>
+                      {n.enabled === false
+                        ? "Os lembretes automáticos estão desativados."
+                        : "Tudo em dia! Nenhum lembrete pendente no momento."}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-2.5">
+                    {lembretes.map((l) => {
+                      const sevCls =
+                        l.severidade === "alta"
+                          ? "bg-red-50 dark:bg-red-500/10 border-red-200 dark:border-red-500/25 text-red-700 dark:text-red-300"
+                          : l.severidade === "media"
+                            ? "bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/25 text-amber-800 dark:text-amber-300"
+                            : "bg-sky-50 dark:bg-sky-500/10 border-sky-200 dark:border-sky-500/25 text-sky-800 dark:text-sky-300";
+                      const sevLabel =
+                        l.severidade === "alta"
+                          ? "Urgente"
+                          : l.severidade === "media"
+                            ? "Atenção"
+                            : "Informativo";
+
+                      return (
+                        <div
+                          key={l.id}
+                          className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl border border-slate-200 dark:border-graphite-600 bg-slate-50/70 dark:bg-graphite-900/50"
+                        >
+                          <div className="space-y-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold border ${sevCls}`}>
+                                <AlertTriangle size={11} /> {sevLabel}
+                              </span>
+                              <span className="text-sm font-semibold text-slate-900 dark:text-white">
+                                {l.titulo}
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-500 dark:text-graphite-300">{l.descricao}</p>
+                          </div>
+
+                          <div className="flex items-center gap-3 shrink-0">
+                            {l.valor != null && (
+                              <strong className="text-sm font-bold text-slate-800 dark:text-slate-100">
+                                {formatCurrency(l.valor)}
+                              </strong>
+                            )}
+                            {l.link && (
+                              <Link
+                                to={l.link}
+                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white dark:bg-graphite-800 border border-slate-200 dark:border-graphite-600 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-graphite-700"
+                              >
+                                Abrir <ArrowRight size={13} />
+                              </Link>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </Section>
+
+              <Section
+                title="Preferências de lembretes"
+                description="Defina quais alertas financeiros deseja acompanhar e com quantos dias de antecedência."
+              >
+                <Row label="Ativar lembretes automáticos" hint="Quando desativado, oculta alertas de vencimento e metas." htmlFor="notif-enabled">
+                  <Switch id="notif-enabled" checked={n.enabled !== false} onChange={(v) => setN({ enabled: v })} />
+                </Row>
+                <Row label="Antecedência para vencimentos" hint="Quantos dias antes do vencimento alertar contas, faturas e metas." htmlFor="notif-days">
+                  <select
+                    id="notif-days"
+                    className={field}
+                    disabled={n.enabled === false}
+                    value={n.daysAhead || 5}
+                    onChange={(e) => setN({ daysAhead: Number(e.target.value) })}
+                  >
+                    {[1, 3, 5, 7, 15, 30].map((dNum) => (
+                      <option key={dNum} value={dNum}>
+                        {dNum} dia(s) antes
+                      </option>
+                    ))}
+                  </select>
+                </Row>
+                <Row label="Contas fixas e assinaturas" htmlFor="notif-bills">
+                  <Switch id="notif-bills" checked={n.remindBills !== false} onChange={(v) => setN({ remindBills: v })} />
+                </Row>
+                <Row label="Faturas de cartão" htmlFor="notif-cards">
+                  <Switch id="notif-cards" checked={n.remindCards !== false} onChange={(v) => setN({ remindCards: v })} />
+                </Row>
+                <Row label="Orçamentos em alerta ou excedidos" htmlFor="notif-budgets">
+                  <Switch id="notif-budgets" checked={n.remindBudgets !== false} onChange={(v) => setN({ remindBudgets: v })} />
+                </Row>
+                <Row label="Prazos e ritmo de objetivos" htmlFor="notif-goals">
+                  <Switch id="notif-goals" checked={n.remindGoals !== false} onChange={(v) => setN({ remindGoals: v })} />
+                </Row>
+              </Section>
+            </>
           )}
         </div>
       </div>

@@ -10,7 +10,6 @@ import {
   Routes,
   Route,
   Link,
-  NavLink,
   useNavigate,
   useLocation,
 } from "react-router-dom";
@@ -25,6 +24,7 @@ import {
   ChevronDown,
   Lock,
   Settings,
+  Bell,
 } from "lucide-react";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { Toaster } from "react-hot-toast";
@@ -48,7 +48,7 @@ import Dividas from "./components/Dividas";
 import Cartoes from "./components/Cartoes";
 import Patrimonio from "./components/Patrimonio";
 import Objetivos from "./components/Objetivos";
-import Sidebar, { NAV_ITEMS, NavIcon } from "./components/Sidebar";
+import Sidebar, { NAV_ITEMS, NavGroupsMenu, isNavItemActive } from "./components/Sidebar";
 import { PreferencesProvider, usePreferences } from "./context/PreferencesContext";
 import { todayInTimezone } from "./utils/formatters";
 import "./index.css";
@@ -144,16 +144,19 @@ function AppShell() {
 
   const [modalSenhaOpen, setModalSenhaOpen] = useState(false);
   const [alertasOrcamento, setAlertasOrcamento] = useState(0);
+  const [lembretesTotal, setLembretesTotal] = useState(0);
 
   const reduceMotion = Boolean(prefs?.appearance?.reduceMotion);
   const timezone = prefs?.financial?.timezone || "America/Sao_Paulo";
   const alertasVisiveis = token ? alertasOrcamento : 0;
+  const lembretesVisiveis = token ? lembretesTotal : 0;
 
   useEffect(() => {
     if (!token) return;
     let cancelled = false;
     const checarAlertas = () => {
-      const [ano, mes] = todayInTimezone(timezone).split("-").map(Number);
+      const refToday = todayInTimezone(timezone);
+      const [ano, mes] = refToday.split("-").map(Number);
       fetch(`${API_URL}/orcamentos?mes=${mes}&ano=${ano}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
@@ -166,15 +169,30 @@ function AppShell() {
           setAlertasOrcamento(total);
         })
         .catch(() => { });
+
+      fetch(`${API_URL}/notificacoes?refDate=${encodeURIComponent(refToday)}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data) => {
+          if (cancelled || !data?.resumo) return;
+          setLembretesTotal(Number(data.resumo.total || 0));
+        })
+        .catch(() => { });
     };
 
     checarAlertas();
     window.addEventListener("mefinance:orcamentos-updated", checarAlertas);
+    window.addEventListener("mefinance:cartoes-updated", checarAlertas);
+    window.addEventListener("mefinance:notificacoes-updated", checarAlertas);
     return () => {
       cancelled = true;
       window.removeEventListener("mefinance:orcamentos-updated", checarAlertas);
+      window.removeEventListener("mefinance:cartoes-updated", checarAlertas);
+      window.removeEventListener("mefinance:notificacoes-updated", checarAlertas);
     };
-  }, [token, API_URL, timezone, location.pathname]);
+  }, [token, API_URL, timezone, location.pathname, location.search]);
 
   const handleLogout = () => {
     logout();
@@ -195,6 +213,7 @@ function AppShell() {
           theme={theme}
           toggleTheme={toggleTheme}
           alertasVisiveis={alertasVisiveis}
+          lembretesVisiveis={lembretesVisiveis}
           reduceMotion={reduceMotion}
           onOpenTrocarSenha={() => setModalSenhaOpen(true)}
           onLogout={handleLogout}
@@ -204,6 +223,7 @@ function AppShell() {
       {!isAuthPage && !useSidebar && (
         <Header
           alertasVisiveis={alertasVisiveis}
+          lembretesVisiveis={lembretesVisiveis}
           reduceMotion={reduceMotion}
           onOpenTrocarSenha={() => setModalSenhaOpen(true)}
           onLogout={handleLogout}
@@ -324,7 +344,13 @@ function AppShell() {
   );
 }
 
-function Header({ alertasVisiveis, reduceMotion, onOpenTrocarSenha, onLogout }) {
+function Header({
+  alertasVisiveis,
+  lembretesVisiveis,
+  reduceMotion,
+  onOpenTrocarSenha,
+  onLogout,
+}) {
   const { token, username, profilePic, role } = useContext(AuthContext);
   const { theme, toggleTheme } = useContext(ThemeContext);
   const location = useLocation();
@@ -373,9 +399,9 @@ function Header({ alertasVisiveis, reduceMotion, onOpenTrocarSenha, onLogout }) 
   };
 
   const activeNav =
-    NAV_ITEMS.find((item) => item.to === location.pathname) ||
+    NAV_ITEMS.find((item) => isNavItemActive(item, location)) ||
     (location.pathname === "/admin" ? { label: "Painel Admin", iconId: "admin" } : null) ||
-    (location.pathname === "/configuracoes" ? { label: "Configurações", iconId: "dashboard" } : null);
+    (location.pathname === "/configuracoes" ? { label: "Configurações", iconId: "configuracoes" } : null);
 
   const getInitials = (name) => {
     if (!name) return "U";
@@ -435,53 +461,16 @@ function Header({ alertasVisiveis, reduceMotion, onOpenTrocarSenha, onLogout }) 
             {navDropdownAberto && (
               <nav
                 aria-label="Menu de navegação"
-                className="absolute left-0 mt-2 w-64 bg-white dark:bg-graphite-800 rounded-2xl border border-slate-200 dark:border-graphite-600 shadow-xl z-50 p-2 flex flex-col gap-1"
+                className="absolute left-0 mt-2 w-72 max-h-[80vh] overflow-y-auto custom-scrollbar bg-white dark:bg-graphite-800 rounded-2xl border border-slate-200 dark:border-graphite-600 shadow-xl z-50 p-3"
               >
-                {NAV_ITEMS.map((item) => (
-                  <NavLink
-                    key={item.to}
-                    to={item.to}
-                    end={item.end}
-                    className={({ isActive }) =>
-                      `relative flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-                        isActive
-                          ? "bg-lime-spark text-graphite-900 font-bold shadow-[0_2px_12px_rgba(182,255,226,0.3)]"
-                          : "text-slate-600 dark:text-graphite-300 hover:bg-slate-100 dark:hover:bg-graphite-700 hover:text-slate-900 dark:hover:text-white"
-                      }`
-                    }
-                  >
-                    <NavIcon id={item.iconId} size={17} />
-                    <span>{item.label}</span>
-                    {item.hasAlertDot && alertasVisiveis > 0 && (
-                      <span className="ml-auto flex items-center gap-1.5">
-                        <span className="relative flex items-center justify-center h-2 w-2">
-                          <span
-                            className={`${reduceMotion ? "hidden" : "animate-ping"} absolute inset-0 rounded-full bg-amber-400/60`}
-                          />
-                          <span className="relative rounded-full h-1.5 w-1.5 bg-amber-400" />
-                        </span>
-                        <span className="text-[0.65rem] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300">
-                          {alertasVisiveis}
-                        </span>
-                      </span>
-                    )}
-                  </NavLink>
-                ))}
-                {role === "admin" && (
-                  <NavLink
-                    to="/admin"
-                    className={({ isActive }) =>
-                      `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-                        isActive
-                          ? "bg-red-500 text-white font-bold shadow-[0_2px_12px_rgba(239,68,68,0.3)]"
-                          : "text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10"
-                      }`
-                    }
-                  >
-                    <NavIcon id="admin" size={17} />
-                    <span>Painel Admin</span>
-                  </NavLink>
-                )}
+                <NavGroupsMenu
+                  location={location}
+                  role={role}
+                  alertasVisiveis={alertasVisiveis}
+                  lembretesVisiveis={lembretesVisiveis}
+                  reduceMotion={reduceMotion}
+                  iconSize={17}
+                />
               </nav>
             )}
           </div>
@@ -504,44 +493,31 @@ function Header({ alertasVisiveis, reduceMotion, onOpenTrocarSenha, onLogout }) 
       >
         {/* Nav links apenas no drawer mobile */}
         {token && (
-          <nav className="flex flex-col gap-1 w-full md:hidden">
-            {NAV_ITEMS.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.end}
-                className={({ isActive }) =>
-                  `relative flex items-center gap-2 font-semibold text-sm px-4 py-2.5 rounded-xl transition-all ${
-                    isActive
-                      ? "bg-lime-spark text-graphite-900 font-bold shadow-[0_2px_12px_rgba(182,255,226,0.3)]"
-                      : "text-slate-600 dark:text-graphite-300 hover:bg-slate-100 dark:hover:bg-graphite-700 hover:text-slate-900 dark:hover:text-white"
-                  }`
-                }
-              >
-                <NavIcon id={item.iconId} size={17} />
-                <span>{item.label}</span>
-                {item.hasAlertDot && alertasVisiveis > 0 && (
-                  <span className="ml-auto text-[0.65rem] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300">
-                    {alertasVisiveis}
-                  </span>
-                )}
-              </NavLink>
-            ))}
-            {role === "admin" && (
-              <NavLink
-                to="/admin"
-                className={({ isActive }) =>
-                  `flex items-center gap-2 font-semibold text-sm px-4 py-2.5 rounded-xl transition-all ${
-                    isActive
-                      ? "bg-red-500 text-white font-bold shadow-[0_2px_12px_rgba(239,68,68,0.3)]"
-                      : "text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10"
-                  }`
-                }
-              >
-                <NavIcon id="admin" size={17} /> Painel Admin
-              </NavLink>
-            )}
+          <nav className="w-full md:hidden max-h-[60vh] overflow-y-auto custom-scrollbar">
+            <NavGroupsMenu
+              location={location}
+              role={role}
+              alertasVisiveis={alertasVisiveis}
+              lembretesVisiveis={lembretesVisiveis}
+              reduceMotion={reduceMotion}
+              iconSize={17}
+            />
           </nav>
+        )}
+
+        {/* Atalho sino de lembretes no desktop quando houver notificações */}
+        {token && lembretesVisiveis > 0 && (
+          <Link
+            to="/configuracoes?aba=notificacoes"
+            title={`${lembretesVisiveis} lembrete(s) financeiro(s)`}
+            aria-label={`${lembretesVisiveis} lembrete(s) financeiro(s)`}
+            className="hidden md:inline-flex relative items-center justify-center p-2.5 rounded-full bg-slate-100 dark:bg-graphite-900 hover:bg-slate-200 dark:hover:bg-graphite-700 border border-slate-200 dark:border-graphite-600 text-slate-700 dark:text-slate-200 transition-colors"
+          >
+            <Bell size={17} />
+            <span className="absolute -top-1 -right-1 min-w-4.5 h-4.5 px-1 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center shadow-xs">
+              {lembretesVisiveis}
+            </span>
+          </Link>
         )}
 
         {/* Ações: login/register ou dropdown do usuário */}

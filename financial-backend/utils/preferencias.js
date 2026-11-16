@@ -28,6 +28,14 @@ const DEFAULTS = Object.freeze({
     dateFormat: "locale",
     periodStartDay: 1,
   },
+  notifications: {
+    enabled: true,
+    daysAhead: 5,
+    remindBills: true,
+    remindCards: true,
+    remindBudgets: true,
+    remindGoals: true,
+  },
 });
 
 const oneOf = (list) => (v) => list.includes(v);
@@ -72,6 +80,14 @@ const SCHEMA = {
     timezone: isTimezone,
     dateFormat: oneOf(["locale", "DD/MM/YYYY", "MM/DD/YYYY", "YYYY-MM-DD"]),
     periodStartDay: (v) => Number.isInteger(v) && v >= 1 && v <= 28,
+  },
+  notifications: {
+    enabled: isBool,
+    daysAhead: (v) => Number.isInteger(v) && v >= 1 && v <= 30,
+    remindBills: isBool,
+    remindCards: isBool,
+    remindBudgets: isBool,
+    remindGoals: isBool,
   },
 };
 

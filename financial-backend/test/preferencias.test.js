@@ -5,10 +5,15 @@ const path = require("path");
 const { validatePatch, withDefaults, DEFAULTS } = require("../utils/preferencias");
 
 test("validatePatch aceita patch parcial válido", () => {
-  const r = validatePatch({ appearance: { theme: "auto", accent: "blue", navLayout: "sidebar" }, financial: { periodStartDay: 5 } });
+  const r = validatePatch({
+    appearance: { theme: "auto", accent: "blue", navLayout: "sidebar" },
+    financial: { periodStartDay: 5 },
+    notifications: { enabled: false, daysAhead: 10, remindGoals: false },
+  });
   assert.ok(r.value);
   assert.strictEqual(r.value.appearance.theme, "auto");
   assert.strictEqual(r.value.appearance.navLayout, "sidebar");
+  assert.strictEqual(r.value.notifications.daysAhead, 10);
 });
 
 test("validatePatch rejeita seção/chave/valor inválidos", () => {
@@ -18,6 +23,8 @@ test("validatePatch rejeita seção/chave/valor inválidos", () => {
   assert.ok(validatePatch({ appearance: { navLayout: "top" } }).error);
   assert.ok(validatePatch({ financial: { periodStartDay: 31 } }).error);
   assert.ok(validatePatch({ financial: { timezone: "Marte/Olimpo" } }).error);
+  assert.ok(validatePatch({ notifications: { daysAhead: 90 } }).error);
+  assert.ok(validatePatch({ notifications: { enabled: "sim" } }).error);
   assert.ok(validatePatch({ dashboard: { cardOrder: ["saldo"] } }).error);
   assert.ok(validatePatch({ dashboard: { hiddenCards: ["x"] } }).error);
   assert.ok(validatePatch(null).error);

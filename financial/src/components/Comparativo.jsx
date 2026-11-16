@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useContext, useMemo, memo } from "react";
+import { Link } from "react-router-dom";
 import { AuthContext } from "../App";
+import { usePreferences } from "../context/PreferencesContext";
 import {
   PieChart,
   Pie,
@@ -15,9 +17,28 @@ import {
   AreaChart,
   Area,
 } from "recharts";
-import { Search, FilterX, TrendingUp, TrendingDown, Scale } from "lucide-react";
+import {
+  Search,
+  FilterX,
+  TrendingUp,
+  TrendingDown,
+  Scale,
+  PiggyBank,
+  ShieldCheck,
+  Landmark,
+  Target,
+  Bell,
+  ArrowRight,
+} from "lucide-react";
 
-import { formatCurrency, formatDate } from "../utils/formatters";
+import { formatCurrency, formatDate, todayInTimezone } from "../utils/formatters";
+
+function toLocalISODate(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
 
 // ─── Tooltips personalizados ───────────────────────────────────────────────────
 const CustomTooltip = ({ active, payload }) => {
@@ -240,9 +261,13 @@ const TabelaFiltrada = memo(({ transacoes }) => {
 function Comparativo() {
   const [comparativo, setComparativo] = useState(null);
   const [transacoes, setTransacoes] = useState([]);
+  const [indicadores, setIndicadores] = useState(null);
+  const [lembretesResumo, setLembretesResumo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [periodo, setPeriodo] = useState("mes_atual");
   const { token, API_URL } = useContext(AuthContext);
+  const { prefs } = usePreferences();
+  const timezone = prefs?.financial?.timezone || "America/Sao_Paulo";
 
   useEffect(() => {
     const fetchDados = async () => {
@@ -260,24 +285,43 @@ function Comparativo() {
         dF = new Date(h.getFullYear(), 11, 31);
       }
 
+      const refToday = todayInTimezone(timezone);
       const p = new URLSearchParams();
       if (dI && dF) {
-        p.append("dataInicio", dI.toISOString().split("T")[0]);
-        p.append("dataFim", dF.toISOString().split("T")[0]);
+        p.append("dataInicio", toLocalISODate(dI));
+        p.append("dataFim", toLocalISODate(dF));
       }
+      const pInd = new URLSearchParams(p);
+      pInd.append("refDate", refToday);
 
       try {
-        const [cRes, tRes] = await Promise.all([
+        const [cRes, tRes, iRes, nRes] = await Promise.all([
           fetch(`${API_URL}/transacoes/comparativo?${p}`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
           fetch(`${API_URL}/transacoes?${p}`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
+          fetch(`${API_URL}/dashboard/indicadores?${pInd}`, {
+            headers: { Authorization: `Bearer ${token}` },
+            cache: "no-store",
+          }),
+          fetch(`${API_URL}/notificacoes?refDate=${encodeURIComponent(refToday)}`, {
+            headers: { Authorization: `Bearer ${token}` },
+            cache: "no-store",
+          }),
         ]);
         setComparativo(await cRes.json());
         setTransacoes(await tRes.json());
-      } catch (err) {
+        if (iRes.ok) {
+          const iData = await iRes.json();
+          setIndicadores(iData.indicadores || null);
+        }
+        if (nRes.ok) {
+          const nData = await nRes.json();
+          setLembretesResumo(nData.resumo || null);
+        }
+      } catch {
         // silencioso
       } finally {
         setLoading(false);
@@ -285,7 +329,7 @@ function Comparativo() {
     };
 
     if (token) fetchDados();
-  }, [token, API_URL, periodo]);
+  }, [token, API_URL, periodo, timezone]);
 
   const dataBalanco = useMemo(() => {
     if (!comparativo) return [];
@@ -345,6 +389,160 @@ function Comparativo() {
 
   return (
     <div className="flex flex-col gap-6 sm:gap-8 w-full">
+      {/* ── FAIXA DE INDICADORES CONSOLIDADOS ── */}
+      {!loading && indicadores && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          {/* Taxa de Economia */}
+          <div className="bg-white dark:bg-[#1E222B] rounded-2xl p-5 border border-slate-200/80 dark:border-[#2E3342] shadow-xs flex flex-col justify-between gap-2">
+            <div className="flex items-center justify-between text-xs font-medium text-slate-500 dark:text-slate-400">
+              <span className="flex items-center gap-1.5">
+                <PiggyBank size={15} className="text-emerald-500 dark:text-lime-spark" />
+                Taxa de Economia
+              </span>
+              <span
+                className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                  indicadores.taxa_economia_status === "saudavel"
+                    ? "bg-emerald-50 dark:bg-lime-spark/15 text-emerald-700 dark:text-lime-spark"
+                    : indicadores.taxa_economia_status === "moderado"
+                      ? "bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300"
+                      : indicadores.taxa_economia_status === "critico"
+                        ? "bg-red-50 dark:bg-red-500/15 text-red-600 dark:text-red-400"
+                        : "bg-slate-100 dark:bg-slate-800 text-slate-500"
+                }`}
+              >
+                {indicadores.taxa_economia_status === "saudavel"
+                  ? "Saudável"
+                  : indicadores.taxa_economia_status === "moderado"
+                    ? "Moderada"
+                    : indicadores.taxa_economia_status === "critico"
+                      ? "Déficit"
+                      : "Sem receita"}
+              </span>
+            </div>
+            <p
+              className={`text-2xl font-extrabold tracking-tight ${
+                indicadores.taxa_economia_percentual == null
+                  ? "text-slate-500 dark:text-slate-400"
+                  : indicadores.taxa_economia_percentual >= 0
+                    ? "text-emerald-600 dark:text-lime-spark"
+                    : "text-red-500 dark:text-red-400"
+              }`}
+            >
+              {indicadores.taxa_economia_percentual != null
+                ? `${indicadores.taxa_economia_percentual}%`
+                : "—"}
+            </p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              {indicadores.taxa_economia_percentual != null
+                ? `Saldo poupado: ${formatCurrency(indicadores.economia_periodo)}`
+                : "Cadastre receitas no período para calcular"}
+            </p>
+          </div>
+
+          {/* Comprometimento de Renda */}
+          <div className="bg-white dark:bg-[#1E222B] rounded-2xl p-5 border border-slate-200/80 dark:border-[#2E3342] shadow-xs flex flex-col justify-between gap-2">
+            <div className="flex items-center justify-between text-xs font-medium text-slate-500 dark:text-slate-400">
+              <span className="flex items-center gap-1.5">
+                <ShieldCheck size={15} className="text-sky-500" />
+                Comprometimento Fixo
+              </span>
+              <span
+                className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                  indicadores.comprometimento_status === "saudavel"
+                    ? "bg-emerald-50 dark:bg-lime-spark/15 text-emerald-700 dark:text-lime-spark"
+                    : indicadores.comprometimento_status === "atencao"
+                      ? "bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300"
+                      : indicadores.comprometimento_status === "critico"
+                        ? "bg-red-50 dark:bg-red-500/15 text-red-600 dark:text-red-400"
+                        : "bg-slate-100 dark:bg-slate-800 text-slate-500"
+                }`}
+              >
+                {indicadores.comprometimento_status === "saudavel"
+                  ? "Equilibrado"
+                  : indicadores.comprometimento_status === "atencao"
+                    ? "Atenção"
+                    : indicadores.comprometimento_status === "critico"
+                      ? "Elevado"
+                      : "Sem base"}
+              </span>
+            </div>
+            <p className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+              {indicadores.comprometimento_renda_percentual != null
+                ? `${indicadores.comprometimento_renda_percentual}%`
+                : formatCurrency(indicadores.comprometimento_fixo_dividas)}
+            </p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Fixas: {formatCurrency(indicadores.contas_fixas_mensais)} · Dívidas:{" "}
+              {formatCurrency(indicadores.dividas_parcelas_mensais)}
+            </p>
+          </div>
+
+          {/* Patrimônio Líquido */}
+          <div className="bg-white dark:bg-[#1E222B] rounded-2xl p-5 border border-slate-200/80 dark:border-[#2E3342] shadow-xs flex flex-col justify-between gap-2">
+            <div className="flex items-center justify-between text-xs font-medium text-slate-500 dark:text-slate-400">
+              <span className="flex items-center gap-1.5">
+                <Landmark size={15} className="text-indigo-500" />
+                Patrimônio Líquido
+              </span>
+              <Link
+                to="/patrimonio"
+                className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-lime-spark hover:underline"
+              >
+                Ver <ArrowRight size={11} />
+              </Link>
+            </div>
+            <p
+              className={`text-2xl font-extrabold tracking-tight ${
+                indicadores.patrimonio_liquido >= 0
+                  ? "text-emerald-600 dark:text-lime-spark"
+                  : "text-red-500 dark:text-red-400"
+              }`}
+            >
+              {formatCurrency(indicadores.patrimonio_liquido)}
+            </p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Ativos: {formatCurrency(indicadores.total_ativos)} · Dívidas:{" "}
+              {formatCurrency(indicadores.total_passivos)}
+            </p>
+          </div>
+
+          {/* Objetivos & Lembretes */}
+          <div className="bg-white dark:bg-[#1E222B] rounded-2xl p-5 border border-slate-200/80 dark:border-[#2E3342] shadow-xs flex flex-col justify-between gap-2">
+            <div className="flex items-center justify-between text-xs font-medium text-slate-500 dark:text-slate-400">
+              <span className="flex items-center gap-1.5">
+                <Target size={15} className="text-amber-500" />
+                Objetivos &amp; Lembretes
+              </span>
+              <Link
+                to="/objetivos"
+                className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-lime-spark hover:underline"
+              >
+                Metas <ArrowRight size={11} />
+              </Link>
+            </div>
+            <p className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+              {indicadores.objetivos_percentual_geral}%
+              <span className="text-xs font-normal text-slate-500 dark:text-slate-400 ml-1.5">
+                ({indicadores.objetivos_ativos} ativa(s))
+              </span>
+            </p>
+            {lembretesResumo?.total > 0 ? (
+              <Link
+                to="/configuracoes?aba=notificacoes"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:underline"
+              >
+                <Bell size={12} /> {lembretesResumo.total} lembrete(s) ativo(s)
+              </Link>
+            ) : (
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                {formatCurrency(indicadores.objetivos_total_acumulado)} de{" "}
+                {formatCurrency(indicadores.objetivos_total_alvo)}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* ── LINHA 1: Resumo + Gráfico de Pizza ── */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 sm:gap-8">
         {/* Card: Resumo Geral */}
