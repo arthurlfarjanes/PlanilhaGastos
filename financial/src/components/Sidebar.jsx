@@ -7,6 +7,8 @@ import {
   Target,
   CreditCard,
   Landmark,
+  Wallet,
+  Flag,
   ShieldAlert,
   Settings,
   Lock,
@@ -26,6 +28,8 @@ export const NAV_ITEMS = [
   { to: "/orcamentos", label: "Orçamentos", iconId: "orcamentos", hasAlertDot: true },
   { to: "/cartoes", label: "Cartões", iconId: "cartoes" },
   { to: "/dividas", label: "Dívidas", iconId: "dividas" },
+  { to: "/patrimonio", label: "Patrimônio", iconId: "patrimonio" },
+  { to: "/objetivos", label: "Objetivos", iconId: "objetivos" },
 ];
 
 export function NavIcon({ id, size = 18 }) {
@@ -42,6 +46,10 @@ export function NavIcon({ id, size = 18 }) {
       return <CreditCard size={size} className="shrink-0" />;
     case "dividas":
       return <Landmark size={size} className="shrink-0" />;
+    case "patrimonio":
+      return <Wallet size={size} className="shrink-0" />;
+    case "objetivos":
+      return <Flag size={size} className="shrink-0" />;
     case "admin":
       return <ShieldAlert size={size} className="shrink-0" />;
     default:

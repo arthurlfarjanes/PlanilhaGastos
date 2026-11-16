@@ -8,6 +8,7 @@ router.use(authenticateToken);
 router.get("/", dividasController.listarDividas);
 router.post("/", dividasController.criarDivida);
 router.put("/:id", dividasController.atualizarDivida);
+router.patch("/:id/status", dividasController.alterarStatusDivida);
 router.delete("/:id", dividasController.deletarDivida);
 
 router.get("/:id/amortizacoes", dividasController.listarAmortizacoes);

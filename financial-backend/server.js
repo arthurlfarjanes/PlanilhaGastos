@@ -14,6 +14,8 @@ const preferenciasRoutes = require("./routes/preferenciasRoutes");
 const orcamentosRoutes = require("./routes/orcamentosRoutes");
 const dividasRoutes = require("./routes/dividasRoutes");
 const cartoesRoutes = require("./routes/cartoesRoutes");
+const patrimonioRoutes = require("./routes/patrimonioRoutes");
+const objetivosRoutes = require("./routes/objetivosRoutes");
 
 // Importação Cron
 const { iniciarAgendador } = require("./services/agendador");
@@ -83,6 +85,8 @@ app.use("/preferencias", preferenciasRoutes);
 app.use("/orcamentos", orcamentosRoutes);
 app.use("/dividas", dividasRoutes);
 app.use("/cartoes", cartoesRoutes);
+app.use("/patrimonio", patrimonioRoutes);
+app.use("/objetivos", objetivosRoutes);
 
 // 5. Middleware global de tratamento de erros 
 app.use(errorHandler);

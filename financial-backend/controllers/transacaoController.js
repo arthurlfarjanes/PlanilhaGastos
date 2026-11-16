@@ -1,5 +1,10 @@
 const pool = require("../config/db");
 const { reverterAmortizacaoNoBanco } = require("./dividasController");
+const {
+  reverterMovPatrimonioNoBanco,
+  reverterObjetivosDaMovPatrimonio,
+} = require("./patrimonioController");
+const { reverterContribuicaoNoBanco } = require("./objetivosController");
 const { validarCartaoParaTransacao, faturaPaga, obterCartao } = require("./cartoesController");
 const { todayISO } = require("../utils/contasFixas");
 const { SQL_CASE_PARCELA, SQL_CASE_PARCELA_SUBSEQUENTE } = require("../utils/parcelas");
@@ -441,6 +446,34 @@ exports.deletarTransacao = async (req, res, next) => {
     );
     for (const amort of amortRes.rows) {
       await reverterAmortizacaoNoBanco(client, amort, userId);
+    }
+
+    const movPatExistRes = await client.query(
+      "SELECT id FROM patrimonio_movimentacoes WHERE transacao_id = $1 AND user_id = $2 FOR UPDATE",
+      [transacaoId, userId],
+    );
+    if (movPatExistRes.rowCount > 0) {
+      await reverterObjetivosDaMovPatrimonio(
+        client,
+        movPatExistRes.rows.map((r) => r.id),
+        userId,
+      );
+    }
+
+    const movPatRes = await client.query(
+      "DELETE FROM patrimonio_movimentacoes WHERE transacao_id = $1 AND user_id = $2 RETURNING *",
+      [transacaoId, userId],
+    );
+    for (const mov of movPatRes.rows) {
+      await reverterMovPatrimonioNoBanco(client, mov, userId);
+    }
+
+    const contribObjRes = await client.query(
+      "DELETE FROM objetivos_contribuicoes WHERE transacao_id = $1 AND user_id = $2 RETURNING *",
+      [transacaoId, userId],
+    );
+    for (const contrib of contribObjRes.rows) {
+      await reverterContribuicaoNoBanco(client, contrib, userId);
     }
 
     const result = await client.query(

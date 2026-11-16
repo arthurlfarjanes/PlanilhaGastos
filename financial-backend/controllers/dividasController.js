@@ -281,6 +281,41 @@ exports.atualizarDivida = async (req, res, next) => {
   }
 };
 
+exports.alterarStatusDivida = async (req, res, next) => {
+  const userId = req.user.userId;
+  const dividaId = parseInt(req.params.id, 10);
+  if (isNaN(dividaId)) return res.status(400).json({ error: "ID de dívida inválido." });
+
+  const { status } = req.body;
+  if (!STATUS_VALIDOS.includes(status)) {
+    return res.status(400).json({ error: "Status inválido. Use ativa, quitada ou pausada." });
+  }
+
+  try {
+    const upd = await pool.query(
+      `UPDATE dividas
+       SET status = $1, updated_at = NOW()
+       WHERE id = $2 AND user_id = $3
+       RETURNING id`,
+      [status, dividaId, userId],
+    );
+    if (upd.rowCount === 0) {
+      return res.status(404).json({ error: "Dívida não encontrada." });
+    }
+
+    const full = await pool.query(
+      `SELECT d.*, c.nome AS categoria_nome, c.cor AS categoria_cor
+       FROM dividas d
+       LEFT JOIN categorias c ON d.categoria_id = c.id
+       WHERE d.id = $1 AND d.user_id = $2`,
+      [dividaId, userId],
+    );
+    res.json(enrichDivida(full.rows[0]));
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.deletarDivida = async (req, res, next) => {
   const userId = req.user.userId;
   const dividaId = parseInt(req.params.id, 10);

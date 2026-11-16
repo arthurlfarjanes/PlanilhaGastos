@@ -46,6 +46,8 @@ import Configuracoes from "./components/Configuracoes";
 import Orcamentos from "./components/Orcamentos";
 import Dividas from "./components/Dividas";
 import Cartoes from "./components/Cartoes";
+import Patrimonio from "./components/Patrimonio";
+import Objetivos from "./components/Objetivos";
 import Sidebar, { NAV_ITEMS, NavIcon } from "./components/Sidebar";
 import { PreferencesProvider, usePreferences } from "./context/PreferencesContext";
 import { todayInTimezone } from "./utils/formatters";
@@ -268,6 +270,22 @@ function AppShell() {
               element={
                 <PrivateRoute>
                   <Dividas />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/patrimonio"
+              element={
+                <PrivateRoute>
+                  <Patrimonio />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/objetivos"
+              element={
+                <PrivateRoute>
+                  <Objetivos />
                 </PrivateRoute>
               }
             />

@@ -19,6 +19,7 @@ import {
   Calendar,
   Tag,
   Sparkles,
+  ChevronDown,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import ConfirmDialog from "./ui/ConfirmDialog";
@@ -102,6 +103,7 @@ export default function Dividas() {
   // Excluir dívida
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [updatingStatusId, setUpdatingStatusId] = useState(null);
 
   // Painel de amortização
   const [amortTarget, setAmortTarget] = useState(null);
@@ -452,6 +454,29 @@ export default function Dividas() {
       toast.error(err.message || "Falha ao estornar pagamento.");
     } finally {
       setEstornando(false);
+    }
+  };
+
+  const handleAlterarStatus = async (item, novoStatus) => {
+    if (!novoStatus || novoStatus === item.status) return;
+    setUpdatingStatusId(item.id);
+    try {
+      const res = await fetch(`${API_URL}/dividas/${item.id}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status: novoStatus }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Erro ao atualizar status.");
+      toast.success(`Status alterado para ${STATUS_CFG[novoStatus]?.label || novoStatus}.`);
+      await carregarDividas();
+    } catch (err) {
+      toast.error(err.message || "Falha ao alterar status.");
+    } finally {
+      setUpdatingStatusId(null);
     }
   };
 
@@ -936,13 +961,33 @@ export default function Dividas() {
                       <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
                         {item.nome}
                       </h3>
-                      <span
-                        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium border ${cfg.badge}`}
+                      <div
+                        className={`relative inline-flex items-center rounded-full border ${cfg.badge}`}
+                        title="Alterar status rapidamente"
                       >
-                        {item.status === "quitada" && <CheckCircle2 className="w-3 h-3" />}
-                        {item.status === "pausada" && <PauseCircle className="w-3 h-3" />}
-                        {cfg.label}
-                      </span>
+                        <span className="pl-2.5 flex items-center pointer-events-none">
+                          {item.status === "quitada" && <CheckCircle2 className="w-3 h-3 mr-1" />}
+                          {item.status === "pausada" && <PauseCircle className="w-3 h-3 mr-1" />}
+                        </span>
+                        <select
+                          aria-label={`Status de ${item.nome}`}
+                          value={item.status}
+                          disabled={updatingStatusId === item.id}
+                          onChange={(e) => handleAlterarStatus(item, e.target.value)}
+                          className="appearance-none bg-transparent pr-6 py-0.5 text-xs font-medium focus:outline-none cursor-pointer disabled:opacity-60"
+                        >
+                          <option value="ativa" className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">
+                            Ativa
+                          </option>
+                          <option value="pausada" className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">
+                            Pausada
+                          </option>
+                          <option value="quitada" className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">
+                            Quitada
+                          </option>
+                        </select>
+                        <ChevronDown className="w-3 h-3 absolute right-2 pointer-events-none opacity-75" />
+                      </div>
                       <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
                         {TIPOS_DIVIDA[item.tipo] || item.tipo}
                       </span>
