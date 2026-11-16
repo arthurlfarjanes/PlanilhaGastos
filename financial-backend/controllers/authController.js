@@ -1,8 +1,10 @@
+const crypto = require("crypto");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { OAuth2Client } = require("google-auth-library");
 const pool = require("../config/db");
 const { logSystemEvent } = require("../utils/logger");
+const { isValidUsername, isValidPassword } = require("../utils/validation");
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
@@ -15,6 +17,33 @@ const googleClient = GOOGLE_CLIENT_ID ? new OAuth2Client(GOOGLE_CLIENT_ID) : nul
 // Hash fictício pré-calculado com custo 12 para mitigar timing attacks no login
 const DUMMY_HASH = "$2a$12$e8Y5t1P5cKzE9nKxN4nNhe0d2gA.N9Fp8rE9a4qP5e5d1gA2b3c4e";
 
+function signUserToken(user) {
+  if (!JWT_SECRET) {
+    const err = new Error("Serviço de autenticação indisponível.");
+    err.status = 503;
+    throw err;
+  }
+  return jwt.sign(
+    {
+      userId: user.id,
+      username: user.username,
+      role: user.role,
+      tokenVersion: user.token_version ?? 1,
+    },
+    JWT_SECRET,
+    { expiresIn: "2h" },
+  );
+}
+
+exports.me = async (req, res) => {
+  res.set("Cache-Control", "no-store");
+  res.json({
+    userId: req.user.userId,
+    username: req.user.username,
+    role: req.user.role,
+  });
+};
+
 exports.register = async (req, res, next) => {
   const { username, password } = req.body;
 
@@ -23,13 +52,10 @@ exports.register = async (req, res, next) => {
   }
 
   const trimmedUsername = username.trim();
-  if (trimmedUsername.length < 3 || trimmedUsername.length > 30) {
-    return res.status(400).json({ error: "O nome de usuário deve ter entre 3 e 30 caracteres." });
-  }
-
-  // Permitir apenas caracteres seguros (evita caracteres de controle, quebras de linha ou injeções)
-  if (!/^[a-zA-Z0-9_-]+$/.test(trimmedUsername)) {
-    return res.status(400).json({ error: "O nome de usuário deve conter apenas letras, números, '_' ou '-'." });
+  if (!isValidUsername(trimmedUsername)) {
+    return res.status(400).json({
+      error: "O nome de usuário deve ter entre 3 e 30 caracteres (apenas letras, números, '_' ou '-').",
+    });
   }
 
   if (!password || typeof password !== "string") {
@@ -37,7 +63,7 @@ exports.register = async (req, res, next) => {
   }
 
   // Proteção contra DoS no Bcrypt e imposição de complexidade mínima
-  if (password.length < 8 || password.length > 72) {
+  if (!isValidPassword(password)) {
     return res.status(400).json({ error: "A senha deve ter entre 8 e 72 caracteres." });
   }
 
@@ -69,7 +95,7 @@ exports.login = async (req, res, next) => {
 
   try {
     const result = await pool.query(
-      "SELECT id, username, password_hash, role, is_active FROM usuarios WHERE username = $1",
+      "SELECT id, username, password_hash, role, is_active, token_version FROM usuarios WHERE username = $1",
       [trimmedUsername],
     );
     const user = result.rows[0];
@@ -106,11 +132,7 @@ exports.login = async (req, res, next) => {
       return res.status(403).json({ error: "Esta conta está desativada. Entre em contato com o suporte." });
     }
 
-    const token = jwt.sign(
-      { userId: user.id, username: user.username, role: user.role },
-      JWT_SECRET,
-      { expiresIn: "2h" },
-    );
+    const token = signUserToken(user);
 
     res.json({
       message: "Login bem-sucedido!",
@@ -125,7 +147,7 @@ exports.login = async (req, res, next) => {
 
 exports.googleAuth = async (req, res, next) => {
   const { token } = req.body;
-  if (!token) {
+  if (!token || typeof token !== "string") {
     return res.status(400).json({ error: "Token de autenticação é obrigatório." });
   }
 
@@ -152,21 +174,21 @@ exports.googleAuth = async (req, res, next) => {
     const baseUsername = email.split("@")[0].replace(/[^a-zA-Z0-9_-]/g, "").substring(0, 20) || "usuario";
 
     let userResult = await pool.query(
-      "SELECT id, username, email, role, is_active FROM usuarios WHERE email = $1",
+      "SELECT id, username, email, role, is_active, token_version FROM usuarios WHERE email = $1",
       [email],
     );
     let user = userResult.rows[0];
 
     if (!user) {
-      // Se já existir alguém com esse username base, adiciona sufixo aleatório para evitar colisão
+      // Se já existir alguém com esse username base, adiciona sufixo CSPRNG para evitar colisão
       let finalUsername = baseUsername;
       const existingUser = await pool.query("SELECT id FROM usuarios WHERE username = $1", [finalUsername]);
       if (existingUser.rows.length > 0) {
-        finalUsername = `${baseUsername}_${Math.floor(1000 + Math.random() * 9000)}`;
+        finalUsername = `${baseUsername}_${crypto.randomInt(1000, 10000)}`;
       }
 
       const insertResult = await pool.query(
-        "INSERT INTO usuarios (username, email) VALUES ($1, $2) RETURNING id, username, email",
+        "INSERT INTO usuarios (username, email) VALUES ($1, $2) RETURNING id, username, email, role, is_active, token_version",
         [finalUsername, email],
       );
       user = insertResult.rows[0];
@@ -182,11 +204,7 @@ exports.googleAuth = async (req, res, next) => {
       return res.status(403).json({ error: "Esta conta está desativada. Entre em contato com o suporte." });
     }
 
-    const appToken = jwt.sign(
-      { userId: user.id, username: user.username, role: user.role },
-      JWT_SECRET,
-      { expiresIn: "2h" },
-    );
+    const appToken = signUserToken(user);
 
     res.json({
       message: "Login com Google bem-sucedido!",
@@ -196,42 +214,47 @@ exports.googleAuth = async (req, res, next) => {
       role: user.role,
     });
   } catch (err) {
-    err.status = 401; // Adiciona status code 401 ao erro
-    err.message = err.message || "Falha ao autenticar com o Google.";
-    next(err);
+    console.error("Falha na verificação do token Google:", err.message);
+    return res.status(401).json({ error: "Falha ao autenticar com o Google." });
   }
 };
 
-// Trocar senha (usuário logado)
+// Trocar senha (usuário logado) — incrementa token_version para revogar sessões antigas
 exports.changePassword = async (req, res, next) => {
   const { currentPassword, newPassword } = req.body;
-  const userId = req.user.userId; // Preenchido pelo middleware authenticateToken
+  const userId = req.user.userId;
 
-  if (!newPassword) {
-    return res.status(400).json({ error: "A nova senha é obrigatória." });
-  }
-
-  if (newPassword.length < 8 || newPassword.length > 72) {
+  if (!isValidPassword(newPassword)) {
     return res.status(400).json({ error: "A nova senha deve ter entre 8 e 72 caracteres." });
   }
 
   try {
-    const result = await pool.query("SELECT password_hash FROM usuarios WHERE id = $1", [userId]);
+    const result = await pool.query(
+      "SELECT id, username, role, password_hash FROM usuarios WHERE id = $1",
+      [userId],
+    );
     if (result.rows.length === 0) return res.status(404).json({ error: "Usuário não encontrado." });
-    const currentHash = result.rows[0].password_hash;
+    const currentUser = result.rows[0];
 
     // Só exige e verifica a senha atual se o usuário já tiver uma configurada
-    if (currentHash) {
-      if (!currentPassword) {
+    if (currentUser.password_hash) {
+      if (!currentPassword || typeof currentPassword !== "string") {
         return res.status(400).json({ error: "A senha atual é obrigatória." });
       }
-      const isMatch = await bcrypt.compare(currentPassword, currentHash);
+      const isMatch = await bcrypt.compare(currentPassword, currentUser.password_hash);
       if (!isMatch) return res.status(403).json({ error: "Senha atual incorreta." });
     }
     const hashedNewPassword = await bcrypt.hash(newPassword, 12);
-    await pool.query("UPDATE usuarios SET password_hash = $1 WHERE id = $2", [hashedNewPassword, userId]);
+    const upd = await pool.query(
+      `UPDATE usuarios
+       SET password_hash = $1, token_version = token_version + 1
+       WHERE id = $2
+       RETURNING id, username, role, token_version`,
+      [hashedNewPassword, userId],
+    );
 
-    res.json({ message: "Senha alterada com sucesso." });
+    const newToken = signUserToken(upd.rows[0]);
+    res.json({ message: "Senha alterada com sucesso.", token: newToken });
   } catch (err) {
     next(err);
   }

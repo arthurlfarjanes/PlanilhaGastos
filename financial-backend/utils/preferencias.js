@@ -36,6 +36,13 @@ const DEFAULTS = Object.freeze({
     remindBudgets: true,
     remindGoals: true,
   },
+  ai: {
+    enabled: true,
+    preferredProvider: "auto",
+    responseStyle: "equilibrado",
+    saveHistory: true,
+    shareTransactionDetails: false,
+  },
 });
 
 const oneOf = (list) => (v) => list.includes(v);
@@ -88,6 +95,13 @@ const SCHEMA = {
     remindCards: isBool,
     remindBudgets: isBool,
     remindGoals: isBool,
+  },
+  ai: {
+    enabled: isBool,
+    preferredProvider: oneOf(["auto", "cloudflare", "groq"]),
+    responseStyle: oneOf(["direto", "equilibrado", "detalhado"]),
+    saveHistory: isBool,
+    shareTransactionDetails: isBool,
   },
 };
 

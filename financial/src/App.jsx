@@ -48,6 +48,7 @@ import Dividas from "./components/Dividas";
 import Cartoes from "./components/Cartoes";
 import Patrimonio from "./components/Patrimonio";
 import Objetivos from "./components/Objetivos";
+import AssistenteIA from "./components/AssistenteIA";
 import Sidebar, { NAV_ITEMS, NavGroupsMenu, isNavItemActive } from "./components/Sidebar";
 import { PreferencesProvider, usePreferences } from "./context/PreferencesContext";
 import { todayInTimezone } from "./utils/formatters";
@@ -84,6 +85,12 @@ function App() {
     }
   };
 
+  const updateToken = (newToken) => {
+    if (!newToken) return;
+    setToken(newToken);
+    localStorage.setItem("token", newToken);
+  };
+
   const logout = () => {
     setToken(null);
     setUsername(null);
@@ -95,6 +102,38 @@ function App() {
     localStorage.removeItem("role");
   };
 
+  // Revalida sessão no backend e sincroniza role/username autoritativos do Postgres
+  useEffect(() => {
+    if (!token || !API_URL) return;
+    let cancelled = false;
+    fetch(`${API_URL}/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    })
+      .then(async (res) => {
+        if (cancelled) return;
+        if (res.status === 401 || res.status === 403) {
+          logout();
+          return;
+        }
+        if (!res.ok) return;
+        const data = await res.json().catch(() => null);
+        if (cancelled || !data) return;
+        if (data.username) {
+          setUsername(data.username);
+          localStorage.setItem("username", data.username);
+        }
+        if (data.role) {
+          setRole(data.role);
+          localStorage.setItem("role", data.role);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
+
   return (
     <GoogleOAuthProvider
       clientId={
@@ -102,7 +141,7 @@ function App() {
       }
     >
       <AuthContext.Provider
-        value={{ token, username, profilePic, role, login, logout, API_URL }}
+        value={{ token, username, profilePic, role, login, logout, updateToken, API_URL }}
       >
         <PreferencesProvider token={token} apiUrl={API_URL}>
           <ThemeBridge>
@@ -235,10 +274,9 @@ function AppShell() {
           className={
             isLanding
               ? "grow w-full"
-              : `grow w-full max-w-7xl mx-auto ${isAuthPage
-                ? "flex items-center justify-center p-4 sm:p-6 min-h-screen"
-                : "p-4 sm:p-6 md:p-8"
-              }`
+              : isAuthPage
+                ? "grow w-full max-w-7xl mx-auto flex items-center justify-center p-4 sm:p-6 min-h-screen"
+                : "grow w-full px-3 py-4 sm:px-5 sm:py-5 lg:px-6"
           }
         >
           <Routes>
@@ -306,6 +344,14 @@ function AppShell() {
               element={
                 <PrivateRoute>
                   <Objetivos />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/assistente"
+              element={
+                <PrivateRoute>
+                  <AssistenteIA />
                 </PrivateRoute>
               }
             />
@@ -409,7 +455,7 @@ function Header({
   };
 
   return (
-    <header className="sticky top-0 z-40 flex items-center justify-between px-4 sm:px-8 md:px-10 h-20 bg-white/90 dark:bg-graphite-800/90 backdrop-blur-md border-b border-slate-200/80 dark:border-graphite-600 shadow-xs transition-colors duration-200">
+    <header className="sticky top-0 z-40 flex items-center justify-between px-3 sm:px-5 lg:px-6 h-20 bg-white/90 dark:bg-graphite-800/90 backdrop-blur-md border-b border-slate-200/80 dark:border-graphite-600 shadow-xs transition-colors duration-200">
       {/* Logo + Menu Suspenso Desktop */}
       <div className="flex items-center gap-4">
         <div className="logo">

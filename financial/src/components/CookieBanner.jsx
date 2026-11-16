@@ -15,7 +15,7 @@ export default function CookieBanner() {
     document.head.appendChild(script1);
 
     const script2 = document.createElement("script");
-    script2.innerHTML = `
+    script2.textContent = `
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());

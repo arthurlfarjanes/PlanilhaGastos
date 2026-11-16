@@ -8,6 +8,7 @@ const { reverterContribuicaoNoBanco } = require("./objetivosController");
 const { validarCartaoParaTransacao, faturaPaga, obterCartao } = require("./cartoesController");
 const { todayISO } = require("../utils/contasFixas");
 const { SQL_CASE_PARCELA, SQL_CASE_PARCELA_SUBSEQUENTE } = require("../utils/parcelas");
+const { parseStrictPositiveInt } = require("../utils/validation");
 
 const MSG_FATURA_PAGA =
   "Esta transação pertence a uma fatura de cartão já paga. Estorne o pagamento da fatura antes de alterá-la.";
@@ -56,7 +57,7 @@ exports.listarTransacoes = async (req, res, next) => {
     SELECT t.id, t.descricao, t.valor, t.tipo, t.data::text, t.categoria_id, c.nome as categoria_nome, c.cor as categoria_cor,
            t.cartao_id, ca.nome as cartao_nome, t.cartao_excluido_nome
     FROM transacoes t
-    LEFT JOIN categorias c ON t.categoria_id = c.id
+    LEFT JOIN categorias c ON t.categoria_id = c.id AND c.user_id = t.user_id
     LEFT JOIN cartoes ca ON t.cartao_id = ca.id AND ca.user_id = t.user_id
     WHERE t.user_id = $1
   `;
@@ -279,8 +280,8 @@ exports.editarTransacao = async (req, res, next) => {
   const { descricao, valor, tipo, data, categoria_id } = req.body;
   const userId = req.user.userId;
 
-  const transacaoId = parseInt(id);
-  if (isNaN(transacaoId)) {
+  const transacaoId = parseStrictPositiveInt(id);
+  if (!transacaoId) {
     return res.status(400).json({ error: "ID de transação inválido." });
   }
 
@@ -402,7 +403,7 @@ exports.editarTransacao = async (req, res, next) => {
       `SELECT t.id, t.descricao, t.valor, t.tipo, t.data::text, t.categoria_id, c.nome as categoria_nome, c.cor as categoria_cor,
               t.cartao_id, ca.nome as cartao_nome, t.cartao_excluido_nome
        FROM transacoes t
-       LEFT JOIN categorias c ON t.categoria_id = c.id
+       LEFT JOIN categorias c ON t.categoria_id = c.id AND c.user_id = t.user_id
        LEFT JOIN cartoes ca ON t.cartao_id = ca.id AND ca.user_id = t.user_id
        WHERE t.id = $1 AND t.user_id = $2`,
       [transacaoId, userId],
@@ -418,8 +419,8 @@ exports.deletarTransacao = async (req, res, next) => {
   const { id } = req.params;
   const userId = req.user.userId;
 
-  const transacaoId = parseInt(id);
-  if (isNaN(transacaoId)) {
+  const transacaoId = parseStrictPositiveInt(id);
+  if (!transacaoId) {
     return res.status(400).json({ error: "ID de transação inválido." });
   }
 

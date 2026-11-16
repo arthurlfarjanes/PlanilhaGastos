@@ -1,14 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/Dialog";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Lock, Save } from "lucide-react";
 import toast from "react-hot-toast";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+import { AuthContext } from "../App";
 
 export function ModalTrocarSenha({ isOpen, onClose }) {
+  const { token, API_URL, updateToken } = useContext(AuthContext);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -20,12 +20,11 @@ export function ModalTrocarSenha({ isOpen, onClose }) {
       return toast.error("As novas senhas não coincidem.");
     }
 
-    if (newPassword.length < 8) {
-      return toast.error("A nova senha deve ter no mínimo 8 caracteres.");
+    if (newPassword.length < 8 || newPassword.length > 72) {
+      return toast.error("A nova senha deve ter entre 8 e 72 caracteres.");
     }
 
     setLoading(true);
-    const token = localStorage.getItem("token");
 
     try {
       const response = await fetch(`${API_URL}/change-password`, {
@@ -39,6 +38,10 @@ export function ModalTrocarSenha({ isOpen, onClose }) {
 
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Erro ao trocar a senha");
+
+      if (data.token && typeof updateToken === "function") {
+        updateToken(data.token);
+      }
 
       toast.success("Senha alterada com sucesso!");
       handleClose();
@@ -72,6 +75,7 @@ export function ModalTrocarSenha({ isOpen, onClose }) {
             <Input
               id="currentPassword"
               type="password"
+              maxLength={72}
               value={currentPassword}
               onChange={e => setCurrentPassword(e.target.value)}
               className="bg-slate-50 dark:bg-graphite-900 border-slate-200 dark:border-graphite-700"
@@ -83,6 +87,8 @@ export function ModalTrocarSenha({ isOpen, onClose }) {
               id="newPassword"
               type="password"
               required
+              minLength={8}
+              maxLength={72}
               value={newPassword}
               onChange={e => setNewPassword(e.target.value)}
               className="bg-slate-50 dark:bg-graphite-900 border-slate-200 dark:border-graphite-700"
@@ -94,6 +100,8 @@ export function ModalTrocarSenha({ isOpen, onClose }) {
               id="confirmPassword"
               type="password"
               required
+              minLength={8}
+              maxLength={72}
               value={confirmPassword}
               onChange={e => setConfirmPassword(e.target.value)}
               className="bg-slate-50 dark:bg-graphite-900 border-slate-200 dark:border-graphite-700"

@@ -132,20 +132,26 @@ function AdminPanel() {
     }
   };
 
-  const handleResetPassword = async () => {
-    const { userId } = confirmDialog;
+  const handleResetPassword = async (password = null) => {
+    const { userId, username: targetUsername, requirePassword } = confirmDialog;
+    if (requirePassword && !password) return;
+
     setConfirmDialog({ isOpen: false });
 
     try {
       const response = await fetch(`${API_URL}/admin/users/${userId}/reset-password`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ adminPassword: password }),
       });
 
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Erro ao resetar senha");
 
-      setResetResult({ isOpen: true, password: data.tempPassword, username: confirmDialog.username });
+      setResetResult({ isOpen: true, password: data.tempPassword, username: targetUsername });
     } catch (err) {
       toast.error(err.message);
     }
@@ -719,6 +725,7 @@ function AdminPanel() {
         onConfirm={handleResetPassword}
         onClose={() => setConfirmDialog({ isOpen: false })}
         variant="destructive"
+        askPassword={confirmDialog.requirePassword}
       />
 
       {/* Modal de Editar Usuário */}

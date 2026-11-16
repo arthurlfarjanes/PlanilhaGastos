@@ -25,18 +25,14 @@ const errorHandler = async (err, req, res, next) => {
     await logSystemEvent(errorData);
   }
 
-  // Se o ambiente for de produção, escondemos a stack do erro real por segurança
-  const isProduction = process.env.NODE_ENV === "production";
-  
-  // Resposta padrão
+  // Nunca expor stack traces ou detalhes internos nas respostas HTTP
   const responseMsg = statusCode >= 500
     ? "Ocorreu um erro interno no servidor. Nossa equipe técnica já foi notificada."
-    : err.message; // Para erros 400, 401, 403, podemos exibir a mensagem original
+    : err.message; // Para erros 400, 401, 403, exibe apenas mensagem controlada
 
   res.status(statusCode).json({
     status: "error",
     error: isCORS ? "Origem não permitida pela política de CORS." : responseMsg,
-    ...( !isProduction && statusCode >= 500 && { details: err.message, stack: err.stack } )
   });
 };
 

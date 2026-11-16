@@ -8,7 +8,7 @@ export default function Footer() {
   return (
     <>
       <footer className="w-full py-6 mt-auto border-t border-slate-200/80 dark:border-graphite-700 bg-white/50 dark:bg-graphite-900/50 backdrop-blur-sm text-center">
-        <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400 dark:text-graphite-400">
+        <div className="w-full px-3 sm:px-5 lg:px-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400 dark:text-graphite-400">
           <p>© {currentYear} MeFinance. Todos os direitos reservados.</p>
 
           <div className="flex items-center gap-4">

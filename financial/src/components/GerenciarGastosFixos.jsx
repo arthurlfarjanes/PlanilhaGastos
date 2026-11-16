@@ -337,7 +337,7 @@ export default function GerenciarGastosFixos() {
   const balancoMensal = resumo?.balanco_previsto ?? 0;
 
   return (
-    <div className="flex flex-col gap-6 sm:gap-8 w-full max-w-6xl mx-auto">
+    <div className="flex flex-col gap-6 sm:gap-8 w-full">
       {/* Cabeçalho + Seletor de Competência */}
       <div className="bg-white dark:bg-graphite-800 p-5 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-graphite-600 shadow-xs flex flex-col gap-5">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

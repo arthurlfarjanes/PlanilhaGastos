@@ -13,6 +13,8 @@ import {
   AlertTriangle,
   CheckCircle2,
   ArrowRight,
+  Sparkles,
+  Trash2,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { AuthContext } from "../App";
@@ -25,6 +27,7 @@ const TABS_BASE = [
   { id: "aparencia", label: "Aparência", icon: Palette },
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { id: "financeiro", label: "Preferências financeiras", icon: Wallet },
+  { id: "ia", label: "Inteligência Artificial", icon: Sparkles },
 ];
 
 const ACCENTS = [
@@ -116,6 +119,8 @@ export default function Configuracoes() {
   const [lembretes, setLembretes] = useState([]);
   const [lembretesResumo, setLembretesResumo] = useState({ total: 0, alta: 0, media: 0, baixa: 0 });
   const [loadingNotif, setLoadingNotif] = useState(false);
+  const [iaStatus, setIaStatus] = useState(null);
+  const [loadingIa, setLoadingIa] = useState(false);
 
   const a = prefs.appearance;
   const d = prefs.dashboard;
@@ -127,6 +132,12 @@ export default function Configuracoes() {
     remindCards: true,
     remindBudgets: true,
     remindGoals: true,
+  };
+  const aiPrefs = prefs.ai || {
+    enabled: true,
+    responseStyle: "equilibrado",
+    saveHistory: true,
+    shareTransactionDetails: false,
   };
   const timezone = f?.timezone || "America/Sao_Paulo";
 
@@ -150,9 +161,29 @@ export default function Configuracoes() {
     }
   }, [token, API_URL, timezone]);
 
+  const carregarStatusIA = useCallback(async () => {
+    if (!token) return;
+    setLoadingIa(true);
+    try {
+      const res = await fetch(`${API_URL}/ia/status`, {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      });
+      if (res.ok) setIaStatus(await res.json());
+    } catch {
+      // silencioso
+    } finally {
+      setLoadingIa(false);
+    }
+  }, [token, API_URL]);
+
   useEffect(() => {
     carregarLembretes();
   }, [carregarLembretes, prefs.notifications]);
+
+  useEffect(() => {
+    carregarStatusIA();
+  }, [carregarStatusIA, prefs.ai]);
 
   const mostrarAbaNotificacoes =
     lembretesResumo.total > 0 ||
@@ -182,6 +213,23 @@ export default function Configuracoes() {
   const setN = async (patch) => {
     await updatePreferences({ notifications: patch });
     window.dispatchEvent(new Event("mefinance:notificacoes-updated"));
+  };
+  const setAI = async (patch) => {
+    await updatePreferences({ ai: patch });
+    carregarStatusIA();
+  };
+  const limparHistoricoIA = async () => {
+    if (!token) return;
+    try {
+      const res = await fetch(`${API_URL}/ia/historico`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error();
+      toast.success("Histórico de conversas com a IA limpo.");
+    } catch {
+      toast.error("Não foi possível limpar o histórico.");
+    }
   };
 
   const moveCard = (id, delta) => {
@@ -474,6 +522,155 @@ export default function Configuracoes() {
                 <Row label="Prazos e ritmo de objetivos" htmlFor="notif-goals">
                   <Switch id="notif-goals" checked={n.remindGoals !== false} onChange={(v) => setN({ remindGoals: v })} />
                 </Row>
+              </Section>
+            </>
+          )}
+
+          {tab === "ia" && (
+            <>
+              <Section
+                title="Assistente Financeiro (100% Gratuito)"
+                description="Configurações de privacidade, estilo e histórico. Os cálculos financeiros continuam sendo feitos pelo motor determinístico do sistema."
+              >
+                <Row
+                  label="Ativar Assistente Financeiro"
+                  hint="Permite enviar perguntas ao provedor gratuito usando consultas somente leitura."
+                  htmlFor="ai-enabled"
+                >
+                  <Switch
+                    id="ai-enabled"
+                    checked={aiPrefs.enabled !== false}
+                    onChange={(v) => setAI({ enabled: v })}
+                  />
+                </Row>
+                <Row
+                  label="Provedor gratuito"
+                  hint="Escolha o provedor padrão ou alterne entre Cloudflare Workers AI e Groq Free Tier."
+                  htmlFor="ai-provider"
+                >
+                  <select
+                    id="ai-provider"
+                    className={field}
+                    value={aiPrefs.preferredProvider || "auto"}
+                    onChange={(e) => setAI({ preferredProvider: e.target.value })}
+                  >
+                    <option value="auto">Padrão do servidor (Auto)</option>
+                    {(iaStatus?.availableProviders || [
+                      { id: "cloudflare", name: "Cloudflare Workers AI", configured: true },
+                      { id: "groq", name: "Groq Free Tier", configured: true },
+                    ]).map((p) => (
+                      <option key={p.id} value={p.id} disabled={!p.configured}>
+                        {p.name}
+                        {!p.configured ? " (não configurado)" : p.quotaExhaustedToday ? " (cota esgotada hoje)" : ""}
+                      </option>
+                    ))}
+                  </select>
+                </Row>
+                <Row label="Estilo de resposta" htmlFor="ai-style">
+                  <Segmented
+                    label="Estilo de resposta"
+                    value={aiPrefs.responseStyle || "equilibrado"}
+                    onChange={(v) => setAI({ responseStyle: v })}
+                    options={[
+                      { value: "direto", label: "Direto" },
+                      { value: "equilibrado", label: "Equilibrado" },
+                      { value: "detalhado", label: "Detalhado" },
+                    ]}
+                  />
+                </Row>
+                <Row
+                  label="Salvar histórico de conversas"
+                  hint="Desative para manter as perguntas apenas durante a sessão atual."
+                  htmlFor="ai-history"
+                >
+                  <Switch
+                    id="ai-history"
+                    checked={aiPrefs.saveHistory !== false}
+                    onChange={(v) => setAI({ saveHistory: v })}
+                  />
+                </Row>
+                <Row
+                  label="Compartilhar descrições das transações"
+                  hint="Quando desligado (padrão), enviamos apenas totais, categorias e indicadores agregados."
+                  htmlFor="ai-details"
+                >
+                  <Switch
+                    id="ai-details"
+                    checked={Boolean(aiPrefs.shareTransactionDetails)}
+                    onChange={(v) => setAI({ shareTransactionDetails: v })}
+                  />
+                </Row>
+                <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-slate-100 dark:border-graphite-600">
+                  <Link
+                    to="/assistente"
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--accent-strong)] text-white dark:text-graphite-950 text-sm font-semibold"
+                  >
+                    <Sparkles size={15} /> Abrir Assistente Financeiro
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={limparHistoricoIA}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-red-200 dark:border-red-500/30 text-red-600 dark:text-red-400 text-sm font-semibold cursor-pointer hover:bg-red-50 dark:hover:bg-red-500/10"
+                  >
+                    <Trash2 size={15} /> Limpar histórico da IA
+                  </button>
+                </div>
+              </Section>
+
+              <Section
+                title="Consumo e limites gratuitos"
+                description="Separação transparente entre o limite individual da aplicação e a franquia gratuita global do provedor."
+              >
+                {loadingIa && !iaStatus ? (
+                  <p className="text-sm text-slate-500 dark:text-graphite-300">Carregando uso de IA...</p>
+                ) : iaStatus?.usage ? (
+                  <div className="space-y-4 text-sm">
+                    <div className="p-4 rounded-xl border border-slate-200 dark:border-graphite-600 bg-slate-50/70 dark:bg-graphite-900/50 space-y-1">
+                      <p className="text-xs font-semibold text-slate-500 dark:text-graphite-300">
+                        {iaStatus.usage.applicationIndividualLimit.scopeLabel}
+                      </p>
+                      <p className="font-bold text-slate-900 dark:text-white">
+                        {iaStatus.usage.applicationIndividualLimit.requestsUsedToday} de{" "}
+                        {iaStatus.usage.applicationIndividualLimit.dailyRequestsLimit} consultas usadas hoje (UTC:{" "}
+                        {iaStatus.usage.utcDate})
+                      </p>
+                      <p className="text-xs text-slate-500 dark:text-graphite-400">
+                        Tokens registrados nas suas consultas de hoje:{" "}
+                        {iaStatus.usage.applicationIndividualLimit.tokensRecordedToday.toLocaleString("pt-BR")}
+                      </p>
+                    </div>
+
+                    <div className="p-4 rounded-xl border border-slate-200 dark:border-graphite-600 bg-slate-50/70 dark:bg-graphite-900/50 space-y-1">
+                      <p className="text-xs font-semibold text-slate-500 dark:text-graphite-300">
+                        {iaStatus.usage.providerFreeTier.scopeLabel}
+                      </p>
+                      <p className="font-bold text-slate-900 dark:text-white">
+                        {iaStatus.usage.providerFreeTier.providerName}
+                        {iaStatus.usage.providerFreeTier.model
+                          ? ` (${iaStatus.usage.providerFreeTier.model})`
+                          : ""}
+                      </p>
+                      <p className="text-xs text-slate-600 dark:text-graphite-300">
+                        {iaStatus.usage.providerFreeTier.summary}
+                      </p>
+                      {iaStatus.usage.providerFreeTier.dailyNeuronsLimit != null && (
+                        <p className="text-xs text-slate-500 dark:text-graphite-400">
+                          Franquia global gratuita:{" "}
+                          {iaStatus.usage.providerFreeTier.dailyNeuronsLimit.toLocaleString("pt-BR")} Neurons/dia ·
+                          Neurons registrados pela aplicação hoje:{" "}
+                          {(iaStatus.usage.providerFreeTier.neuronsRecordedByAppToday || 0).toLocaleString("pt-BR")}
+                        </p>
+                      )}
+                      <p className="text-xs font-semibold text-amber-700 dark:text-amber-300 pt-1">
+                        Status operacional: {iaStatus.statusMessage}
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-slate-500 dark:text-graphite-300">
+                    Não foi possível carregar os dados de uso agora.
+                  </p>
+                )}
               </Section>
             </>
           )}

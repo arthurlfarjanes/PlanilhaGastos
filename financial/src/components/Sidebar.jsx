@@ -52,8 +52,9 @@ export const NAV_GROUPS = [
   {
     id: "inteligencia",
     label: "Inteligência",
-    comingSoon: "Em breve · IA & Diagnósticos",
-    items: [],
+    items: [
+      { to: "/assistente", label: "Teco · Assistente", iconId: "inteligencia" },
+    ],
   },
   {
     id: "sistema",
@@ -85,6 +86,36 @@ export function isNavItemActive(item, location) {
   return location.pathname === item.to;
 }
 
+function TecoOwlIcon({ size = 18 }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="shrink-0"
+      aria-hidden="true"
+    >
+      {/* Orelhas / sobrancelhas estilizadas da coruja */}
+      <path d="M5 4.5 9 8c1-.5 2-.75 3-.75s2 .25 3 .75l4-3.5" />
+      {/* Contorno da cabeça e corpo arredondado */}
+      <path d="M5 4.5C4.2 7 4 9.2 4 11.5a8 8 0 0 0 16 0c0-2.3-.2-4.5-1-7" />
+      {/* Olhos expressivos */}
+      <circle cx="9" cy="12" r="2.2" />
+      <circle cx="15" cy="12" r="2.2" />
+      <circle cx="9" cy="12" r="0.6" fill="currentColor" stroke="none" />
+      <circle cx="15" cy="12" r="0.6" fill="currentColor" stroke="none" />
+      {/* Bico */}
+      <path d="M12 13.8v2.2" />
+      <path d="M10.9 14.3 12 16l1.1-1.7" />
+    </svg>
+  );
+}
+
 export function NavIcon({ id, size = 18 }) {
   switch (id) {
     case "transacoes":
@@ -108,7 +139,7 @@ export function NavIcon({ id, size = 18 }) {
     case "configuracoes":
       return <Settings size={size} className="shrink-0" />;
     case "inteligencia":
-      return <Sparkles size={size} className="shrink-0" />;
+      return <TecoOwlIcon size={size} />;
     case "admin":
       return <ShieldAlert size={size} className="shrink-0" />;
     default:

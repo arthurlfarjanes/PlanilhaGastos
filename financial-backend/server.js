@@ -18,6 +18,7 @@ const patrimonioRoutes = require("./routes/patrimonioRoutes");
 const objetivosRoutes = require("./routes/objetivosRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const notificacoesRoutes = require("./routes/notificacoesRoutes");
+const iaRoutes = require("./routes/iaRoutes");
 
 // Importação Cron
 const { iniciarAgendador } = require("./services/agendador");
@@ -27,6 +28,13 @@ const errorHandler = require("./middlewares/errorHandler");
 
 const app = express();
 const port = process.env.PORT || 3001;
+
+if (!process.env.JWT_SECRET) {
+  console.error("ALERTA CRÍTICO: JWT_SECRET não está definido nas variáveis de ambiente.");
+  if (process.env.NODE_ENV === "production") {
+    process.exit(1);
+  }
+}
 
 // 0. Configura o Express para ler o IP real atrás do Proxy
 app.set("trust proxy", 1);
@@ -91,6 +99,7 @@ app.use("/patrimonio", patrimonioRoutes);
 app.use("/objetivos", objetivosRoutes);
 app.use("/dashboard", dashboardRoutes);
 app.use("/notificacoes", notificacoesRoutes);
+app.use("/ia", iaRoutes);
 
 // 5. Middleware global de tratamento de erros 
 app.use(errorHandler);
