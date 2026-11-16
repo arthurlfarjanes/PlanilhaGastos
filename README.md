@@ -1,54 +1,73 @@
 # 💳 MeFinance
 
-> O **MeFinance** é uma aplicação web moderna e responsiva para gerenciamento de finanças pessoais. Ele permite que os usuários registrem suas receitas e despesas, gerenciem categorias personalizadas com cores dinâmicas e visualizem o fluxo de caixa através de painéis e gráficos interativos.
+> O **MeFinance** é uma aplicação web moderna e responsiva para gerenciamento de finanças pessoais. Ele permite controlar fluxo de caixa, contas fixas, orçamentos, cartões de crédito, dívidas, patrimônio, objetivos financeiros e contar com o apoio do **Teco**, o assistente financeiro com IA gratuita integrada exclusivamente aos cálculos determinísticos da sua conta.
+
+---
+
+## 🦉 Conheça o Teco — Assistente Financeiro do MeFinance
+
+<p align="center">
+  <img src="./financial/public/teco-avatar.jpg" alt="Teco — Mascote Coruja do MeFinance" width="160" />
+</p>
+
+O **Teco** é o mascote e guia financeiro do **MeFinance** em `/assistente` (área **Inteligência** na navegação):
+
+*   **Provedores 100% Gratuitos (sem cartão e sem fallback pago):** Suporta **Cloudflare Workers AI** (`Workers Free` — até 10.000 Neurons/dia) e **Groq Free Tier** como segunda opção gratuita, com alternância manual em dropdown e oferta automática de troca quando a cota diária de um provedor se esgota.
+*   **Dados Reais, Zero Alucinação de Cálculo:** Consulta exclusivamente **ferramentas determinísticas somente leitura** da conta autenticada (`obter_resumo_financeiro`, `gastos_por_categoria`, `orcamentos_e_alertas`, `cartoes_dividas_objetivos`), exibindo transparência das fontes consultadas e do modelo/provedor que gerou cada resposta (inclusive no histórico salvo).
+*   **Suporte a Markdown:** Tanto as mensagens enviadas pelo usuário (`Shift+Enter` para quebrar linha) quanto as respostas do Teco são renderizadas com suporte completo a Markdown (GFM).
+*   **Uso Exclusivo no Domínio MeFinance:** Protegido por **guarda determinístico pré-LLM** (`scopeGuard`) contra *prompt injection* e assuntos fora do aplicativo, além de reforço estrito no prompt do sistema — respostas fora de escopo são recusadas sem consumir tokens/Neurons nem cota diária.
 
 ---
 
 ## ✨ Funcionalidades Principais
 
-*   **🔐 Autenticação Dupla e Segurança:** Login tradicional (usuário e senha com hash Bcrypt), **Login com o Google** (OAuth 2.0), troca de senha e painel administrativo para gestão de usuários.
-*   **💸 Gestão de Transações & Parcelas Vincendas:** Registro de receitas, despesas e **compras parceladas** com máscara monetária (`BRL`), vínculo opcional a cartão de crédito, filtro para exibir parcelas subsequentes apenas na data de vencimento e aba dedicada de **Parcelas Vincendas** com contagem de dias e busca.
-*   **📊 Dashboard & Comparativos:** Painel com resumo instantâneo, widgets de **Próximos Vencimentos** e **Alertas de Orçamento**, além da página de **Comparativo** com gráficos interativos (Receitas vs. Despesas, Top Gastos e Fluxo Diário).
+*   **🔐 Autenticação Dupla e Segurança Reforçada:** Login tradicional (Bcrypt com mitigação de *timing attacks*), **Login com o Google** (OAuth 2.0), revogação imediata de sessões JWT via `token_version` ao trocar/resetar senha ou desativar conta, revalidação de sessão (`/me`), validação estrita de entradas, rate limiting, Helmet, CORS restrito e painel administrativo auditado (`/admin`).
+*   **🦉 Teco — Assistente Financeiro com IA Gratuita (`/assistente`):** Diagnósticos financeiros, limites individuais configuráveis vs. franquia do provedor, troca rápida entre modelos gratuitos configurados e privacidade granular nas preferências.
+*   **💸 Gestão de Transações & Parcelas Vincendas:** Registro de receitas, despesas e **compras parceladas** com máscara monetária, vínculo opcional a cartão de crédito, filtro para exibir parcelas subsequentes apenas na data de vencimento e aba dedicada de **Parcelas Vincendas**.
+*   **📊 Dashboard, Indicadores Consolidados & Comparativos (`/comparativo`):** Resumo instantâneo no Dashboard (com widgets de **Próximos Vencimentos** e **Alertas de Orçamento**) e página de **Comparativo** com faixa de **4 indicadores consolidados** (**Taxa de Economia**, **Comprometimento Fixo**, **Patrimônio Líquido** e **Objetivos & Lembretes**) e gráficos interativos.
 *   **🏷️ Categorias Inteligentes:** Criação e edição de categorias personalizadas com seletor de cores dinâmicas.
-*   **📅 Contas Fixas, Vencimentos e Assinaturas (`/gastos-fixos`):** Controle mensal de despesas/receitas fixas e assinaturas, com baixa rápida, lançamento opcional no extrato sem duplicidade e estorno por competência.
-*   **🎯 Orçamentos por Categoria (`/orcamentos`):** Definição de limites mensais por categoria com acompanhamento de consumo em tempo real e alertas de proximidade/excesso no Dashboard.
-*   **📉 Dívidas, Amortizações e Simulador (`/dividas`):** Cadastro inteligente (cálculo automático de juros e valor da parcela via Tabela Price a partir do saldo/parcelas, mantendo liberdade de edição), comparação entre estratégias **Avalanche** e **Bola de Neve**, simulador de aporte extra e **estorno bidirecional** sincronizado com as transações.
-*   **💳 Cartões de Crédito & Faturas (`/cartoes`):** Gestão de cartões, compras à vista ou parceladas integradas às transações, faturas calculadas pelo dia de fechamento, liquidação/estorno sem duplicidade, barra de progresso segmentada (fatura do mês vs. outras faturas em aberto com atalhos clicáveis) e indicação visual para transações de cartões excluídos.
-*   **⚙️ Configurações & Personalização (`/configuracoes`):** Preferências persistidas por usuário no servidor: modo **Claro** (paleta suave) e **Escuro**, alternância entre **Navbar** (menu suspenso) e **Sidebar** recolhível, cor de destaque, acessibilidade (tamanho de fonte, densidade, alto contraste e redução de animações) e ciclo financeiro/fuso horário.
-*   **📱 Design Responsivo:** Interface adaptada para celulares, tablets e desktops com React, Tailwind CSS v4 e Lucide Icons.
+*   **📅 Contas Fixas, Vencimentos e Assinaturas (`/gastos-fixos`):** Controle mensal de despesas/receitas fixas e assinaturas, baixa rápida, agendamento automático diário sem duplicidade e estorno por competência.
+*   **🎯 Orçamentos por Categoria (`/orcamentos`):** Definição de limites mensais por categoria com acompanhamento de consumo em tempo real e alertas de proximidade/excesso.
+*   **📉 Dívidas, Amortizações e Simulador (`/dividas`):** Cadastro inteligente (cálculo automático via Tabela Price), comparação entre estratégias **Avalanche** e **Bola de Neve**, alteração rápida de status, simulador de aporte extra e **estorno bidirecional** sincronizado com transações.
+*   **💳 Cartões de Crédito & Faturas (`/cartoes`):** Gestão de cartões, compras à vista ou parceladas integradas às transações, faturas calculadas pelo dia de fechamento, liquidação/estorno sem duplicidade, barra de progresso segmentada e aviso visual para transações de cartões excluídos.
+*   **🏦 Patrimônio & Patrimônio Líquido (`/patrimonio`):** Controle de ativos e reservas (liquidez imediata vs. demais ativos), projeção estimada de rendimento (`% do CDI`, `% a.a.` ou `% a.m.`), histórico de aportes/resgates/ajustes sincronizado com o extrato e cálculo do Patrimônio Líquido (`ativos - passivos`).
+*   **🏁 Objetivos Financeiros (`/objetivos`):** Metas com prazo, prioridade e status rápido, vinculação opcional a itens de patrimônio (sincronizando movimentações automaticamente e projetando conclusão com juros compostos) e estorno bidirecional no extrato.
+*   **🔔 Notificações & Navegação em 5 Áreas:** Organização da navegação em **Visão Geral**, **Gestão**, **Planejamento**, **Inteligência** e **Sistema** (Sidebar com dropdown de conta ou Navbar), além de alertas automáticos configuráveis para vencimentos, faturas, orçamentos e objetivos.
+*   **⚙️ Configurações & Personalização (`/configuracoes`):** Preferências persistidas no servidor para **Aparência** (modo Claro/Escuro, layout Navbar/Sidebar, cor de destaque e acessibilidade), **Dashboard**, **Financeiro** (moeda, idioma, fuso horário), **Notificações** e **Inteligência Artificial**.
 
 ---
 
 ## 🛠️ Tecnologias Utilizadas
 
 ### Frontend
-*   **React (Vite):** Biblioteca principal para construção da interface.
-*   **Tailwind CSS:** Framework de estilização utilitária para um design moderno e responsivo.
-*   **Recharts:** Biblioteca para renderização dos gráficos financeiros.
-*   **React Router DOM:** Para navegação SPA (Single Page Application).
-*   **Lucide React:** Biblioteca de ícones elegantes.
-*   **React OAuth/Google:** Integração com o Google Sign-In.
+*   **React 19 + Vite:** Interface SPA rápida e modular.
+*   **Tailwind CSS v4:** Estilização utilitária responsiva com temas Claro e Escuro.
+*   **React Markdown + Remark GFM:** Renderização segura de mensagens em Markdown no chat do Teco.
+*   **Recharts:** Gráficos financeiros interativos.
+*   **React Router DOM:** Roteamento protegido por sessão e função (`admin`).
+*   **Lucide React & Google OAuth (`@react-oauth/google`):** Ícones e autenticação Google.
 
 ### Backend
-*   **Node.js & Express:** Servidor da API RESTful.
-*   **PostgreSQL:** Banco de dados relacional (via biblioteca `pg`).
-*   **JWT (JSON Web Token):** Para autenticação e proteção de rotas.
-*   **Bcryptjs:** Para hash e segurança das senhas no banco.
-*   **Google Auth Library:** Para validação segura dos tokens do Google no servidor.
+*   **Node.js & Express 5:** API RESTful protegida por `helmet`, `cors` e `express-rate-limit`.
+*   **PostgreSQL (Neon):** Banco relacional com queries parametrizadas, transações ACID (`pg`) e migrations versionadas (`001` a `012`).
+*   **JWT (`jsonwebtoken`) + `token_version` & Bcryptjs:** Autenticação com revogação imediata de sessões e hash seguro de senhas.
+*   **Google Auth Library:** Validação de tokens OAuth no servidor.
+*   **Node-cron:** Agendamento diário automático de transações fixas.
+*   **Camada Agnóstica de IA Gratuita:** Integração direta via `fetch` com **Cloudflare Workers AI** (`Workers Free`) e **Groq Free Tier**, além de guarda de escopo determinístico (`scopeGuard`).
 
 ---
 
 ## 🚀 Como Executar Localmente
 
 ### Pré-requisitos
-Antes de começar, você precisará ter instalado em sua máquina as seguintes ferramentas:
+Antes de começar, você precisará ter instalado em sua máquina:
 *   [Git](https://git-scm.com)
 *   [Node.js](https://nodejs.org/en/)
-*   [PostgreSQL](https://www.postgresql.org/)
+*   [PostgreSQL](https://www.postgresql.org/) (ou banco Neon PostgreSQL)
 
 ### 1. Clonando o repositório
 ```bash
-git clone [https://github.com/SEU_USUARIO/PlanilhaGastos.git](https://github.com/SEU_USUARIO/PlanilhaGastos.git)
+git clone https://github.com/SEU_USUARIO/PlanilhaGastos.git
 cd PlanilhaGastos
 ```
 
@@ -59,14 +78,27 @@ cd financial-backend
 npm install
 ```
 
-Crie um arquivo `.env` na raiz da pasta `financial-backend` com as seguintes chaves:
+Crie um arquivo `.env` em `financial-backend/` baseado no `.env.example`:
 ```env
 PORT=3001
 DATABASE_URL=sua_string_de_conexao_do_postgresql
+DATABASE_URL_DIRECT=sua_string_direta_para_migrations
 JWT_SECRET=uma_chave_secreta_muito_segura
 FRONTEND_DEV_URL=http://localhost:5173
-FRONTEND_PROD_URL=[https://mefinance.netlify.app](https://mefinance.netlify.app)
+FRONTEND_PROD_URL=https://mefinance.netlify.app
 GOOGLE_CLIENT_ID=seu_client_id_do_google.apps.googleusercontent.com
+
+# IA gratuita opcional (sem cartão)
+AI_PROVIDER=cloudflare
+CLOUDFLARE_ACCOUNT_ID=
+CLOUDFLARE_API_TOKEN=
+CLOUDFLARE_AI_MODEL=@cf/meta/llama-3.1-8b-instruct-fast
+
+# Segunda opção gratuita opcional (Groq Free Tier)
+GROQ_API_KEY=
+GROQ_AI_MODEL=llama-3.1-8b-instant
+
+AI_USER_DAILY_LIMIT=20
 ```
 
 Execute as migrations no banco PostgreSQL e inicie o servidor:
@@ -87,7 +119,7 @@ cd financial
 npm install
 ```
 
-Crie um arquivo `.env` na raiz da pasta `financial` com as seguintes chaves:
+Crie um arquivo `.env` em `financial/` com as seguintes chaves:
 ```env
 VITE_BACKEND_URL=http://localhost:3001
 VITE_GOOGLE_CLIENT_ID=seu_client_id_do_google.apps.googleusercontent.com
@@ -103,10 +135,10 @@ A aplicação estará disponível em `http://localhost:5173`.
 
 ## ☁️ Deploy
 
-A aplicação está configurada para CI/CD continuo com as seguintes plataformas de hospedagem gratuitas:
+A aplicação está configurada para CI/CD contínuo com as seguintes plataformas:
 *   **Frontend:** Hospedado na [Netlify](https://www.netlify.com/).
 *   **Backend:** Hospedado no [Render](https://render.com/).
-*   **Banco de Dados:** PostgreSQL hospedado em nuvem.
+*   **Banco de Dados:** PostgreSQL hospedado no [Neon](https://neon.tech/).
 
 ---
 
