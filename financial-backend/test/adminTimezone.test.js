@@ -85,8 +85,10 @@ describe("Admin Timezone & Instantes (TIMESTAMPTZ)", () => {
         startDate: "2026-11-16",
         endDate: "2026-11-16",
         timezone: "America/Sao_Paulo",
+        route: "/test-tz",
+        limit: 100,
       });
-      const found16 = spDia16.find((r) => r.id === logId);
+      const found16 = spDia16.items.find((r) => r.id === logId);
       assert.ok(found16, "02:30Z deve pertencer ao dia 16/11 em America/Sao_Paulo");
       assert.equal(found16.created_at, instantUtc);
 
@@ -94,9 +96,11 @@ describe("Admin Timezone & Instantes (TIMESTAMPTZ)", () => {
         startDate: "2026-11-17",
         endDate: "2026-11-17",
         timezone: "America/Sao_Paulo",
+        route: "/test-tz",
+        limit: 100,
       });
       assert.equal(
-        spDia17.some((r) => r.id === logId),
+        spDia17.items.some((r) => r.id === logId),
         false,
         "02:30Z não deve pertencer ao dia 17/11 em America/Sao_Paulo",
       );
@@ -105,9 +109,11 @@ describe("Admin Timezone & Instantes (TIMESTAMPTZ)", () => {
         startDate: "2026-11-17",
         endDate: "2026-11-17",
         timezone: "UTC",
+        route: "/test-tz",
+        limit: 100,
       });
       assert.ok(
-        utcDia17.some((r) => r.id === logId),
+        utcDia17.items.some((r) => r.id === logId),
         "02:30Z deve pertencer ao dia 17/11 em UTC",
       );
     } finally {
