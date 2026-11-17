@@ -1,5 +1,6 @@
 const pool = require("../config/db");
 const { validatePatch, withDefaults, validateHelpFeedback } = require("../utils/preferencias");
+const { getUserGamification } = require("../utils/gamification");
 
 // O user_id vem SEMPRE do JWT (req.user.userId), nunca do corpo/URL.
 
@@ -70,6 +71,16 @@ exports.registrarFeedbackAjuda = async (req, res, next) => {
       [req.user.userId, value.topicId, value.route, value.helpful, value.reason, value.note],
     );
     res.status(201).json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.obterConquistas = async (req, res, next) => {
+  try {
+    const state = await getUserGamification(req.user.userId);
+    res.set("Cache-Control", "no-store");
+    res.json(state);
   } catch (err) {
     next(err);
   }

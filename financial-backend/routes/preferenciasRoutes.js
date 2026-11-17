@@ -9,6 +9,7 @@ router.get("/", controller.obterPreferencias);
 router.put("/", controller.atualizarPreferencias);
 router.delete("/", controller.restaurarPadroes);
 router.post("/ajuda-feedback", controller.registrarFeedbackAjuda);
+router.get("/conquistas", controller.obterConquistas);
 
 module.exports = router;
 

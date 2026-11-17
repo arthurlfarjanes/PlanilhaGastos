@@ -139,3 +139,15 @@ test("extractSafeActionCards gera atalhos seguros e normaliza acentos sem expor 
   assert.ok(cards.some((c) => c.route === "/orcamentos"));
   assert.ok(cards.some((c) => c.route === "/projecoes"));
 });
+
+test("catálogo de tours do frontend está sincronizado com gamification.js do backend", () => {
+  const here = path.dirname(fileURLToPath(import.meta.url));
+  const gamificationSrc = fs.readFileSync(
+    path.resolve(here, "../../../../financial-backend/utils/gamification.js"),
+    "utf8"
+  );
+  const backendIds = new Set([...gamificationSrc.matchAll(/\{\s*id:\s*"([a-z0-9-]+)",\s*title:/g)].map((m) => m[1]));
+  for (const tour of TECO_TOURS) {
+    assert.ok(backendIds.has(tour.id), `tour "${tour.id}" ausente em gamification.js`);
+  }
+});

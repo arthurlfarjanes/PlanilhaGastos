@@ -42,7 +42,7 @@ const PERGUNTAS_SUGERIDAS = [
 export default function AssistenteIA() {
   const { token, role, API_URL } = useContext(AuthContext);
   const { prefs, updatePreferences } = usePreferences();
-  const { navigateSafe } = useTecoTour();
+  const { navigateSafe, openHelp } = useTecoTour();
   const [searchParams, setSearchParams] = useSearchParams();
   const timezone = prefs?.financial?.timezone || "America/Sao_Paulo";
 
@@ -328,6 +328,22 @@ export default function AssistenteIA() {
                     <p className="text-[11px] text-slate-400">
                       Tokens registrados hoje nas suas perguntas: {appLimit.tokensRecordedToday.toLocaleString("pt-BR")}
                     </p>
+                    {Number(appLimit.bonusDailyRequests || 0) > 0 ? (
+                      <p className="rounded-lg bg-emerald-500/10 px-2.5 py-1.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-300">
+                        Bônus ativo do Teco: +{appLimit.bonusDailyRequests} consultas/dia sobre a base gratuita de {appLimit.baseDailyRequestsLimit}/dia.
+                      </p>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setOpenDropdown(null);
+                          openHelp("conquistas");
+                        }}
+                        className="w-full rounded-lg bg-slate-100 dark:bg-slate-800 px-2.5 py-1.5 text-left text-[11px] font-medium text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-lime-spark transition-colors cursor-pointer"
+                      >
+                        Ganhe até +10 consultas/dia concluindo trilhas no Teco Ajuda →
+                      </button>
+                    )}
                   </div>
 
                   {provTier && (

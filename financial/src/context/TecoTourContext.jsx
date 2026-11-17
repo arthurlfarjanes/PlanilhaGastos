@@ -42,6 +42,8 @@ export function TecoTourProvider({ role = "user", token = null, apiUrl = "", chi
   const [targetRect, setTargetRect] = useState(null);
   const [resolvingTarget, setResolvingTarget] = useState(false);
   const [targetMissing, setTargetMissing] = useState(false);
+  const [gamification, setGamification] = useState(null);
+  const [gamificationLoading, setGamificationLoading] = useState(false);
 
   const lastScrolledStepRef = useRef(null);
   const helpPrefs = useMemo(
@@ -95,6 +97,36 @@ export function TecoTourProvider({ role = "user", token = null, apiUrl = "", chi
     },
     [navigate, role]
   );
+
+  const refreshGamification = useCallback(async () => {
+    if (!token || !apiUrl) {
+      setGamification(null);
+      return null;
+    }
+    setGamificationLoading(true);
+    try {
+      const res = await fetch(`${apiUrl}/preferencias/conquistas`, {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      setGamification(data);
+      return data;
+    } catch {
+      return null;
+    } finally {
+      setGamificationLoading(false);
+    }
+  }, [apiUrl, token]);
+
+  useEffect(() => {
+    refreshGamification();
+  }, [refreshGamification]);
+
+  useEffect(() => {
+    if (helpOpen) refreshGamification();
+  }, [helpOpen, refreshGamification]);
 
   const openHelp = useCallback((tab = "inicio") => {
     setHelpTab(tab);
@@ -167,10 +199,21 @@ export function TecoTourProvider({ role = "user", token = null, apiUrl = "", chi
           helpPrefs.tourVersion && typeof helpPrefs.tourVersion === "object"
             ? helpPrefs.tourVersion
             : {};
-        persistHelpPatch({
-          completedTours,
-          activeTour: null,
-          tourVersion: { ...prevVersions, [tour.id]: tour.version },
+        const prevBonus = Number(gamification?.aiQuotaBonus || 0);
+        Promise.resolve(
+          persistHelpPatch({
+            completedTours,
+            activeTour: null,
+            tourVersion: { ...prevVersions, [tour.id]: tour.version },
+          })
+        ).then(async (savedOk) => {
+          if (!savedOk) return;
+          const nextGam = await refreshGamification();
+          if (nextGam && Number(nextGam.aiQuotaBonus || 0) > prevBonus) {
+            toast.success(
+              `Trilha certificada! Você desbloqueou +${nextGam.aiQuotaBonus} consulta(s) bônus/dia no Teco.`
+            );
+          }
         });
         toast.success(`Tour "${tour.title}" concluído!`);
         return;
@@ -186,7 +229,14 @@ export function TecoTourProvider({ role = "user", token = null, apiUrl = "", chi
         activeTour: { id: tour.id, step: current.step, version: tour.version },
       });
     },
-    [helpPrefs.completedTours, helpPrefs.tourVersion, persistHelpPatch, runningState]
+    [
+      gamification?.aiQuotaBonus,
+      helpPrefs.completedTours,
+      helpPrefs.tourVersion,
+      persistHelpPatch,
+      refreshGamification,
+      runningState,
+    ]
   );
 
   const goToStep = useCallback(
@@ -249,14 +299,18 @@ export function TecoTourProvider({ role = "user", token = null, apiUrl = "", chi
 
   const resetHelpProgress = useCallback(() => {
     setRunningState(null);
-    persistHelpPatch({
-      completedTours: [],
-      activeTour: null,
-      dismissedHints: [],
-      tourVersion: {},
+    Promise.resolve(
+      persistHelpPatch({
+        completedTours: [],
+        activeTour: null,
+        dismissedHints: [],
+        tourVersion: {},
+      })
+    ).then((ok) => {
+      if (ok) refreshGamification();
     });
     toast.success("Progresso dos tours reiniciado.");
-  }, [persistHelpPatch]);
+  }, [persistHelpPatch, refreshGamification]);
 
   const askTeco = useCallback(
     (origemPath = location.pathname, topico = "") => {
@@ -453,6 +507,9 @@ export function TecoTourProvider({ role = "user", token = null, apiUrl = "", chi
       helpPrefs,
       tipsEnabled: Boolean(helpPrefs.tipsEnabled ?? true),
       toggleTipsEnabled,
+      gamification,
+      gamificationLoading,
+      refreshGamification,
       currentGuide,
       recommendedTour,
       toursWithStatus,
@@ -486,6 +543,9 @@ export function TecoTourProvider({ role = "user", token = null, apiUrl = "", chi
       closeHelp,
       helpPrefs,
       toggleTipsEnabled,
+      gamification,
+      gamificationLoading,
+      refreshGamification,
       currentGuide,
       recommendedTour,
       toursWithStatus,

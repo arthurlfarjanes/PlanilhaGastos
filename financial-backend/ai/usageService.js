@@ -5,6 +5,7 @@
  */
 const pool = require("../config/db");
 const { listFreeProviders } = require("./providers");
+const { getUserGamification } = require("../utils/gamification");
 
 const DEFAULT_USER_DAILY_LIMIT = 20;
 
@@ -18,9 +19,9 @@ function currentUtcDateISO(now = new Date()) {
 }
 
 async function getUsageSummary(userId, provider, db = pool, refDateUTC = currentUtcDateISO()) {
-  const userDailyLimit = getUserDailyLimit();
+  const baseUserDailyLimit = getUserDailyLimit();
 
-  const [userRes, globalRes, quotaRes] = await Promise.all([
+  const [userRes, globalRes, quotaRes, gamification] = await Promise.all([
     db.query(
       `SELECT
          COUNT(*) FILTER (WHERE status = 'ok')::int AS requests_ok_today,
@@ -45,8 +46,11 @@ async function getUsageSummary(userId, provider, db = pool, refDateUTC = current
        LIMIT 1`,
       [provider.id, refDateUTC],
     ),
+    getUserGamification(userId, db).catch(() => null),
   ]);
 
+  const bonusDailyRequests = Number(gamification?.aiQuotaBonus || 0);
+  const userDailyLimit = baseUserDailyLimit + bonusDailyRequests;
   const userUsed = Number(userRes.rows[0]?.requests_ok_today || 0);
   const globalNeuronsRecorded = Number(globalRes.rows[0]?.global_neurons_recorded_today || 0);
   const providerDailyNeuronsLimit = provider?.freeTierInfo?.dailyNeuronsLimit ?? null;
@@ -55,11 +59,16 @@ async function getUsageSummary(userId, provider, db = pool, refDateUTC = current
   return {
     utcDate: refDateUTC,
     applicationIndividualLimit: {
+      baseDailyRequestsLimit: baseUserDailyLimit,
+      bonusDailyRequests,
       dailyRequestsLimit: userDailyLimit,
       requestsUsedToday: userUsed,
       requestsRemainingToday: Math.max(0, userDailyLimit - userUsed),
       tokensRecordedToday: Number(userRes.rows[0]?.tokens_recorded_today || 0),
-      scopeLabel: "Limite individual por usuário (definido pelo MeFinance)",
+      scopeLabel:
+        bonusDailyRequests > 0
+          ? `Limite individual (${baseUserDailyLimit} base + ${bonusDailyRequests} bônus Teco)`
+          : "Limite individual por usuário (definido pelo MeFinance)",
     },
     providerFreeTier: {
       providerId: provider.id,

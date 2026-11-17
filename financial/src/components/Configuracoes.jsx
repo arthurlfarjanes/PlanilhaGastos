@@ -18,10 +18,13 @@ import {
   ShieldCheck,
   Download,
   FileText,
+  Award,
+  Zap,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { AuthContext } from "../App";
 import { usePreferences } from "../context/PreferencesContext";
+import { useTecoTour } from "../context/TecoTourContext";
 import { ModalTrocarSenha } from "./ModalTrocarSenha";
 import { Modal } from "./ui/Modal";
 import { formatCurrency, formatDate, todayInTimezone } from "../utils/formatters";
@@ -120,6 +123,7 @@ export default function Configuracoes() {
   const { username, role, token, logout, API_URL } = useContext(AuthContext);
   const navigate = useNavigate();
   const { prefs, loaded, updatePreferences, resetPreferences } = usePreferences();
+  const { gamification, openHelp } = useTecoTour();
   // A aba fica na URL: sobrevive à remontagem causada por mudança de moeda/data.
   const [params, setParams] = useSearchParams();
   const [senhaOpen, setSenhaOpen] = useState(false);
@@ -395,6 +399,60 @@ export default function Configuracoes() {
                   </button>
                 </Row>
               </Section>
+              {gamification && (
+                <Section
+                  title="Certificação e Conquistas do Teco"
+                  description="Conclua tours guiados e missões práticas para evoluir seu nível e liberar bônus gratuitos no Teco Assistente."
+                >
+                  <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-4 space-y-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <Award size={18} className="text-emerald-600 dark:text-lime-spark shrink-0" />
+                        <div>
+                          <p className="text-sm font-bold text-slate-900 dark:text-white">
+                            Nível {gamification.level?.level} · {gamification.level?.name}
+                          </p>
+                          <p className="text-xs text-slate-500 dark:text-graphite-300">
+                            {gamification.xp} / {gamification.maxXp} XP · {gamification.toursCompletedCount}/{gamification.toursTotalCount} tours · {gamification.missionsCompletedCount}/{gamification.missionsTotalCount} missões
+                          </p>
+                        </div>
+                      </div>
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2.5 py-1 text-xs font-bold text-emerald-700 dark:text-lime-spark">
+                        <Zap size={12} /> +{gamification.aiQuotaBonus || 0} consultas/dia
+                      </span>
+                    </div>
+
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-graphite-700">
+                      <div
+                        className="h-full rounded-full bg-emerald-500 dark:bg-lime-spark transition-all"
+                        style={{ width: `${gamification.overallProgressPct || 0}%` }}
+                      />
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex flex-wrap gap-1.5">
+                        {(gamification.tracks || [])
+                          .filter((t) => t.unlocked)
+                          .map((t) => (
+                            <span
+                              key={t.id}
+                              className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-white dark:bg-graphite-800 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700 dark:text-lime-spark"
+                            >
+                              <CheckCircle2 size={11} /> {t.title}
+                            </span>
+                          ))}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => openHelp("conquistas")}
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 dark:text-lime-spark hover:underline cursor-pointer"
+                      >
+                        Ver todas as conquistas <ArrowRight size={13} />
+                      </button>
+                    </div>
+                  </div>
+                </Section>
+              )}
               <Section title="Restaurar padrões" description="Remove todas as suas personalizações salvas e volta às configurações originais.">
                 <button type="button" onClick={restaurar} className="self-start flex items-center gap-2 px-4 py-2.5 rounded-xl border border-red-200 dark:border-red-500/30 text-red-600 dark:text-red-400 text-sm font-semibold cursor-pointer hover:bg-red-50 dark:hover:bg-red-500/10">
                   <RotateCcw size={15} /> Restaurar preferências

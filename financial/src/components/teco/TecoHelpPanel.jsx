@@ -11,6 +11,10 @@ import {
   ArrowRight,
   Search,
   Trash2,
+  Award,
+  Trophy,
+  Zap,
+  Lock,
 } from "lucide-react";
 import { useTecoTour } from "@/context/TecoTourContext";
 import TecoAvatar from "@/components/teco/TecoAvatar";
@@ -20,9 +24,10 @@ import { GUIDED_SHORTCUTS } from "@/data/teco/contextualCatalog";
 import { AppTooltip } from "@/components/ui/Tooltip";
 
 const TABS = [
-  { id: "inicio", label: "Tours e Ações", icon: Play },
-  { id: "entender", label: "Entender esta tela", icon: BookOpen },
-  { id: "explorar", label: "Explorar sistema", icon: Compass },
+  { id: "inicio", label: "Tours", icon: Play },
+  { id: "entender", label: "Esta tela", icon: BookOpen },
+  { id: "explorar", label: "Explorar", icon: Compass },
+  { id: "conquistas", label: "Conquistas", icon: Award },
 ];
 
 export default function TecoHelpPanel() {
@@ -42,6 +47,8 @@ export default function TecoHelpPanel() {
     resumeTour,
     discardSavedTour,
     resetHelpProgress,
+    gamification,
+    gamificationLoading,
     askTeco,
     navigateSafe,
   } = useTecoTour();
@@ -142,7 +149,7 @@ export default function TecoHelpPanel() {
         {/* Navegação interna */}
         <nav
           aria-label="Seções da ajuda"
-          className="grid grid-cols-3 gap-1 border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/40 px-3 py-2"
+          className="grid grid-cols-2 sm:grid-cols-4 gap-1 border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/40 px-3 py-2"
         >
           {TABS.map((tab) => {
             const Icon = tab.icon;
@@ -572,6 +579,247 @@ export default function TecoHelpPanel() {
               {filteredGroups.length === 0 && (
                 <p className="py-6 text-center text-xs text-slate-500 dark:text-slate-400">
                   Nenhuma funcionalidade encontrada para "{query}".
+                </p>
+              )}
+            </div>
+          )}
+
+          {helpTab === "conquistas" && (
+            <div className="space-y-4">
+              {gamificationLoading && !gamification ? (
+                <p className="py-8 text-center text-xs text-slate-500 dark:text-slate-400">
+                  Carregando conquistas e certificados...
+                </p>
+              ) : gamification ? (
+                <>
+                  {/* Nível & Barra de Progresso */}
+                  <div className="rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 via-white to-sky-500/5 dark:via-slate-900 p-4 space-y-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <TecoAvatar
+                          mood={gamification.goldCertificate?.unlocked ? "celebrating" : "success"}
+                          size="sm"
+                        />
+                        <div className="min-w-0">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
+                            Nível {gamification.level?.level}
+                          </span>
+                          <h3 className="truncate text-sm font-bold text-slate-900 dark:text-white">
+                            {gamification.level?.name}
+                          </h3>
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-sm font-black text-emerald-600 dark:text-emerald-400">
+                          {gamification.xp} XP
+                        </p>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                          de {gamification.maxXp} XP
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+                        <div
+                          className="h-full rounded-full bg-emerald-500 transition-all duration-300"
+                          style={{ width: `${gamification.overallProgressPct || 0}%` }}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+                        <span>
+                          {gamification.toursCompletedCount}/{gamification.toursTotalCount} tours ·{" "}
+                          {gamification.missionsCompletedCount}/{gamification.missionsTotalCount} missões
+                        </span>
+                        {gamification.level?.nextLevel ? (
+                          <span>
+                            Faltam {gamification.level.nextLevel.xpMissing} XP p/{" "}
+                            {gamification.level.nextLevel.name}
+                          </span>
+                        ) : (
+                          <span className="font-semibold text-amber-500">Nível máximo!</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2 rounded-xl bg-white/80 dark:bg-slate-800/80 px-3 py-2 text-xs">
+                      <span className="inline-flex items-center gap-1.5 font-medium text-slate-700 dark:text-slate-200">
+                        <Zap className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                        Bônus no Teco Assistente
+                      </span>
+                      <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                        +{gamification.aiQuotaBonus || 0} / +{gamification.maxAiQuotaBonus || 10} consultas/dia
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Certificado Ouro */}
+                  <div
+                    className={`rounded-xl border p-3.5 flex items-center gap-3 ${
+                      gamification.goldCertificate?.unlocked
+                        ? "border-amber-400/60 bg-amber-500/10"
+                        : "border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40"
+                    }`}
+                  >
+                    <Trophy
+                      className={`h-6 w-6 shrink-0 ${
+                        gamification.goldCertificate?.unlocked ? "text-amber-500" : "text-slate-400"
+                      }`}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-bold text-slate-900 dark:text-white">
+                        {gamification.goldCertificate?.title}
+                      </p>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                        {gamification.goldCertificate?.unlocked
+                          ? "Certificação completa desbloqueada!"
+                          : `Conclua os ${gamification.toursTotalCount} tours para conquistar o selo ouro.`}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Certificados por Trilha */}
+                  <section className="space-y-2">
+                    <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                      Certificados por Trilha (+consultas grátis/dia)
+                    </h4>
+                    <div className="space-y-2">
+                      {(gamification.tracks || []).map((tr) => {
+                        const pct = tr.totalCount > 0 ? Math.round((tr.completedCount * 100) / tr.totalCount) : 0;
+                        return (
+                          <div
+                            key={tr.id}
+                            className={`rounded-xl border p-3 space-y-2 ${
+                              tr.unlocked
+                                ? "border-emerald-500/40 bg-emerald-500/5"
+                                : "border-slate-200 dark:border-slate-800"
+                            }`}
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="min-w-0">
+                                <p className="flex items-center gap-1.5 text-xs font-bold text-slate-900 dark:text-white">
+                                  {tr.unlocked ? (
+                                    <Award className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                                  ) : (
+                                    <Lock className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                                  )}
+                                  <span className="truncate">{tr.title}</span>
+                                </p>
+                                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                                  {tr.description}
+                                </p>
+                              </div>
+                              <span
+                                className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                                  tr.unlocked
+                                    ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+                                    : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
+                                }`}
+                              >
+                                +{tr.aiBonusRequests}/dia
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+                                <div
+                                  className="h-full rounded-full bg-emerald-500 transition-all"
+                                  style={{ width: `${pct}%` }}
+                                />
+                              </div>
+                              <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">
+                                {tr.completedCount}/{tr.totalCount}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </section>
+
+                  {/* Missões Práticas */}
+                  <section className="space-y-2">
+                    <div className="space-y-0.5">
+                      <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                        Missões Práticas (+1 consulta/dia ao completar todas)
+                      </h4>
+                      <p className="text-[10px] text-slate-400 dark:text-slate-500">
+                        Válidas para novos registros criados a partir da entrada em vigor desta atualização.
+                      </p>
+                    </div>
+                    <div className="space-y-1.5">
+                      {(gamification.missions || []).map((m) => (
+                        <div
+                          key={m.id}
+                          className="flex items-center justify-between gap-2 rounded-xl border border-slate-200 dark:border-slate-800 px-3 py-2.5"
+                        >
+                          <div className="flex items-start gap-2 min-w-0">
+                            {m.completed ? (
+                              <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                            ) : (
+                              <span className="h-4 w-4 rounded-full border-2 border-slate-300 dark:border-slate-600 shrink-0 mt-0.5" />
+                            )}
+                            <div className="min-w-0">
+                              <p className="truncate text-xs font-semibold text-slate-900 dark:text-white">
+                                {m.title} · +{m.xp} XP
+                              </p>
+                              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                                {m.description}
+                              </p>
+                            </div>
+                          </div>
+                          {!m.completed && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                navigateSafe(m.route);
+                                closeHelp();
+                              }}
+                              className="shrink-0 rounded-lg border border-slate-200 dark:border-slate-700 px-2 py-1 text-[11px] font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                            >
+                              Ir
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+
+                  {/* Badges individuais por módulo */}
+                  <section className="space-y-2">
+                    <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                      Badges por Tela ({gamification.toursCompletedCount}/{gamification.toursTotalCount})
+                    </h4>
+                    <div className="grid grid-cols-2 gap-2">
+                      {(gamification.tourBadges || []).map((b) => (
+                        <button
+                          key={b.id}
+                          type="button"
+                          onClick={() => startTour(b.id, 0)}
+                          className={`flex items-center gap-2 rounded-xl border px-2.5 py-2 text-left transition-colors cursor-pointer ${
+                            b.unlocked
+                              ? "border-emerald-500/35 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200"
+                              : "border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:border-emerald-500/40"
+                          }`}
+                        >
+                          {b.unlocked ? (
+                            <Award className="h-3.5 w-3.5 shrink-0 text-emerald-500" />
+                          ) : (
+                            <Play className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                          )}
+                          <div className="min-w-0">
+                            <p className="truncate text-[11px] font-semibold">{b.title}</p>
+                            <p className="text-[10px] opacity-80">
+                              {b.unlocked ? `Conquistado · ${b.xp} XP` : `Fazer tour · +${b.xp} XP`}
+                            </p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </section>
+                </>
+              ) : (
+                <p className="py-8 text-center text-xs text-slate-500 dark:text-slate-400">
+                  Entre na sua conta para acompanhar XP, badges e bônus do Teco.
                 </p>
               )}
             </div>
