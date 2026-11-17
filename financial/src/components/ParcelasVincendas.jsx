@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { CalendarClock, CreditCard, Edit2, Search, Trash2 } from "lucide-react";
 import { formatCurrency, formatDate, todayInTimezone } from "../utils/formatters";
 import { isParcelaVincenda } from "../utils/parcelas";
+import { AppTooltip } from "@/components/ui/Tooltip";
 
 const PARCELA_REGEX = /^(.*?)\s*\((\d{1,3}\/\d{1,3})\)$/;
 
@@ -173,13 +174,14 @@ function ParcelasVincendas({ parcelas = [], loading, onEdit, onDelete, timezone 
                       )}
 
                       {!t.cartao_id && t.cartao_excluido_nome && (
-                        <span
-                          title="Esta transação foi lançada em um cartão que não está mais cadastrado."
-                          className="inline-flex items-center gap-1 text-[0.7rem] font-semibold px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-500/10 text-amber-800 dark:text-amber-300 border border-dashed border-amber-300 dark:border-amber-500/35"
-                        >
-                          <CreditCard size={11} />
-                          Cartão excluído ({t.cartao_excluido_nome})
-                        </span>
+                        <AppTooltip content="Esta transação foi lançada em um cartão que não está mais cadastrado.">
+                          <span
+                            className="inline-flex items-center gap-1 text-[0.7rem] font-semibold px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-500/10 text-amber-800 dark:text-amber-300 border border-dashed border-amber-300 dark:border-amber-500/35"
+                          >
+                            <CreditCard size={11} />
+                            Cartão excluído ({t.cartao_excluido_nome})
+                          </span>
+                        </AppTooltip>
                       )}
                     </div>
                   </div>

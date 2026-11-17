@@ -19,6 +19,7 @@ import { AuthContext } from "../App";
 import { usePreferences } from "../context/PreferencesContext";
 import ConfirmDialog from "./ui/ConfirmDialog";
 import MarkdownMessage from "./ui/MarkdownMessage";
+import { AppTooltip } from "@/components/ui/Tooltip";
 import { todayInTimezone } from "../utils/formatters";
 
 const PERGUNTAS_SUGERIDAS = [
@@ -225,12 +226,13 @@ export default function AssistenteIA() {
               alt="Teco"
               className="w-14 h-14 rounded-2xl object-cover border-2 border-emerald-400/70 dark:border-lime-spark/70 shadow-md bg-slate-900"
             />
-            <span
-              title={opStatus === "active" ? "Teco online" : "Indisponível"}
-              className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white dark:border-graphite-900 ${
-                opStatus === "active" ? "bg-emerald-500 dark:bg-lime-spark" : "bg-amber-500"
-              }`}
-            />
+            <AppTooltip content={opStatus === "active" ? "Teco online" : "Indisponível"} side="right">
+              <span
+                className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white dark:border-graphite-900 ${
+                  opStatus === "active" ? "bg-emerald-500 dark:bg-lime-spark" : "bg-amber-500"
+                }`}
+              />
+            </AppTooltip>
           </div>
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
@@ -367,22 +369,24 @@ export default function AssistenteIA() {
           )}
 
           {mensagens.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setConfirmLimpar(true)}
-              title="Limpar histórico de conversas"
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
-            >
-              <Trash2 size={14} /> Limpar
-            </button>
+            <AppTooltip content="Limpar histórico de conversas" side="bottom">
+              <button
+                type="button"
+                onClick={() => setConfirmLimpar(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+              >
+                <Trash2 size={14} /> Limpar
+              </button>
+            </AppTooltip>
           )}
-          <Link
-            to="/configuracoes?aba=ia"
-            title="Preferências de IA"
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
-          >
-            <Settings size={14} /> Config
-          </Link>
+          <AppTooltip content="Preferências de IA" side="bottom">
+            <Link
+              to="/configuracoes?aba=ia"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+            >
+              <Settings size={14} /> Config
+            </Link>
+          </AppTooltip>
         </div>
       </div>
 
@@ -481,12 +485,13 @@ export default function AssistenteIA() {
                   }`}
                 >
                   {m.role === "assistant" && (
-                    <img
-                      src="/teco-avatar.jpg"
-                      alt="Teco"
-                      title="Teco · Assistente Financeiro"
-                      className="w-9 h-9 rounded-full object-cover border-2 border-emerald-400/60 dark:border-lime-spark/60 shadow-xs shrink-0 mt-0.5 bg-slate-900"
-                    />
+                    <AppTooltip content="Teco · Assistente Financeiro" side="top">
+                      <img
+                        src="/teco-avatar.jpg"
+                        alt="Teco"
+                        className="w-9 h-9 rounded-full object-cover border-2 border-emerald-400/60 dark:border-lime-spark/60 shadow-xs shrink-0 mt-0.5 bg-slate-900"
+                      />
+                    </AppTooltip>
                   )}
                   <div className="flex flex-col gap-1 min-w-0 overflow-hidden">
                     {m.role === "assistant" && (
@@ -511,14 +516,15 @@ export default function AssistenteIA() {
                 {m.role === "assistant" && (m.model || (Array.isArray(m.tools_used) && m.tools_used.length > 0)) && (
                   <div className="flex flex-wrap items-center gap-1.5 mt-1.5 pl-1 sm:pl-11 max-w-full">
                     {m.model && (
-                      <span
-                        className="inline-flex items-center gap-1 max-w-full px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-50 dark:bg-lime-spark/10 text-emerald-700 dark:text-lime-spark border border-emerald-200 dark:border-lime-spark/25 break-all"
-                        title={`Provedor: ${m.provider || "gratuito"}`}
-                      >
-                        <Cpu size={10} className="shrink-0" />
-                        {m.provider ? `${m.provider} · ` : ""}
-                        {m.model}
-                      </span>
+                      <AppTooltip content={`Provedor: ${m.provider || "gratuito"}`} side="bottom">
+                        <span
+                          className="inline-flex items-center gap-1 max-w-full px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-50 dark:bg-lime-spark/10 text-emerald-700 dark:text-lime-spark border border-emerald-200 dark:border-lime-spark/25 break-all"
+                        >
+                          <Cpu size={10} className="shrink-0" />
+                          {m.provider ? `${m.provider} · ` : ""}
+                          {m.model}
+                        </span>
+                      </AppTooltip>
                     )}
                     {Array.isArray(m.tools_used) && m.tools_used.length > 0 && (
                       <>

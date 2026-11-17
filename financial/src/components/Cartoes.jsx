@@ -19,6 +19,7 @@ import toast from "react-hot-toast";
 import ConfirmDialog from "./ui/ConfirmDialog";
 import { formatCurrency, formatDate, todayInTimezone } from "../utils/formatters";
 import { CurrencyInput } from "./CurrencyInput";
+import { AppTooltip } from "@/components/ui/Tooltip";
 
 const MESES = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -581,14 +582,18 @@ export default function Cartoes() {
                     <button onClick={() => abrirFatura(item)} className={BTN_SECONDARY}>
                       <Receipt className="w-3.5 h-3.5" /> Ver Fatura
                     </button>
-                    <button onClick={() => abrirEditar(item)} title="Editar cartão"
-                      className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">
-                      <Pencil className="w-4 h-4" />
-                    </button>
-                    <button onClick={() => setDeleteTarget(item)} title="Excluir cartão"
-                      className="p-1.5 rounded-lg text-slate-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 cursor-pointer">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <AppTooltip content="Editar cartão">
+                      <button onClick={() => abrirEditar(item)}
+                        className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                    </AppTooltip>
+                    <AppTooltip content="Excluir cartão">
+                      <button onClick={() => setDeleteTarget(item)}
+                        className="p-1.5 rounded-lg text-slate-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 cursor-pointer">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </AppTooltip>
                   </div>
                 </div>
 
@@ -600,18 +605,20 @@ export default function Cartoes() {
                     </div>
                     <div className="w-full h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden flex">
                       {pctMes > 0 && (
-                        <div
-                          className={`h-full min-w-[4px] transition-all duration-300 ${barCls}`}
-                          style={{ width: `${pctMes}%` }}
-                          title={`Fatura de ${MESES[mes - 1]}: ${formatCurrency(usadoMesVal)}`}
-                        />
+                        <AppTooltip content={`Fatura de ${MESES[mes - 1]}: ${formatCurrency(usadoMesVal)}`}>
+                          <div
+                            className={`h-full min-w-[4px] transition-all duration-300 ${barCls}`}
+                            style={{ width: `${pctMes}%` }}
+                          />
+                        </AppTooltip>
                       )}
                       {pctOutras > 0 && (
-                        <div
-                          className="h-full min-w-[4px] transition-all duration-300 bg-sky-500/80 dark:bg-sky-400/75"
-                          style={{ width: `${pctOutras}%` }}
-                          title={`Outras faturas em aberto: ${formatCurrency(usadoOutrasVal)}`}
-                        />
+                        <AppTooltip content={`Outras faturas em aberto: ${formatCurrency(usadoOutrasVal)}`}>
+                          <div
+                            className="h-full min-w-[4px] transition-all duration-300 bg-sky-500/80 dark:bg-sky-400/75"
+                            style={{ width: `${pctOutras}%` }}
+                          />
+                        </AppTooltip>
                       )}
                     </div>
                     <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
@@ -631,18 +638,18 @@ export default function Cartoes() {
                       <div className="flex flex-wrap items-center gap-1.5 pt-1">
                         <span className="text-[11px] text-slate-500 dark:text-slate-400">Em aberto em:</span>
                         {outrasFaturas.map((of) => (
-                          <button
-                            key={`${of.ano}-${of.mes}`}
-                            type="button"
-                            onClick={() => {
-                              setAno(of.ano);
-                              setMes(of.mes);
-                            }}
-                            title={`Ir para a fatura de ${MESES[of.mes - 1]}/${of.ano}`}
-                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-500/20 hover:bg-sky-100 dark:hover:bg-sky-500/20 cursor-pointer"
-                          >
-                            {MESES[of.mes - 1].slice(0, 3)}/{of.ano} · {formatCurrency(of.total)}
-                          </button>
+                          <AppTooltip key={`${of.ano}-${of.mes}`} content={`Ir para a fatura de ${MESES[of.mes - 1]}/${of.ano}`}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setAno(of.ano);
+                                setMes(of.mes);
+                              }}
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-500/20 hover:bg-sky-100 dark:hover:bg-sky-500/20 cursor-pointer"
+                            >
+                              {MESES[of.mes - 1].slice(0, 3)}/{of.ano} · {formatCurrency(of.total)}
+                            </button>
+                          </AppTooltip>
                         ))}
                       </div>
                     )}
@@ -758,10 +765,12 @@ export default function Cartoes() {
                         <div className="flex items-center gap-2">
                           <span className="font-semibold text-slate-900 dark:text-slate-100">{formatCurrency(it.valor)}</span>
                           {fatura.status !== "paga" && (
-                            <button onClick={() => setLancDelete(it)} title="Excluir transação"
-                              className="p-1 rounded text-slate-400 hover:text-red-600 cursor-pointer">
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
+                            <AppTooltip content="Excluir transação">
+                              <button onClick={() => setLancDelete(it)}
+                                className="p-1 rounded text-slate-400 hover:text-red-600 cursor-pointer">
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </AppTooltip>
                           )}
                         </div>
                       </div>

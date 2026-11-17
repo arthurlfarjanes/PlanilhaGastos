@@ -22,6 +22,7 @@ import toast from "react-hot-toast";
 import ConfirmDialog from "./ui/ConfirmDialog";
 import { formatCurrency, todayInTimezone } from "../utils/formatters";
 import { CurrencyInput } from "./CurrencyInput";
+import { AppTooltip } from "@/components/ui/Tooltip";
 
 const MESES = [
   "Janeiro",
@@ -439,14 +440,15 @@ export default function Orcamentos() {
               {loading ? "Salvando..." : editando ? "Salvar" : "Adicionar"}
             </button>
             {editando && (
-              <button
-                type="button"
-                onClick={limparFormulario}
-                className="bg-slate-100 dark:bg-graphite-700 hover:bg-slate-200 dark:hover:bg-graphite-600 text-slate-600 dark:text-slate-300 p-2.5 rounded-xl border border-slate-200 dark:border-graphite-600 cursor-pointer"
-                title="Cancelar Edição"
-              >
-                <X size={20} />
-              </button>
+              <AppTooltip content="Cancelar Edição">
+                <button
+                  type="button"
+                  onClick={limparFormulario}
+                  className="bg-slate-100 dark:bg-graphite-700 hover:bg-slate-200 dark:hover:bg-graphite-600 text-slate-600 dark:text-slate-300 p-2.5 rounded-xl border border-slate-200 dark:border-graphite-600 cursor-pointer"
+                >
+                  <X size={20} />
+                </button>
+              </AppTooltip>
             )}
           </div>
 
@@ -538,22 +540,24 @@ export default function Orcamentos() {
                   </span>
 
                   <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => handleEditar(item)}
-                      className="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500 hover:text-white transition-colors cursor-pointer"
-                      title="Editar"
-                    >
-                      <Pencil size={14} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setParaDeletar(item.id)}
-                      className="p-1.5 rounded-lg bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500 hover:text-white transition-colors cursor-pointer"
-                      title="Excluir"
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                    <AppTooltip content="Editar">
+                      <button
+                        type="button"
+                        onClick={() => handleEditar(item)}
+                        className="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500 hover:text-white transition-colors cursor-pointer"
+                      >
+                        <Pencil size={14} />
+                      </button>
+                    </AppTooltip>
+                    <AppTooltip content="Excluir">
+                      <button
+                        type="button"
+                        onClick={() => setParaDeletar(item.id)}
+                        className="p-1.5 rounded-lg bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500 hover:text-white transition-colors cursor-pointer"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </AppTooltip>
                   </div>
                 </div>
               </div>

@@ -16,6 +16,7 @@ import toast from "react-hot-toast";
 import { AuthContext } from "../App";
 import ConfirmDialog from "./ui/ConfirmDialog";
 import { formatCurrency, formatDate } from "../utils/formatters";
+import { AppTooltip } from "@/components/ui/Tooltip";
 
 const MATCH_LABELS = {
   contains: "Contém",
@@ -413,14 +414,15 @@ export default function Classificacao() {
                         <Check size={13} /> Aprovar
                       </button>
                       {!s.regra_id && (
-                        <button
-                          type="button"
-                          onClick={() => prepararRegraDaSugestao(s)}
-                          title="Usar esta despesa para criar regra automática"
-                          className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
-                        >
-                          <Wand2 size={14} />
-                        </button>
+                        <AppTooltip content="Usar esta despesa para criar regra automática">
+                          <button
+                            type="button"
+                            onClick={() => prepararRegraDaSugestao(s)}
+                            className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                          >
+                            <Wand2 size={14} />
+                          </button>
+                        </AppTooltip>
                       )}
                     </div>
                   </div>
@@ -596,22 +598,24 @@ export default function Classificacao() {
                       </p>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => handleToggleAtiva(r)}
-                        title={r.ativo ? "Pausar regra" : "Ativar regra"}
-                        className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
-                      >
-                        {r.ativo ? <Pause size={13} /> : <Play size={13} />}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setRegraParaExcluir(r)}
-                        title="Excluir regra"
-                        className="p-1.5 rounded-lg border border-red-200 dark:border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 cursor-pointer"
-                      >
-                        <Trash2 size={13} />
-                      </button>
+                      <AppTooltip content={r.ativo ? "Pausar regra" : "Ativar regra"}>
+                        <button
+                          type="button"
+                          onClick={() => handleToggleAtiva(r)}
+                          className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                        >
+                          {r.ativo ? <Pause size={13} /> : <Play size={13} />}
+                        </button>
+                      </AppTooltip>
+                      <AppTooltip content="Excluir regra">
+                        <button
+                          type="button"
+                          onClick={() => setRegraParaExcluir(r)}
+                          className="p-1.5 rounded-lg border border-red-200 dark:border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 cursor-pointer"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </AppTooltip>
                     </div>
                   </div>
                 ))}

@@ -20,6 +20,7 @@ import toast from "react-hot-toast";
 import ConfirmDialog from "./ui/ConfirmDialog";
 import { CurrencyInput } from "./CurrencyInput";
 import { formatCurrency, formatDate, todayInTimezone } from "../utils/formatters";
+import { AppTooltip } from "@/components/ui/Tooltip";
 
 const TIPOS_PATRIMONIO = [
   { value: "reserva_emergencia", label: "Reserva de Emergência", color: "bg-emerald-500 dark:bg-lime-spark" },
@@ -517,12 +518,15 @@ export default function Patrimonio() {
           </div>
           <div className="w-full h-3 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden flex">
             {resumo.distribuicao_por_tipo.map((d) => (
-              <div
+              <AppTooltip
                 key={d.tipo}
-                className={`h-full transition-all duration-300 ${TIPO_COLOR[d.tipo] || "bg-slate-500"}`}
-                style={{ width: `${Math.max(2, d.percentual)}%` }}
-                title={`${TIPO_LABEL[d.tipo] || d.tipo}: ${formatCurrency(d.total)} (${d.percentual}%)`}
-              />
+                content={`${TIPO_LABEL[d.tipo] || d.tipo}: ${formatCurrency(d.total)} (${d.percentual}%)`}
+              >
+                <div
+                  className={`h-full transition-all duration-300 ${TIPO_COLOR[d.tipo] || "bg-slate-500"}`}
+                  style={{ width: `${Math.max(2, d.percentual)}%` }}
+                />
+              </AppTooltip>
             ))}
           </div>
           <div className="flex flex-wrap gap-3 text-xs text-slate-600 dark:text-slate-300">
@@ -746,20 +750,22 @@ export default function Patrimonio() {
                       <button onClick={() => carregarHistorico(item.id)} className={`${BTN_SECONDARY} whitespace-nowrap`}>
                         <History className="w-3.5 h-3.5" /> {aberto ? "Ocultar histórico" : "Histórico"}
                       </button>
-                      <button
-                        onClick={() => abrirEditar(item)}
-                        title="Editar ativo"
-                        className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer shrink-0"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => setDeleteTarget(item)}
-                        title="Excluir ativo"
-                        className="p-1.5 rounded-lg text-slate-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 cursor-pointer shrink-0"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <AppTooltip content="Editar ativo">
+                        <button
+                          onClick={() => abrirEditar(item)}
+                          className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer shrink-0"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                      </AppTooltip>
+                      <AppTooltip content="Excluir ativo">
+                        <button
+                          onClick={() => setDeleteTarget(item)}
+                          className="p-1.5 rounded-lg text-slate-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 cursor-pointer shrink-0"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </AppTooltip>
                     </div>
                   </div>
 
@@ -769,30 +775,32 @@ export default function Patrimonio() {
                     </span>
                     <span className={`px-2 py-0.5 rounded-full text-xs border ${liq.cls}`}>{liq.label}</span>
                     {item.rendimento_tipo && item.rendimento_tipo !== "nenhum" && item.rendimento_valor > 0 && (
-                      <span
-                        className="px-2 py-0.5 rounded-full text-xs bg-emerald-50 dark:bg-lime-spark/10 text-emerald-700 dark:text-lime-spark border border-emerald-200 dark:border-lime-spark/25"
-                        title={`Equivalente a ${item.taxa_anual_efetiva}% a.a. (${item.taxa_mensal_efetiva}% a.m.)`}
-                      >
-                        {item.rendimento_tipo === "cdi_percentual"
-                          ? `${item.rendimento_valor}% CDI`
-                          : item.rendimento_tipo === "anual"
-                            ? `${item.rendimento_valor}% a.a.`
-                            : `${item.rendimento_valor}% a.m.`}
-                      </span>
+                      <AppTooltip content={`Equivalente a ${item.taxa_anual_efetiva}% a.a. (${item.taxa_mensal_efetiva}% a.m.)`}>
+                        <span
+                          className="px-2 py-0.5 rounded-full text-xs bg-emerald-50 dark:bg-lime-spark/10 text-emerald-700 dark:text-lime-spark border border-emerald-200 dark:border-lime-spark/25"
+                        >
+                          {item.rendimento_tipo === "cdi_percentual"
+                            ? `${item.rendimento_valor}% CDI`
+                            : item.rendimento_tipo === "anual"
+                              ? `${item.rendimento_valor}% a.a.`
+                              : `${item.rendimento_valor}% a.m.`}
+                        </span>
+                      </AppTooltip>
                     )}
                     {item.instituicao && (
                       <span className="text-xs text-slate-500 dark:text-slate-400">· {item.instituicao}</span>
                     )}
                     {item.objetivos_vinculados?.length > 0 && (
-                      <span
-                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/20"
-                        title={item.objetivos_vinculados.map((o) => o.nome).join(", ")}
-                      >
-                        <Flag className="w-3 h-3" />
-                        {item.objetivos_vinculados.length === 1
-                          ? `Objetivo: ${item.objetivos_vinculados[0].nome}`
-                          : `${item.objetivos_vinculados.length} objetivos vinculados`}
-                      </span>
+                      <AppTooltip content={item.objetivos_vinculados.map((o) => o.nome).join(", ")}>
+                        <span
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/20"
+                        >
+                          <Flag className="w-3 h-3" />
+                          {item.objetivos_vinculados.length === 1
+                            ? `Objetivo: ${item.objetivos_vinculados[0].nome}`
+                            : `${item.objetivos_vinculados.length} objetivos vinculados`}
+                        </span>
+                      </AppTooltip>
                     )}
                     {!item.ativo && (
                       <span className="px-2 py-0.5 rounded-full text-xs bg-slate-100 dark:bg-slate-800 text-slate-500">

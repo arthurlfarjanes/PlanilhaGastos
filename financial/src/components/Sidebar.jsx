@@ -9,6 +9,7 @@ import {
   Landmark,
   Wallet,
   Flag,
+  LineChart,
   Bell,
   Activity,
   Tags,
@@ -25,6 +26,7 @@ import {
   PanelLeftOpen,
   ChevronDown,
 } from "lucide-react";
+import { AppTooltip } from "@/components/ui/Tooltip";
 
 export const NAV_GROUPS = [
   {
@@ -49,6 +51,7 @@ export const NAV_GROUPS = [
     items: [
       { to: "/orcamentos", label: "Orçamentos", iconId: "orcamentos", hasAlertDot: true },
       { to: "/objetivos", label: "Objetivos", iconId: "objetivos" },
+      { to: "/projecoes", label: "Projeções", iconId: "projecoes" },
     ],
   },
   {
@@ -139,6 +142,8 @@ export function NavIcon({ id, size = 18 }) {
       return <Wallet size={size} className="shrink-0" />;
     case "objetivos":
       return <Flag size={size} className="shrink-0" />;
+    case "projecoes":
+      return <LineChart size={size} className="shrink-0" />;
     case "notificacoes":
       return <Bell size={size} className="shrink-0" />;
     case "configuracoes":
@@ -187,54 +192,54 @@ export function NavGroupsMenu({
             {baseItems.map((item) => {
               const active = isNavItemActive(item, location);
               return (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  title={compact ? item.label : undefined}
-                  className={`relative flex items-center ${
-                    compact ? "justify-center px-2.5" : "gap-3 px-3.5"
-                  } py-2 rounded-xl text-sm font-semibold transition-all ${
-                    active
-                      ? "bg-lime-spark text-graphite-900 font-bold shadow-[0_2px_12px_rgba(182,255,226,0.3)]"
-                      : "text-slate-600 dark:text-graphite-300 hover:bg-slate-100 dark:hover:bg-graphite-700 hover:text-slate-900 dark:hover:text-white"
-                  }`}
-                >
-                  <NavIcon id={item.iconId} size={iconSize} />
-                  {!compact && <span className="truncate">{item.label}</span>}
+                <AppTooltip key={item.to} content={compact ? item.label : null} side="right">
+                  <Link
+                    to={item.to}
+                    className={`relative flex items-center ${
+                      compact ? "justify-center px-2.5" : "gap-3 px-3.5"
+                    } py-2 rounded-xl text-sm font-semibold transition-all ${
+                      active
+                        ? "bg-lime-spark text-graphite-900 font-bold shadow-[0_2px_12px_rgba(182,255,226,0.3)]"
+                        : "text-slate-600 dark:text-graphite-300 hover:bg-slate-100 dark:hover:bg-graphite-700 hover:text-slate-900 dark:hover:text-white"
+                    }`}
+                  >
+                    <NavIcon id={item.iconId} size={iconSize} />
+                    {!compact && <span className="truncate">{item.label}</span>}
 
-                  {item.hasAlertDot && alertasVisiveis > 0 && (
-                    <span
-                      aria-label={`${alertasVisiveis} orçamento(s) em alerta`}
-                      className={`${compact ? "absolute top-1.5 right-1.5" : "ml-auto"} flex items-center gap-1.5`}
-                    >
-                      <span className="relative flex items-center justify-center h-2 w-2">
-                        <span
-                          className={`${reduceMotion ? "hidden" : "animate-ping"} absolute inset-0 rounded-full bg-amber-400/60`}
-                        />
-                        <span className="relative rounded-full h-1.5 w-1.5 bg-amber-400" />
+                    {item.hasAlertDot && alertasVisiveis > 0 && (
+                      <span
+                        aria-label={`${alertasVisiveis} orçamento(s) em alerta`}
+                        className={`${compact ? "absolute top-1.5 right-1.5" : "ml-auto"} flex items-center gap-1.5`}
+                      >
+                        <span className="relative flex items-center justify-center h-2 w-2">
+                          <span
+                            className={`${reduceMotion ? "hidden" : "animate-ping"} absolute inset-0 rounded-full bg-amber-400/60`}
+                          />
+                          <span className="relative rounded-full h-1.5 w-1.5 bg-amber-400" />
+                        </span>
+                        {!compact && (
+                          <span className="text-[0.65rem] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300">
+                            {alertasVisiveis}
+                          </span>
+                        )}
                       </span>
-                      {!compact && (
-                        <span className="text-[0.65rem] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300">
-                          {alertasVisiveis}
-                        </span>
-                      )}
-                    </span>
-                  )}
+                    )}
 
-                  {item.hasNotifDot && lembretesVisiveis > 0 && (
-                    <span
-                      aria-label={`${lembretesVisiveis} lembrete(s) ativo(s)`}
-                      className={`${compact ? "absolute top-1.5 right-1.5" : "ml-auto"} flex items-center gap-1.5`}
-                    >
-                      {!compact && (
-                        <span className="text-[0.65rem] font-bold px-1.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300">
-                          {lembretesVisiveis}
-                        </span>
-                      )}
-                      {compact && <span className="rounded-full h-2 w-2 bg-rose-500" />}
-                    </span>
-                  )}
-                </Link>
+                    {item.hasNotifDot && lembretesVisiveis > 0 && (
+                      <span
+                        aria-label={`${lembretesVisiveis} lembrete(s) ativo(s)`}
+                        className={`${compact ? "absolute top-1.5 right-1.5" : "ml-auto"} flex items-center gap-1.5`}
+                      >
+                        {!compact && (
+                          <span className="text-[0.65rem] font-bold px-1.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300">
+                            {lembretesVisiveis}
+                          </span>
+                        )}
+                        {compact && <span className="rounded-full h-2 w-2 bg-rose-500" />}
+                      </span>
+                    )}
+                  </Link>
+                </AppTooltip>
               );
             })}
 
@@ -246,20 +251,21 @@ export function NavGroupsMenu({
             )}
 
             {showAdmin && (
-              <Link
-                to="/admin"
-                title={compact ? "Painel Admin" : undefined}
-                className={`flex items-center ${
-                  compact ? "justify-center px-2.5" : "gap-3 px-3.5"
-                } py-2 rounded-xl text-sm font-semibold transition-all ${
-                  location.pathname === "/admin"
-                    ? "bg-red-500 text-white font-bold shadow-[0_2px_12px_rgba(239,68,68,0.3)]"
-                    : "text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10"
-                }`}
-              >
+              <AppTooltip content={compact ? "Painel Admin" : null} side="right">
+                <Link
+                  to="/admin"
+                  className={`flex items-center ${
+                    compact ? "justify-center px-2.5" : "gap-3 px-3.5"
+                  } py-2 rounded-xl text-sm font-semibold transition-all ${
+                    location.pathname === "/admin"
+                      ? "bg-red-500 text-white font-bold shadow-[0_2px_12px_rgba(239,68,68,0.3)]"
+                      : "text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10"
+                  }`}
+                >
                 <NavIcon id="admin" size={iconSize} />
                 {!compact && <span className="truncate">Painel Admin</span>}
               </Link>
+              </AppTooltip>
             )}
           </div>
         );
@@ -412,16 +418,19 @@ export default function Sidebar({
       data-sidebar-account-menu="true"
       className="relative border-t border-slate-200/80 dark:border-graphite-600 p-3"
     >
-      <button
-        type="button"
-        onClick={() => setContaMenuAberto((v) => !v)}
-        aria-haspopup="true"
-        aria-expanded={contaMenuAberto}
-        title={compact ? `${username} (${role === "admin" ? "Administrador" : "Conta pessoal"})` : undefined}
-        className={`w-full flex items-center ${
-          compact ? "justify-center p-2 rounded-2xl" : "justify-between gap-2.5 px-3 py-2 rounded-full"
-        } bg-slate-100 dark:bg-graphite-900 hover:bg-slate-200 dark:hover:bg-graphite-700 border border-slate-200 dark:border-graphite-600 transition-all cursor-pointer`}
+      <AppTooltip
+        content={compact ? `${username} (${role === "admin" ? "Administrador" : "Conta pessoal"})` : null}
+        side="right"
       >
+        <button
+          type="button"
+          onClick={() => setContaMenuAberto((v) => !v)}
+          aria-haspopup="true"
+          aria-expanded={contaMenuAberto}
+          className={`w-full flex items-center ${
+            compact ? "justify-center p-2 rounded-2xl" : "justify-between gap-2.5 px-3 py-2 rounded-full"
+          } bg-slate-100 dark:bg-graphite-900 hover:bg-slate-200 dark:hover:bg-graphite-700 border border-slate-200 dark:border-graphite-600 transition-all cursor-pointer`}
+        >
         <div className="flex items-center gap-2.5 min-w-0">
           {profilePic ? (
             <img
@@ -454,7 +463,8 @@ export default function Sidebar({
             }`}
           />
         )}
-      </button>
+        </button>
+      </AppTooltip>
 
       {contaMenuAberto && renderAccountMenuItems(compact)}
     </div>
@@ -484,15 +494,16 @@ export default function Sidebar({
               </span>
             </Link>
           )}
-          <button
-            type="button"
-            onClick={() => setColapsada((v) => !v)}
-            aria-label={colapsada ? "Expandir sidebar" : "Recolher sidebar"}
-            title={colapsada ? "Expandir sidebar" : "Recolher sidebar"}
-            className="p-2 rounded-xl text-slate-500 dark:text-graphite-300 hover:bg-slate-100 dark:hover:bg-graphite-700 transition-colors cursor-pointer"
-          >
-            {colapsada ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
-          </button>
+          <AppTooltip content={colapsada ? "Expandir sidebar" : "Recolher sidebar"} side={colapsada ? "right" : "bottom"}>
+            <button
+              type="button"
+              onClick={() => setColapsada((v) => !v)}
+              aria-label={colapsada ? "Expandir sidebar" : "Recolher sidebar"}
+              className="p-2 rounded-xl text-slate-500 dark:text-graphite-300 hover:bg-slate-100 dark:hover:bg-graphite-700 transition-colors cursor-pointer"
+            >
+              {colapsada ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+            </button>
+          </AppTooltip>
         </div>
 
         {renderLinks(colapsada)}

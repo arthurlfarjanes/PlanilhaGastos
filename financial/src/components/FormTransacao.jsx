@@ -3,6 +3,7 @@ import { AuthContext } from "../App";
 import { PlusCircle, AlertCircle, Sparkles } from "lucide-react";
 import { CurrencyInput } from "./CurrencyInput";
 import { Button } from "@/components/ui/Button";
+import { AppTooltip } from "@/components/ui/Tooltip";
 
 const getTodayDateString = () => {
   const today = new Date();
@@ -222,15 +223,16 @@ function FormularioTransacao({ onTransacaoAdicionada, categorias, cartoes = [] }
           <div className="flex flex-wrap items-center justify-between gap-2">
             <label className={`${labelClass} mb-0`}>Selecione a Categoria</label>
             {sugestaoCat && Number(categoriaId) !== Number(sugestaoCat.categoria_id) && (
-              <button
-                type="button"
-                onClick={() => setCategoriaId(sugestaoCat.categoria_id)}
-                title={sugestaoCat.motivo}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 dark:bg-lime-spark/15 text-emerald-700 dark:text-lime-spark border border-emerald-200 dark:border-lime-spark/30 hover:opacity-90 cursor-pointer"
-              >
-                <Sparkles size={11} />
-                Sugestão: {sugestaoCat.categoria_nome} · Aplicar
-              </button>
+              <AppTooltip content={sugestaoCat.motivo}>
+                <button
+                  type="button"
+                  onClick={() => setCategoriaId(sugestaoCat.categoria_id)}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 dark:bg-lime-spark/15 text-emerald-700 dark:text-lime-spark border border-emerald-200 dark:border-lime-spark/30 hover:opacity-90 cursor-pointer"
+                >
+                  <Sparkles size={11} />
+                  Sugestão: {sugestaoCat.categoria_nome} · Aplicar
+                </button>
+              </AppTooltip>
             )}
           </div>
           <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto pr-1 py-1">

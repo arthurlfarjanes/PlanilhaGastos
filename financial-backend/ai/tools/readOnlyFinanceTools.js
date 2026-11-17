@@ -16,6 +16,7 @@ const {
   computeUserDiagnostics,
   computeUserOptimization,
 } = require("../../services/diagnosticosService");
+const { computeUserProjection } = require("../../services/planejamentoService");
 
 const TOOL_CATALOG = {
   obter_resumo_financeiro: {
@@ -333,6 +334,21 @@ const TOOL_CATALOG = {
       };
     },
   },
+  obter_projecoes_base: {
+    name: "obter_projecoes_base",
+    label: "Projeção de 12 meses com premissas explícitas",
+    async run(userId, { refDate }) {
+      const proj = await computeUserProjection(userId, {
+        refDate,
+        parametrosUsuario: { horizonte_meses: 12 },
+      });
+      return {
+        premissas: proj.premissas,
+        resumo_12_meses: proj.resumo_comparativo.base,
+        previsao_objetivos: proj.previsao_objetivos.slice(0, 4),
+      };
+    },
+  },
 };
 
 /**
@@ -357,6 +373,9 @@ function selectToolsForPrompt(message) {
   }
   if (/otimiz|prioriz|aloc|sobra|amortiz|cortar|economizar mais|onde colocar|onde investir/.test(txt)) {
     chosen.add("obter_plano_otimizacao");
+  }
+  if (/proje[çc]|simul|cen[áa]rio|futur|infla[çc]|daqui a|meses|ano que vem/.test(txt)) {
+    chosen.add("obter_projecoes_base");
   }
 
   // Pergunta genérica/panorâmica -> inclui categorias, metas/dívidas e diagnósticos para dar boa visão

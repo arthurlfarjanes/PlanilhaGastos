@@ -21,6 +21,7 @@ import toast from "react-hot-toast";
 import ConfirmDialog from "./ui/ConfirmDialog";
 import { CurrencyInput } from "./CurrencyInput";
 import { formatCurrency, formatDate, todayInTimezone } from "../utils/formatters";
+import { AppTooltip } from "@/components/ui/Tooltip";
 
 const CATEGORIAS_OBJ = [
   { value: "reserva_emergencia", label: "Reserva de Emergência" },
@@ -688,20 +689,22 @@ export default function Objetivos() {
                       <button onClick={() => carregarHistorico(obj.id)} className={`${BTN_SECONDARY} whitespace-nowrap`}>
                         <History className="w-3.5 h-3.5" /> {aberto ? "Ocultar histórico" : "Histórico"}
                       </button>
-                      <button
-                        onClick={() => abrirEditar(obj)}
-                        title="Editar objetivo"
-                        className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer shrink-0"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => setDeleteTarget(obj)}
-                        title="Excluir objetivo"
-                        className="p-1.5 rounded-lg text-slate-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 cursor-pointer shrink-0"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <AppTooltip content="Editar objetivo">
+                        <button
+                          onClick={() => abrirEditar(obj)}
+                          className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer shrink-0"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                      </AppTooltip>
+                      <AppTooltip content="Excluir objetivo">
+                        <button
+                          onClick={() => setDeleteTarget(obj)}
+                          className="p-1.5 rounded-lg text-slate-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 cursor-pointer shrink-0"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </AppTooltip>
                     </div>
                   </div>
 
@@ -709,33 +712,34 @@ export default function Objetivos() {
                     {(() => {
                       const stCfg = STATUS_OBJ_CFG[obj.status] || STATUS_OBJ_CFG.ativo;
                       return (
-                        <div
-                          className={`relative inline-flex items-center rounded-full border ${stCfg.cls}`}
-                          title="Alterar status rapidamente"
-                        >
-                          <span className="pl-2.5 flex items-center pointer-events-none">
-                            {obj.status === "concluido" && <CheckCircle2 className="w-3 h-3 mr-1" />}
-                            {obj.status === "pausado" && <PauseCircle className="w-3 h-3 mr-1" />}
-                          </span>
-                          <select
-                            aria-label={`Status de ${obj.nome}`}
-                            value={obj.status}
-                            disabled={updatingStatusId === obj.id}
-                            onChange={(e) => handleAlterarStatus(obj, e.target.value)}
-                            className="appearance-none bg-transparent pr-6 py-0.5 text-xs font-medium focus:outline-none cursor-pointer disabled:opacity-60"
+                        <AppTooltip content="Alterar status rapidamente">
+                          <div
+                            className={`relative inline-flex items-center rounded-full border ${stCfg.cls}`}
                           >
-                            <option value="ativo" className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">
-                              Ativo
-                            </option>
-                            <option value="pausado" className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">
-                              Pausado
-                            </option>
-                            <option value="concluido" className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">
-                              Concluído
-                            </option>
-                          </select>
-                          <ChevronDown className="w-3 h-3 absolute right-2 pointer-events-none opacity-75" />
-                        </div>
+                            <span className="pl-2.5 flex items-center pointer-events-none">
+                              {obj.status === "concluido" && <CheckCircle2 className="w-3 h-3 mr-1" />}
+                              {obj.status === "pausado" && <PauseCircle className="w-3 h-3 mr-1" />}
+                            </span>
+                            <select
+                              aria-label={`Status de ${obj.nome}`}
+                              value={obj.status}
+                              disabled={updatingStatusId === obj.id}
+                              onChange={(e) => handleAlterarStatus(obj, e.target.value)}
+                              className="appearance-none bg-transparent pr-6 py-0.5 text-xs font-medium focus:outline-none cursor-pointer disabled:opacity-60"
+                            >
+                              <option value="ativo" className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">
+                                Ativo
+                              </option>
+                              <option value="pausado" className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">
+                                Pausado
+                              </option>
+                              <option value="concluido" className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">
+                                Concluído
+                              </option>
+                            </select>
+                            <ChevronDown className="w-3 h-3 absolute right-2 pointer-events-none opacity-75" />
+                          </div>
+                        </AppTooltip>
                       );
                     })()}
                     <span className="px-2 py-0.5 rounded-full text-xs bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">

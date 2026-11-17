@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/Select";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/Tooltip";
+import { AppTooltip, Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/Tooltip";
 
 // Recharts
 import { PieChart, Pie, Cell, LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from "recharts";
@@ -679,9 +679,11 @@ function AdminPanel() {
                         <td className="py-3 px-4 text-xs font-mono text-slate-500 dark:text-slate-400">
                           {log.route || '-'}
                         </td>
-                        <td className="py-3 px-4 text-sm text-slate-600 dark:text-slate-400 max-w-md truncate" title={log.message}>
-                          {log.message}
-                        </td>
+                        <AppTooltip content={log.message} className="max-w-md">
+                          <td className="py-3 px-4 text-sm text-slate-600 dark:text-slate-400 max-w-md truncate">
+                            {log.message}
+                          </td>
+                        </AppTooltip>
                       </tr>
                     ))
                   )}

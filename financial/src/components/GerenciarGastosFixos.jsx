@@ -27,6 +27,7 @@ import toast from "react-hot-toast";
 import ConfirmDialog from "./ui/ConfirmDialog";
 import { formatCurrency, formatDate, todayInTimezone } from "../utils/formatters";
 import { CurrencyInput } from "./CurrencyInput";
+import { AppTooltip } from "@/components/ui/Tooltip";
 
 const MESES = [
   "Janeiro",
@@ -560,14 +561,15 @@ export default function GerenciarGastosFixos() {
               </button>
 
               {gastoEditando && (
-                <button
-                  type="button"
-                  onClick={limparFormulario}
-                  className="bg-slate-100 dark:bg-graphite-700 hover:bg-slate-200 dark:hover:bg-graphite-600 text-slate-600 dark:text-slate-300 p-2.5 rounded-xl transition-all flex items-center justify-center cursor-pointer border border-slate-200 dark:border-graphite-600"
-                  title="Cancelar Edição"
-                >
-                  <X size={20} />
-                </button>
+                <AppTooltip content="Cancelar Edição">
+                  <button
+                    type="button"
+                    onClick={limparFormulario}
+                    className="bg-slate-100 dark:bg-graphite-700 hover:bg-slate-200 dark:hover:bg-graphite-600 text-slate-600 dark:text-slate-300 p-2.5 rounded-xl transition-all flex items-center justify-center cursor-pointer border border-slate-200 dark:border-graphite-600"
+                  >
+                    <X size={20} />
+                  </button>
+                </AppTooltip>
               )}
             </div>
           </div>
@@ -779,45 +781,49 @@ export default function GerenciarGastosFixos() {
                       <td className="py-4 px-5">
                         <div className="flex items-center justify-center gap-2">
                           {isPago ? (
-                            <button
-                              type="button"
-                              disabled={acaoId === gasto.id}
-                              onClick={() => handleDesfazerPagamento(gasto)}
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-graphite-700 text-slate-700 dark:text-slate-200 hover:bg-amber-500 hover:text-white transition-all cursor-pointer text-xs font-semibold disabled:opacity-50"
-                              title="Desfazer pagamento e remover lançamento vinculado"
-                            >
-                              <Undo2 size={13} />
-                              Desfazer
-                            </button>
-                          ) : (
-                            gasto.ativo && (
+                            <AppTooltip content="Desfazer pagamento e remover lançamento vinculado">
                               <button
                                 type="button"
                                 disabled={acaoId === gasto.id}
-                                onClick={() => handleMarcarPago(gasto)}
-                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-600 hover:text-white transition-all cursor-pointer text-xs font-bold border border-emerald-200/70 dark:border-emerald-500/30 disabled:opacity-50"
-                                title="Marcar como pago nesta competência e lançar no extrato"
+                                onClick={() => handleDesfazerPagamento(gasto)}
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-graphite-700 text-slate-700 dark:text-slate-200 hover:bg-amber-500 hover:text-white transition-all cursor-pointer text-xs font-semibold disabled:opacity-50"
                               >
-                                <CheckCircle2 size={13} />
-                                {isReceita ? "Recebido" : "Pagar"}
+                                <Undo2 size={13} />
+                                Desfazer
                               </button>
+                            </AppTooltip>
+                          ) : (
+                            gasto.ativo && (
+                              <AppTooltip content="Marcar como pago nesta competência e lançar no extrato">
+                                <button
+                                  type="button"
+                                  disabled={acaoId === gasto.id}
+                                  onClick={() => handleMarcarPago(gasto)}
+                                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-600 hover:text-white transition-all cursor-pointer text-xs font-bold border border-emerald-200/70 dark:border-emerald-500/30 disabled:opacity-50"
+                                >
+                                  <CheckCircle2 size={13} />
+                                  {isReceita ? "Recebido" : "Pagar"}
+                                </button>
+                              </AppTooltip>
                             )
                           )}
 
-                          <button
-                            onClick={() => handleEditarClick(gasto)}
-                            className="p-2 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500 hover:text-white transition-all cursor-pointer border border-blue-200/60 dark:border-blue-500/20"
-                            title="Editar"
-                          >
-                            <Pencil size={15} />
-                          </button>
-                          <button
-                            onClick={() => setGastoParaDeletar(gasto.id)}
-                            className="p-2 rounded-lg bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500 hover:text-white transition-all cursor-pointer border border-red-200/60 dark:border-red-500/20"
-                            title="Excluir"
-                          >
-                            <Trash2 size={15} />
-                          </button>
+                          <AppTooltip content="Editar">
+                            <button
+                              onClick={() => handleEditarClick(gasto)}
+                              className="p-2 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500 hover:text-white transition-all cursor-pointer border border-blue-200/60 dark:border-blue-500/20"
+                            >
+                              <Pencil size={15} />
+                            </button>
+                          </AppTooltip>
+                          <AppTooltip content="Excluir">
+                            <button
+                              onClick={() => setGastoParaDeletar(gasto.id)}
+                              className="p-2 rounded-lg bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500 hover:text-white transition-all cursor-pointer border border-red-200/60 dark:border-red-500/20"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          </AppTooltip>
                         </div>
                       </td>
                     </tr>

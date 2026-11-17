@@ -3,6 +3,7 @@ import { AuthContext } from "../App";
 import { Plus, Edit2, Trash2, Dices, AlertCircle, Tag } from "lucide-react";
 import ConfirmDialog from "./ui/ConfirmDialog";
 import { Button } from "@/components/ui/Button";
+import { AppTooltip } from "@/components/ui/Tooltip";
 
 // Paleta expandida com 40 cores otimizadas para leitura
 const PALETTE = [
@@ -165,18 +166,19 @@ function GerenciarCategorias({ categorias, onCategoriaChange, onEdit }) {
       >
         <div className="flex flex-1 items-center gap-2 border border-slate-200 dark:border-graphite-600 rounded-xl p-1.5 focus-within:ring-2 focus-within:ring-lime-spark/40 focus-within:border-lime-spark bg-slate-50/50 dark:bg-graphite-900 shadow-xs transition-all">
           {/* Seletor de cor */}
-          <div
-            className="relative w-7 h-7 shrink-0 rounded-full shadow-xs border border-white/40 overflow-hidden cursor-pointer flex items-center justify-center transition-transform hover:scale-105"
-            style={{ backgroundColor: cor }}
-            title="Escolher cor manualmente"
-          >
-            <input
-              type="color"
-              value={cor}
-              onChange={(e) => setCor(e.target.value)}
-              className="absolute inset-0 w-14 h-14 -top-3 -left-3 opacity-0 cursor-pointer"
-            />
-          </div>
+          <AppTooltip content="Escolher cor manualmente">
+            <div
+              className="relative w-7 h-7 shrink-0 rounded-full shadow-xs border border-white/40 overflow-hidden cursor-pointer flex items-center justify-center transition-transform hover:scale-105"
+              style={{ backgroundColor: cor }}
+            >
+              <input
+                type="color"
+                value={cor}
+                onChange={(e) => setCor(e.target.value)}
+                className="absolute inset-0 w-14 h-14 -top-3 -left-3 opacity-0 cursor-pointer"
+              />
+            </div>
+          </AppTooltip>
 
           <input
             type="text"
@@ -187,24 +189,29 @@ function GerenciarCategorias({ categorias, onCategoriaChange, onEdit }) {
             maxLength={50}
           />
 
-          <button
-            type="button"
-            onClick={getRandomColor}
-            className="shrink-0 p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-lime-spark hover:bg-slate-200 dark:hover:bg-graphite-700 transition-colors cursor-pointer"
-            title="Sortear cor aleatória"
-          >
-            <Dices size={16} />
-          </button>
+          <AppTooltip content="Sortear cor aleatória">
+            <button
+              type="button"
+              onClick={getRandomColor}
+              className="shrink-0 p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-lime-spark hover:bg-slate-200 dark:hover:bg-graphite-700 transition-colors cursor-pointer"
+            >
+              <Dices size={16} />
+            </button>
+          </AppTooltip>
         </div>
 
-        <button
-          type="submit"
-          disabled={loading || !novaCategoria.trim()}
-          className="shrink-0 bg-lime-spark hover:bg-lime-spark-hover text-graphite-900 p-2.5 rounded-xl font-bold shadow-xs hover:shadow-md transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center"
-          title="Adicionar Categoria"
-        >
-          <Plus size={18} strokeWidth={2.5} />
-        </button>
+        <AppTooltip content="Adicionar Categoria">
+          <span className="inline-flex shrink-0">
+            <button
+              type="submit"
+              disabled={loading || !novaCategoria.trim()}
+              aria-label="Adicionar Categoria"
+              className="shrink-0 bg-lime-spark hover:bg-lime-spark-hover text-graphite-900 p-2.5 rounded-xl font-bold shadow-xs hover:shadow-md transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center"
+            >
+              <Plus size={18} strokeWidth={2.5} />
+            </button>
+          </span>
+        </AppTooltip>
       </form>
 
       {/* Lista de Categorias Cadastradas */}
@@ -225,20 +232,22 @@ function GerenciarCategorias({ categorias, onCategoriaChange, onEdit }) {
             </div>
 
             <div className="flex gap-1 shrink-0 opacity-100 sm:opacity-80 group-hover:opacity-100 transition-opacity">
-              <button
-                onClick={() => onEdit(cat)}
-                className="text-slate-500 dark:text-graphite-300 hover:text-[var(--accent-strong)] dark:hover:text-lime-spark p-1.5 rounded-lg hover:bg-slate-200/60 dark:hover:bg-graphite-700 transition-colors cursor-pointer"
-                title="Editar Categoria"
-              >
-                <Edit2 size={14} />
-              </button>
-              <button
-                onClick={() => setCategoriaParaExcluir(cat)}
-                className="text-slate-500 dark:text-graphite-300 hover:text-red-500 dark:hover:text-red-400 p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors cursor-pointer"
-                title="Excluir Categoria"
-              >
-                <Trash2 size={14} />
-              </button>
+              <AppTooltip content="Editar Categoria">
+                <button
+                  onClick={() => onEdit(cat)}
+                  className="text-slate-500 dark:text-graphite-300 hover:text-[var(--accent-strong)] dark:hover:text-lime-spark p-1.5 rounded-lg hover:bg-slate-200/60 dark:hover:bg-graphite-700 transition-colors cursor-pointer"
+                >
+                  <Edit2 size={14} />
+                </button>
+              </AppTooltip>
+              <AppTooltip content="Excluir Categoria">
+                <button
+                  onClick={() => setCategoriaParaExcluir(cat)}
+                  className="text-slate-500 dark:text-graphite-300 hover:text-red-500 dark:hover:text-red-400 p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors cursor-pointer"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </AppTooltip>
             </div>
           </li>
         ))}

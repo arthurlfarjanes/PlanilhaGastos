@@ -21,6 +21,7 @@ import { AuthContext } from "../App";
 import { usePreferences } from "../context/PreferencesContext";
 import { ModalTrocarSenha } from "./ModalTrocarSenha";
 import { formatCurrency, formatDate, todayInTimezone } from "../utils/formatters";
+import { AppTooltip } from "@/components/ui/Tooltip";
 
 const TABS_BASE = [
   { id: "perfil", label: "Perfil e conta", icon: UserCircle },
@@ -320,10 +321,12 @@ export default function Configuracoes() {
                 <Row label="Cor de destaque">
                   <div className="flex gap-2.5" role="radiogroup" aria-label="Cor de destaque">
                     {ACCENTS.map((c) => (
-                      <button key={c.id} type="button" role="radio" aria-checked={a.accent === c.id} aria-label={c.label} title={c.label}
-                        onClick={() => setA({ accent: c.id })}
-                        style={{ backgroundColor: c.color }}
-                        className={`w-9 h-9 rounded-full cursor-pointer transition-transform ${a.accent === c.id ? "ring-2 ring-offset-2 ring-slate-900 dark:ring-white dark:ring-offset-graphite-800 scale-110" : "hover:scale-105"}`} />
+                      <AppTooltip key={c.id} content={c.label}>
+                        <button type="button" role="radio" aria-checked={a.accent === c.id} aria-label={c.label}
+                          onClick={() => setA({ accent: c.id })}
+                          style={{ backgroundColor: c.color }}
+                          className={`w-9 h-9 rounded-full cursor-pointer transition-transform ${a.accent === c.id ? "ring-2 ring-offset-2 ring-slate-900 dark:ring-white dark:ring-offset-graphite-800 scale-110" : "hover:scale-105"}`} />
+                      </AppTooltip>
                     ))}
                   </div>
                 </Row>

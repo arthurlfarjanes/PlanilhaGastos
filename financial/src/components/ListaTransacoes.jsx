@@ -2,6 +2,7 @@ import React from "react";
 import { Edit2, Trash2, ArrowUpRight, ArrowDownRight, CreditCard } from "lucide-react";
 
 import { formatCurrency, formatDate } from "../utils/formatters";
+import { AppTooltip } from "@/components/ui/Tooltip";
 
 function ListaTransacoes({ transacoes, onEdit, onDelete }) {
   if (transacoes.length === 0)
@@ -77,13 +78,14 @@ function ListaTransacoes({ transacoes, onEdit, onDelete }) {
                   )}
 
                   {!isReceita && !t.cartao_id && t.cartao_excluido_nome && (
-                    <span
-                      title="Esta transação foi lançada em um cartão que não está mais cadastrado."
-                      className="inline-flex items-center gap-1 text-[0.7rem] font-semibold px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-500/10 text-amber-800 dark:text-amber-300 border border-dashed border-amber-300 dark:border-amber-500/35"
-                    >
-                      <CreditCard size={11} />
-                      Cartão excluído ({t.cartao_excluido_nome})
-                    </span>
+                    <AppTooltip content="Esta transação foi lançada em um cartão que não está mais cadastrado.">
+                      <span
+                        className="inline-flex items-center gap-1 text-[0.7rem] font-semibold px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-500/10 text-amber-800 dark:text-amber-300 border border-dashed border-amber-300 dark:border-amber-500/35"
+                      >
+                        <CreditCard size={11} />
+                        Cartão excluído ({t.cartao_excluido_nome})
+                      </span>
+                    </AppTooltip>
                   )}
                 </div>
               </div>

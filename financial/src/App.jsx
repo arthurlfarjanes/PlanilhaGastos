@@ -40,7 +40,7 @@ import LandingPage from "./components/LandingPage";
 import CookieBanner from "./components/CookieBanner";
 import Footer from "./components/Footer";
 import ScrollUpButton from "./components/ScrollUpButton";
-import { TooltipProvider } from "@/components/ui/Tooltip";
+import { AppTooltip, TooltipProvider } from "@/components/ui/Tooltip";
 import { ModalTrocarSenha } from "./components/ModalTrocarSenha";
 import Configuracoes from "./components/Configuracoes";
 import Orcamentos from "./components/Orcamentos";
@@ -52,6 +52,7 @@ import AssistenteIA from "./components/AssistenteIA";
 import Diagnosticos from "./components/Diagnosticos";
 import Classificacao from "./components/Classificacao";
 import Otimizacao from "./components/Otimizacao";
+import Projecoes from "./components/Projecoes";
 import Sidebar, { NAV_ITEMS, NavGroupsMenu, isNavItemActive } from "./components/Sidebar";
 import { PreferencesProvider, usePreferences } from "./context/PreferencesContext";
 import { todayInTimezone } from "./utils/formatters";
@@ -351,6 +352,14 @@ function AppShell() {
               }
             />
             <Route
+              path="/projecoes"
+              element={
+                <PrivateRoute>
+                  <Projecoes />
+                </PrivateRoute>
+              }
+            />
+            <Route
               path="/diagnosticos"
               element={
                 <PrivateRoute>
@@ -580,17 +589,18 @@ function Header({
 
         {/* Atalho sino de lembretes no desktop quando houver notificações */}
         {token && lembretesVisiveis > 0 && (
-          <Link
-            to="/configuracoes?aba=notificacoes"
-            title={`${lembretesVisiveis} lembrete(s) financeiro(s)`}
-            aria-label={`${lembretesVisiveis} lembrete(s) financeiro(s)`}
-            className="hidden md:inline-flex relative items-center justify-center p-2.5 rounded-full bg-slate-100 dark:bg-graphite-900 hover:bg-slate-200 dark:hover:bg-graphite-700 border border-slate-200 dark:border-graphite-600 text-slate-700 dark:text-slate-200 transition-colors"
-          >
-            <Bell size={17} />
-            <span className="absolute -top-1 -right-1 min-w-4.5 h-4.5 px-1 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center shadow-xs">
-              {lembretesVisiveis}
-            </span>
-          </Link>
+          <AppTooltip content={`${lembretesVisiveis} lembrete(s) financeiro(s)`} side="bottom">
+            <Link
+              to="/configuracoes?aba=notificacoes"
+              aria-label={`${lembretesVisiveis} lembrete(s) financeiro(s)`}
+              className="hidden md:inline-flex relative items-center justify-center p-2.5 rounded-full bg-slate-100 dark:bg-graphite-900 hover:bg-slate-200 dark:hover:bg-graphite-700 border border-slate-200 dark:border-graphite-600 text-slate-700 dark:text-slate-200 transition-colors"
+            >
+              <Bell size={17} />
+              <span className="absolute -top-1 -right-1 min-w-4.5 h-4.5 px-1 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center shadow-xs">
+                {lembretesVisiveis}
+              </span>
+            </Link>
+          </AppTooltip>
         )}
 
         {/* Ações: login/register ou dropdown do usuário */}

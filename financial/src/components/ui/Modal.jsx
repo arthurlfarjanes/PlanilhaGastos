@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { X } from "lucide-react";
+import { AppTooltip } from "@/components/ui/Tooltip";
 
 export function Modal({
   isOpen,
@@ -41,12 +42,16 @@ export function Modal({
           <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">
             {title}
           </h3>
-          <button
-            onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-[#2E3342] transition-colors"
-          >
-            <X size={20} />
-          </button>
+          <AppTooltip content="Fechar">
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Fechar"
+              className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-[#2E3342] transition-colors cursor-pointer"
+            >
+              <X size={20} />
+            </button>
+          </AppTooltip>
         </div>
 
         {/* Corpo do Modal */}
