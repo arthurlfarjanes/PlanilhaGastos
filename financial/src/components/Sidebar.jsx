@@ -10,7 +10,8 @@ import {
   Wallet,
   Flag,
   Bell,
-  Sparkles,
+  Activity,
+  Tags,
   ShieldAlert,
   Settings,
   Lock,
@@ -53,6 +54,8 @@ export const NAV_GROUPS = [
     id: "inteligencia",
     label: "Inteligência",
     items: [
+      { to: "/diagnosticos", label: "Diagnósticos", iconId: "diagnosticos" },
+      { to: "/classificacao", label: "Classificação", iconId: "classificacao" },
       { to: "/assistente", label: "Teco · Assistente", iconId: "inteligencia" },
     ],
   },
@@ -138,6 +141,10 @@ export function NavIcon({ id, size = 18 }) {
       return <Bell size={size} className="shrink-0" />;
     case "configuracoes":
       return <Settings size={size} className="shrink-0" />;
+    case "diagnosticos":
+      return <Activity size={size} className="shrink-0" />;
+    case "classificacao":
+      return <Tags size={size} className="shrink-0" />;
     case "inteligencia":
       return <TecoOwlIcon size={size} />;
     case "admin":

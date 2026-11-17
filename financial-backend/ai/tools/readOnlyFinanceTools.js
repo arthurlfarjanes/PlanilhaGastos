@@ -12,6 +12,7 @@ const { enrichPatrimonioItem, calcularResumoPatrimonio } = require("../../utils/
 const { enrichObjetivo, calcularResumoObjetivos } = require("../../utils/objetivos");
 const { calcularIndicadoresFinanceiros } = require("../../utils/indicadores");
 const { gerarLembretesFinanceiros } = require("../../utils/notificacoes");
+const { computeUserDiagnostics } = require("../../services/diagnosticosService");
 
 const TOOL_CATALOG = {
   obter_resumo_financeiro: {
@@ -295,6 +296,27 @@ const TOOL_CATALOG = {
       };
     },
   },
+  obter_diagnosticos_financeiros: {
+    name: "obter_diagnosticos_financeiros",
+    label: "Score de saúde e diagnósticos determinísticos",
+    async run(userId, { refDate }) {
+      const diag = await computeUserDiagnostics(userId, refDate);
+      return {
+        saude_financeira: diag.saude_financeira,
+        diagnosticos_principais: diag.diagnosticos.slice(0, 6).map((d) => ({
+          severidade: d.severidade,
+          area: d.area,
+          titulo: d.titulo,
+          descricao: d.descricao,
+          acao_sugerida: d.acao_sugerida,
+        })),
+        anomalias_categorias: diag.anomalias_categorias
+          .filter((a) => a.status !== "normal")
+          .slice(0, 5),
+        recorrencias_detectadas: diag.recorrencias_nao_cadastradas.slice(0, 4),
+      };
+    },
+  },
 };
 
 /**
@@ -314,12 +336,16 @@ function selectToolsForPrompt(message) {
   if (/d[íi]vid|juro|parcela|cart[ãa]o|fatura|patrim[ôo]nio|reserva|objetivo|meta|invest/.test(txt)) {
     chosen.add("cartoes_dividas_objetivos");
   }
+  if (/sa[úu]de|score|diagn[óo]st|anomal|at[íi]pic|fora do normal|melhor|pior/.test(txt)) {
+    chosen.add("obter_diagnosticos_financeiros");
+  }
 
-  // Pergunta genérica/panorâmica -> inclui categorias e metas/dívidas para dar boa visão
+  // Pergunta genérica/panorâmica -> inclui categorias, metas/dívidas e diagnósticos para dar boa visão
   if (chosen.size === 1) {
     chosen.add("gastos_por_categoria");
     chosen.add("orcamentos_e_alertas");
     chosen.add("cartoes_dividas_objetivos");
+    chosen.add("obter_diagnosticos_financeiros");
   }
 
   return Array.from(chosen);

@@ -1,6 +1,6 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { AuthContext } from "../App";
-import { PlusCircle, AlertCircle } from "lucide-react";
+import { PlusCircle, AlertCircle, Sparkles } from "lucide-react";
 import { CurrencyInput } from "./CurrencyInput";
 import { Button } from "@/components/ui/Button";
 
@@ -23,8 +23,41 @@ function FormularioTransacao({ onTransacaoAdicionada, categorias, cartoes = [] }
   const [parcelas, setParcelas] = useState(2);
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState("");
+  const [sugestaoCat, setSugestaoCat] = useState(null);
 
   const { token, API_URL } = useContext(AuthContext);
+
+  useEffect(() => {
+    const desc = descricao.trim();
+    if (!token || tipo !== "despesa" || desc.length < 2) {
+      setSugestaoCat(null);
+      return;
+    }
+
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      fetch(`${API_URL}/inteligencia/classificacao/sugerir`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ descricao: desc, tipo }),
+      })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => {
+          if (!cancelled) setSugestaoCat(d?.sugestao || null);
+        })
+        .catch(() => {
+          if (!cancelled) setSugestaoCat(null);
+        });
+    }, 320);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [descricao, tipo, token, API_URL]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -186,7 +219,20 @@ function FormularioTransacao({ onTransacaoAdicionada, categorias, cartoes = [] }
       {/* Categorias (Exibido apenas para Despesa) */}
       {tipo === "despesa" && (
         <div className="animate-fade-in flex flex-col gap-2">
-          <label className={labelClass}>Selecione a Categoria</label>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <label className={`${labelClass} mb-0`}>Selecione a Categoria</label>
+            {sugestaoCat && Number(categoriaId) !== Number(sugestaoCat.categoria_id) && (
+              <button
+                type="button"
+                onClick={() => setCategoriaId(sugestaoCat.categoria_id)}
+                title={sugestaoCat.motivo}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 dark:bg-lime-spark/15 text-emerald-700 dark:text-lime-spark border border-emerald-200 dark:border-lime-spark/30 hover:opacity-90 cursor-pointer"
+              >
+                <Sparkles size={11} />
+                Sugestão: {sugestaoCat.categoria_nome} · Aplicar
+              </button>
+            )}
+          </div>
           <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto pr-1 py-1">
             {categorias.map((cat) => {
               const isSelected = categoriaId === cat.id;

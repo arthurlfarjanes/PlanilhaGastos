@@ -30,7 +30,7 @@ const FINANCE_APP_PATTERNS = [
   /\b(pag(ar|o|uei|amento|amentos)|venc(er|e|endo|imento|imentos)|conta fixa|contas fixas|assinatur(a|as)|recorren(te|tes|cia)|orcament(o|os)|categori(a|as))\b/,
   /\b(cart(ao|oes)|fatur(a|as)|limite|parcel(a|as|amento|ar|ei|ado)|divid(a|as)|emprestim(o|os)|financiament(o|os)|juros|amortiz(ar|acao|ei|ando)|quit(ar|acao|ei)|dev(o|endo|er))\b/,
   /\b(patrimoni(o|os)|invest(ir|i|imento|imentos)|aplicac(ao|oes)|cdb|cdi|selic|ipca|tesouro|fundo|fii|acoes|rentabilidade|liquidez|reserv(a|as)|emergencia)\b/,
-  /\b(objetiv(o|os)|met(a|as)|aport(e|es|ar)|resgat(e|es|ar)|fluxo|taxa de economia|comprometimento|indicador(es)?|projec(ao|oes)|ritmo|diagnostico|resumo|lancament(o|os)|transac(ao|oes)|estorn(o|os)|reembols(o|os))\b/,
+  /\b(objetiv(o|os)|met(a|as)|aport(e|es|ar)|resgat(e|es|ar)|fluxo|taxa de economia|comprometimento|indicador(es)?|projec(ao|oes)|ritmo|diagnostico(s)?|classificac(ao|oes)|reclassificac(ao|oes)|anomalia(s)?|saude financeira|score financeiro|resumo|lancament(o|os)|transac(ao|oes)|estorn(o|os)|reembols(o|os))\b/,
   /\b(pix|boleto|debito|credito|imposto|irpf|mensal|mes|anual|fatura|compra|compras|mercado|supermercado|aluguel|agua|luz|energia|internet)\b/,
 ];
 

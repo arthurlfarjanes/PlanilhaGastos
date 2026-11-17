@@ -49,6 +49,8 @@ import Cartoes from "./components/Cartoes";
 import Patrimonio from "./components/Patrimonio";
 import Objetivos from "./components/Objetivos";
 import AssistenteIA from "./components/AssistenteIA";
+import Diagnosticos from "./components/Diagnosticos";
+import Classificacao from "./components/Classificacao";
 import Sidebar, { NAV_ITEMS, NavGroupsMenu, isNavItemActive } from "./components/Sidebar";
 import { PreferencesProvider, usePreferences } from "./context/PreferencesContext";
 import { todayInTimezone } from "./utils/formatters";
@@ -344,6 +346,22 @@ function AppShell() {
               element={
                 <PrivateRoute>
                   <Objetivos />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/diagnosticos"
+              element={
+                <PrivateRoute>
+                  <Diagnosticos />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/classificacao"
+              element={
+                <PrivateRoute>
+                  <Classificacao />
                 </PrivateRoute>
               }
             />
