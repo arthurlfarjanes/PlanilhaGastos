@@ -1,8 +1,10 @@
 // Auditoria somente-leitura do schema (usa DATABASE_URL_DIRECT/DATABASE_URL do .env).
 require("dotenv").config();
 const { Client } = require("pg");
+const { resolvePgSslConfig } = require("../config/ssl");
 (async () => {
-  const c = new Client({ connectionString: process.env.DATABASE_URL_DIRECT || process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
+  const url = process.env.DATABASE_URL_DIRECT || process.env.DATABASE_URL;
+  const c = new Client({ connectionString: url, ssl: resolvePgSslConfig(url) });
   await c.connect();
   const cols = await c.query(`SELECT table_name, column_name, data_type, numeric_precision, numeric_scale, is_nullable, column_default
     FROM information_schema.columns WHERE table_schema='public' ORDER BY table_name, ordinal_position`);

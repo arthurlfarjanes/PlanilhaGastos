@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  backend:
+    name: Backend Tests & E2E (Postgres 16)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: mefinance
+          POSTGRES_PASSWORD: mefinance_ci_password
+          POSTGRES_DB: mefinance_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U mefinance -d mefinance_test"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      DATABASE_URL: postgresql://mefinance:mefinance_ci_password@localhost:5432/mefinance_test
+      DATABASE_URL_DIRECT: postgresql://mefinance:mefinance_ci_password@localhost:5432/mefinance_test
+      JWT_SECRET: ci_super_secret_jwt_key_with_sufficient_length_2026
+      NODE_ENV: test
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: financial-backend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: financial-backend
+        run: npm ci
+
+      - name: Apply SQL migrations
+        working-directory: financial-backend
+        run: npm run migrate
+
+      - name: Run unit & E2E HTTP tests
+        working-directory: financial-backend
+        run: npm test
+
+  frontend:
+    name: Frontend Lint & Build
+    runs-on: ubuntu-latest
+
+    env:
+      VITE_API_URL: http://localhost:3001
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: financial/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: financial
+        run: npm ci
+
+      - name: Run ESLint
+        working-directory: financial
+        run: npm run lint
+
+      - name: Build production bundle
+        working-directory: financial
+        run: npm run build

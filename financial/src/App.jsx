@@ -1,4 +1,6 @@
 import React, {
+  Suspense,
+  lazy,
   useState,
   createContext,
   useContext,
@@ -28,41 +30,41 @@ import {
 } from "lucide-react";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { Toaster } from "react-hot-toast";
-import Login from "./components/Login";
-import Register from "./components/Register";
-import Dashboard from "./components/Dashboard";
-import Comparativo from "./components/Comparativo";
-import GerenciarGastosFixos from "./components/GerenciarGastosFixos";
-import AdminPanel from "./components/AdminPanel";
-import NotFound from "./components/NotFound";
-import ServerError from "./components/ServerError";
-import LandingPage from "./components/LandingPage";
 import CookieBanner from "./components/CookieBanner";
 import Footer from "./components/Footer";
 import ScrollUpButton from "./components/ScrollUpButton";
 import { AppTooltip, TooltipProvider } from "@/components/ui/Tooltip";
 import { ModalTrocarSenha } from "./components/ModalTrocarSenha";
-import Configuracoes from "./components/Configuracoes";
-import Orcamentos from "./components/Orcamentos";
-import Dividas from "./components/Dividas";
-import Cartoes from "./components/Cartoes";
-import Patrimonio from "./components/Patrimonio";
-import Objetivos from "./components/Objetivos";
-import AssistenteIA from "./components/AssistenteIA";
-import Diagnosticos from "./components/Diagnosticos";
-import Classificacao from "./components/Classificacao";
-import Otimizacao from "./components/Otimizacao";
-import Projecoes from "./components/Projecoes";
-import Relatorios from "./components/Relatorios";
 import Sidebar, { NAV_ITEMS, NavGroupsMenu, isNavItemActive } from "./components/Sidebar";
 import { PreferencesProvider, usePreferences } from "./context/PreferencesContext";
 import { todayInTimezone } from "./utils/formatters";
+import { API_URL } from "./config/api";
 import "./index.css";
+
+const Login = lazy(() => import("./components/Login"));
+const Register = lazy(() => import("./components/Register"));
+const Dashboard = lazy(() => import("./components/Dashboard"));
+const Comparativo = lazy(() => import("./components/Comparativo"));
+const GerenciarGastosFixos = lazy(() => import("./components/GerenciarGastosFixos"));
+const AdminPanel = lazy(() => import("./components/AdminPanel"));
+const NotFound = lazy(() => import("./components/NotFound"));
+const ServerError = lazy(() => import("./components/ServerError"));
+const LandingPage = lazy(() => import("./components/LandingPage"));
+const Configuracoes = lazy(() => import("./components/Configuracoes"));
+const Orcamentos = lazy(() => import("./components/Orcamentos"));
+const Dividas = lazy(() => import("./components/Dividas"));
+const Cartoes = lazy(() => import("./components/Cartoes"));
+const Patrimonio = lazy(() => import("./components/Patrimonio"));
+const Objetivos = lazy(() => import("./components/Objetivos"));
+const AssistenteIA = lazy(() => import("./components/AssistenteIA"));
+const Diagnosticos = lazy(() => import("./components/Diagnosticos"));
+const Classificacao = lazy(() => import("./components/Classificacao"));
+const Otimizacao = lazy(() => import("./components/Otimizacao"));
+const Projecoes = lazy(() => import("./components/Projecoes"));
+const Relatorios = lazy(() => import("./components/Relatorios"));
 
 export const AuthContext = createContext(null);
 export const ThemeContext = createContext(null);
-
-const API_URL = import.meta.env.VITE_BACKEND_URL;
 
 // Rotas onde o Header NÃO deve aparecer
 const AUTH_ROUTES = ["/login", "/register", "/"];
@@ -284,7 +286,14 @@ function AppShell() {
                 : "grow w-full px-3 py-4 sm:px-5 sm:py-5 lg:px-6"
           }
         >
-          <Routes>
+          <Suspense
+            fallback={
+              <div className="flex items-center justify-center min-h-[50vh] text-sm font-medium text-slate-500 dark:text-slate-400">
+                Carregando...
+              </div>
+            }
+          >
+            <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
@@ -422,7 +431,8 @@ function AppShell() {
 
             {/* Rota para erros 500 */}
             <Route path="/500" element={<ServerError />} />
-          </Routes>
+            </Routes>
+          </Suspense>
         </main>
 
         {!isAuthPage && <Footer />}

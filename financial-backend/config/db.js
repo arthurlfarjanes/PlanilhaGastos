@@ -1,5 +1,6 @@
 const { Pool } = require("pg");
 require("dotenv").config();
+const { resolvePgSslConfig } = require("./ssl");
 
 const DATABASE_URL = process.env.DATABASE_URL;
 
@@ -9,9 +10,7 @@ if (!DATABASE_URL) {
 
 const pool = new Pool({
   connectionString: DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false,
-  },
+  ssl: resolvePgSslConfig(DATABASE_URL),
   max: parseInt(process.env.DB_POOL_MAX, 10) || 20, // Limite máximo de conexões simultâneas no pool
   idleTimeoutMillis: 30000, // Fecha conexões inativas após 30 segundos
   connectionTimeoutMillis: 5000, // Timeout de 5 segundos para tentar obter conexão
@@ -35,4 +34,3 @@ pool
   });
 
 module.exports = pool;
-

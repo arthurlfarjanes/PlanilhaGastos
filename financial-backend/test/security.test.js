@@ -10,6 +10,7 @@ const {
 } = require("../utils/validation");
 const errorHandler = require("../middlewares/errorHandler");
 const authenticateToken = require("../middlewares/authMiddleware");
+const { resolvePgSslConfig } = require("../config/ssl");
 
 test("validation helpers rejeitam IDs malformados, roles arbitrárias e credenciais fracas", () => {
   assert.strictEqual(parseStrictPositiveInt("42"), 42);
@@ -86,4 +87,33 @@ test("authenticateToken exige estritamente esquema Bearer", async () => {
   );
   assert.strictEqual(statusCode, 401);
   assert.ok(payload.error);
+});
+
+test("resolvePgSslConfig aplica SSL estrito por padrão para hosts remotos", () => {
+  const prevSsl = process.env.DB_SSL;
+  const prevReject = process.env.DB_SSL_REJECT_UNAUTHORIZED;
+  try {
+    delete process.env.DB_SSL;
+    delete process.env.DB_SSL_REJECT_UNAUTHORIZED;
+
+    assert.deepStrictEqual(
+      resolvePgSslConfig("postgresql://user:pass@ep-cool.neon.tech/neondb?sslmode=require"),
+      { rejectUnauthorized: true },
+    );
+    assert.strictEqual(
+      resolvePgSslConfig("postgresql://postgres:postgres@localhost:5432/mefinance"),
+      false,
+    );
+
+    process.env.DB_SSL_REJECT_UNAUTHORIZED = "false";
+    assert.deepStrictEqual(
+      resolvePgSslConfig("postgresql://user:pass@ep-cool.neon.tech/neondb?sslmode=require"),
+      { rejectUnauthorized: false },
+    );
+  } finally {
+    if (prevSsl === undefined) delete process.env.DB_SSL;
+    else process.env.DB_SSL = prevSsl;
+    if (prevReject === undefined) delete process.env.DB_SSL_REJECT_UNAUTHORIZED;
+    else process.env.DB_SSL_REJECT_UNAUTHORIZED = prevReject;
+  }
 });

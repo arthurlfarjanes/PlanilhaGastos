@@ -7,6 +7,7 @@ require("dotenv").config();
 const fs = require("fs");
 const path = require("path");
 const { Client } = require("pg");
+const { resolvePgSslConfig } = require("../config/ssl");
 
 const url = process.env.DATABASE_URL_DIRECT || process.env.DATABASE_URL;
 if (!url) {
@@ -15,9 +16,35 @@ if (!url) {
 }
 
 (async () => {
-  const client = new Client({ connectionString: url, ssl: { rejectUnauthorized: false } });
+  const client = new Client({ connectionString: url, ssl: resolvePgSslConfig(url) });
   await client.connect();
   try {
+    await client.query(
+      `CREATE TABLE IF NOT EXISTS schema_migrations (
+         name TEXT PRIMARY KEY, applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`,
+    );
+
+    const dir = path.join(__dirname, "..", "migrations");
+    const baseFile = "000_base_schema.sql";
+    const files = fs.readdirSync(dir).filter((f) => f.endsWith(".sql")).sort();
+
+    // Garante schema base antes de checar tipo de usuarios.id em ambientes novos (ex.: CI)
+    if (files.includes(baseFile)) {
+      const baseDone = await client.query("SELECT 1 FROM schema_migrations WHERE name = $1", [baseFile]);
+      if (!baseDone.rowCount) {
+        console.log(`Aplicando ${baseFile}...`);
+        await client.query("BEGIN");
+        try {
+          await client.query(fs.readFileSync(path.join(dir, baseFile), "utf8"));
+          await client.query("INSERT INTO schema_migrations (name) VALUES ($1)", [baseFile]);
+          await client.query("COMMIT");
+        } catch (e) {
+          await client.query("ROLLBACK");
+          throw e;
+        }
+      }
+    }
+
     const idType = await client.query(
       `SELECT data_type FROM information_schema.columns
        WHERE table_name = 'usuarios' AND column_name = 'id'`,
@@ -26,12 +53,6 @@ if (!url) {
       throw new Error(`usuarios.id inesperado (${idType.rows[0]?.data_type}). Ajuste a migration antes de aplicar.`);
     }
 
-    await client.query(
-      `CREATE TABLE IF NOT EXISTS schema_migrations (
-         name TEXT PRIMARY KEY, applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`,
-    );
-    const dir = path.join(__dirname, "..", "migrations");
-    const files = fs.readdirSync(dir).filter((f) => f.endsWith(".sql")).sort();
     for (const file of files) {
       const done = await client.query("SELECT 1 FROM schema_migrations WHERE name = $1", [file]);
       if (done.rowCount) continue;
@@ -54,4 +75,3 @@ if (!url) {
   console.error("Falha na migration:", e.message);
   process.exit(1);
 });
-
