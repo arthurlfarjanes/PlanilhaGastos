@@ -10,6 +10,10 @@ const {
   analisarAnomaliasCategorias,
   calcularDiagnosticosFinanceiros,
 } = require("../utils/diagnosticos");
+const {
+  extrairOportunidadesCorte,
+  gerarPlanoOtimizacao,
+} = require("../utils/otimizacao");
 
 const CATS = [
   { id: 1, nome: "Alimentação", cor: "#10b981" },
@@ -123,12 +127,48 @@ test("calcularDiagnosticosFinanceiros pontua cenarios saudavel e critico correta
     orcamentosItens: [{ ativo: true, status: "excedido", categoria_nome: "Lazer", valor_limite: 300, gasto_realizado: 700 }],
     cartoesItens: [{ ativo: true, nome: "Visa", fatura_atual: { status: "vencida", total: 2200 } }],
     cartoesResumo: { limite_total_global: 3000, limite_usado_global: 2700 },
-    dividasItens: [{ status: "ativa", nome: "Rotativo", taxa_juros_mensal: 12, saldo_devedor: 4000 }],
-    dividasResumo: { estrategias: { avalanche: [{ nome: "Rotativo", taxa_juros_mensal: 12, saldo_devedor: 4000 }] } },
+    dividasItens: [{ id: 1, status: "ativa", nome: "Rotativo", taxa_juros_mensal: 12, saldo_devedor: 4000 }],
+    dividasResumo: { estrategias: { avalanche_ids: [1] } },
     patrimonioResumo: { liquidez_imediata: 200 },
     gastoMedioMensalCents: 400000,
   });
   assert.ok(critico.saude_financeira.score < 50);
   assert.strictEqual(critico.saude_financeira.classificacao, "critico");
   assert.ok(critico.diagnosticos.some((d) => d.severidade === "critica"));
+});
+
+test("gerarPlanoOtimizacao prioriza dividas caras, calcula economia e identifica cortes", () => {
+  const plano = gerarPlanoOtimizacao({
+    indicadores: { receitas_periodo: 6000, despesas_periodo: 5000, economia_periodo: 1000 },
+    orcamentosItens: [
+      { id: 1, ativo: true, status: "excedido", categoria_id: 1, categoria_nome: "Lazer", valor_limite: 300, gasto_realizado: 500 },
+    ],
+    gastosFixos: [
+      { id: 7, ativo: true, is_assinatura: true, tipo: "despesa", descricao: "Streaming 4K", valor: 59.9 },
+    ],
+    dividasItens: [
+      { id: 2, status: "ativa", nome: "Empréstimo A", saldo_devedor: 4000, taxa_juros_mensal: 4.5, valor_parcela: 450 },
+      { id: 3, status: "ativa", nome: "Parcela B", saldo_devedor: 900, taxa_juros_mensal: 1.5, valor_parcela: 200 },
+    ],
+    patrimonioItens: [{ ativo: true, valor_atual: 2000, taxa_mensal_estimada_percentual: 0.8 }],
+    patrimonioResumo: { liquidez_imediata: 2000 },
+    objetivosItens: [{ id: 9, nome: "Reserva", status: "ativo", prioridade: "alta", faltante: 13000, aporte_mensal_planejado: 400, meses_estimados: 33 }],
+    gastoMedioMensalCents: 500000,
+    aporteMensalManual: 800,
+    estrategiaDivida: "avalanche",
+  });
+
+  assert.strictEqual(plano.parametros.aporte_mensal_simulado, 800);
+  assert.strictEqual(plano.comparativo_dividas.avalanche_alvo.id, 2);
+  assert.strictEqual(plano.comparativo_dividas.bola_de_neve_alvo.id, 3);
+  assert.ok(plano.resumo.juros_economizaveis_divida_foco > 0);
+  assert.ok(plano.plano_alocacao.length >= 2);
+  assert.ok(plano.oportunidades_corte.some((o) => o.tipo === "orcamento_excedido"));
+  assert.ok(plano.oportunidades_corte.some((o) => o.tipo === "assinatura"));
+
+  const cortes = extrairOportunidadesCorte({
+    orcamentosItens: [{ id: 1, ativo: true, status: "excedido", categoria_id: 1, categoria_nome: "Lazer", valor_limite: 300, gasto_realizado: 450 }],
+  });
+  assert.strictEqual(cortes.economia_desbloqueavel_mensal, 150);
+  assert.strictEqual(cortes.economia_desbloqueavel_anual, 1800);
 });

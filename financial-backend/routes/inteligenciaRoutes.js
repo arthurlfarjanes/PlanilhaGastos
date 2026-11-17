@@ -6,6 +6,8 @@ const c = require("../controllers/inteligenciaController");
 router.use(authenticateToken);
 
 router.get("/diagnosticos", c.obterDiagnosticos);
+router.get("/otimizacao", c.obterOtimizacao);
+router.post("/otimizacao/simular", c.simularOtimizacao);
 
 router.get("/classificacao", c.obterClassificacao);
 router.post("/classificacao/sugerir", c.sugerirClassificacao);

@@ -20,13 +20,14 @@ const {
   analisarAnomaliasCategorias,
   calcularDiagnosticosFinanceiros,
 } = require("../utils/diagnosticos");
+const { gerarPlanoOtimizacao } = require("../utils/otimizacao");
 
 function shiftMonthsISO(ano, mes, deltaMonths) {
   const d = new Date(Date.UTC(ano, mes - 1 + deltaMonths, 1));
   return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-01`;
 }
 
-async function computeUserDiagnostics(userId, refDate = todayISO()) {
+async function collectFinancialSnapshot(userId, refDate = todayISO()) {
   const [ano, mes] = refDate.split("-").map(Number);
   const { start, endExclusive } = monthDateBounds(ano, mes);
   const histStart = shiftMonthsISO(ano, mes, -3);
@@ -231,7 +232,9 @@ async function computeUserDiagnostics(userId, refDate = todayISO()) {
     fixasRes.rows,
   );
 
-  const diag = calcularDiagnosticosFinanceiros({
+  return {
+    refDate,
+    competencia: { ano, mes },
     indicadores,
     anomaliasCategorias,
     orcamentosItens,
@@ -239,24 +242,52 @@ async function computeUserDiagnostics(userId, refDate = todayISO()) {
     cartoesResumo,
     dividasItens,
     dividasResumo,
+    patrimonioItens,
     patrimonioResumo,
+    objetivosItens,
     objetivosResumo,
     contasResumo,
+    gastosFixos: fixasRes.rows,
     despesasRecorrentesDetectadas,
     gastoMedioMensalCents,
+  };
+}
+
+async function computeUserDiagnostics(userId, refDate = todayISO()) {
+  const snap = await collectFinancialSnapshot(userId, refDate);
+  const diag = calcularDiagnosticosFinanceiros(snap);
+
+  return {
+    refDate: snap.refDate,
+    competencia: snap.competencia,
+    indicadores: snap.indicadores,
+    saude_financeira: diag.saude_financeira,
+    diagnosticos: diag.diagnosticos,
+    anomalias_categorias: snap.anomaliasCategorias,
+    recorrencias_nao_cadastradas: snap.despesasRecorrentesDetectadas,
+  };
+}
+
+async function computeUserOptimization(
+  userId,
+  { refDate = todayISO(), aporteMensal = null, estrategiaDivida = "avalanche" } = {},
+) {
+  const snap = await collectFinancialSnapshot(userId, refDate);
+  const plano = gerarPlanoOtimizacao({
+    ...snap,
+    aporteMensalManual: aporteMensal,
+    estrategiaDivida,
   });
 
   return {
-    refDate,
-    competencia: { ano, mes },
-    indicadores,
-    saude_financeira: diag.saude_financeira,
-    diagnosticos: diag.diagnosticos,
-    anomalias_categorias: anomaliasCategorias,
-    recorrencias_nao_cadastradas: despesasRecorrentesDetectadas,
+    refDate: snap.refDate,
+    competencia: snap.competencia,
+    indicadores: snap.indicadores,
+    ...plano,
   };
 }
 
 module.exports = {
   computeUserDiagnostics,
+  computeUserOptimization,
 };

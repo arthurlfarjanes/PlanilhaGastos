@@ -407,7 +407,11 @@ function calcularDiagnosticosFinanceiros({
 
   // 6) Dívidas Caras & Progresso de Objetivos (10 pts)
   const dividasAtivas = dividasItens.filter((d) => d.status === "ativa");
-  const maiorJurosDivida = dividasResumo?.estrategias?.avalanche?.[0] || null;
+  const avalancheTopId = dividasResumo?.estrategias?.avalanche_ids?.[0];
+  const maiorJurosDivida =
+    dividasAtivas.find((d) => d.id === avalancheTopId) ||
+    [...dividasAtivas].sort((a, b) => Number(b.taxa_juros_mensal || 0) - Number(a.taxa_juros_mensal || 0))[0] ||
+    null;
   const atrasadosCount = objetivosResumo?.contagem?.em_atraso || 0;
 
   let ptsDivObj = 10;

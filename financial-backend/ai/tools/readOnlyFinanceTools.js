@@ -12,7 +12,10 @@ const { enrichPatrimonioItem, calcularResumoPatrimonio } = require("../../utils/
 const { enrichObjetivo, calcularResumoObjetivos } = require("../../utils/objetivos");
 const { calcularIndicadoresFinanceiros } = require("../../utils/indicadores");
 const { gerarLembretesFinanceiros } = require("../../utils/notificacoes");
-const { computeUserDiagnostics } = require("../../services/diagnosticosService");
+const {
+  computeUserDiagnostics,
+  computeUserOptimization,
+} = require("../../services/diagnosticosService");
 
 const TOOL_CATALOG = {
   obter_resumo_financeiro: {
@@ -317,6 +320,19 @@ const TOOL_CATALOG = {
       };
     },
   },
+  obter_plano_otimizacao: {
+    name: "obter_plano_otimizacao",
+    label: "Plano determinístico de otimização e prioridades",
+    async run(userId, { refDate }) {
+      const opt = await computeUserOptimization(userId, { refDate });
+      return {
+        parametros: opt.parametros,
+        resumo: opt.resumo,
+        plano_alocacao: opt.plano_alocacao.slice(0, 4),
+        oportunidades_corte: opt.oportunidades_corte.slice(0, 4),
+      };
+    },
+  },
 };
 
 /**
@@ -338,6 +354,9 @@ function selectToolsForPrompt(message) {
   }
   if (/sa[úu]de|score|diagn[óo]st|anomal|at[íi]pic|fora do normal|melhor|pior/.test(txt)) {
     chosen.add("obter_diagnosticos_financeiros");
+  }
+  if (/otimiz|prioriz|aloc|sobra|amortiz|cortar|economizar mais|onde colocar|onde investir/.test(txt)) {
+    chosen.add("obter_plano_otimizacao");
   }
 
   // Pergunta genérica/panorâmica -> inclui categorias, metas/dívidas e diagnósticos para dar boa visão

@@ -7,7 +7,10 @@
 require("dotenv").config();
 const assert = require("node:assert");
 const pool = require("../config/db");
-const { computeUserDiagnostics } = require("../services/diagnosticosService");
+const {
+  computeUserDiagnostics,
+  computeUserOptimization,
+} = require("../services/diagnosticosService");
 const { gerarSugestoesRevisao } = require("../utils/classificacao");
 
 (async () => {
@@ -68,7 +71,15 @@ const { gerarSugestoesRevisao } = require("../utils/classificacao");
     assert.ok(diag.saude_financeira && typeof diag.saude_financeira.score === "number");
     assert.strictEqual(diag.saude_financeira.pilares.length, 6);
 
-    console.log("OK: motores de classificacao_regras e computeUserDiagnostics verificados no Neon.");
+    const opt = await computeUserOptimization(userId, {
+      refDate: "2026-11-16",
+      aporteMensal: 500,
+      estrategiaDivida: "avalanche",
+    });
+    assert.strictEqual(opt.parametros.aporte_mensal_simulado, 500);
+    assert.ok(Array.isArray(opt.plano_alocacao));
+
+    console.log("OK: motores de classificacao_regras, diagnosticos e otimizacao verificados no Neon.");
   } finally {
     if (userId) {
       await client.query("DELETE FROM usuarios WHERE id = $1", [userId]);

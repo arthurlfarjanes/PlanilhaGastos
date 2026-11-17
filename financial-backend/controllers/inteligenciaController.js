@@ -7,7 +7,10 @@ const {
   classificarDescricao,
   gerarSugestoesRevisao,
 } = require("../utils/classificacao");
-const { computeUserDiagnostics } = require("../services/diagnosticosService");
+const {
+  computeUserDiagnostics,
+  computeUserOptimization,
+} = require("../services/diagnosticosService");
 const { obterCartao, faturaPaga } = require("./cartoesController");
 
 const isISODate = (s) => typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s);
@@ -37,6 +40,51 @@ exports.obterDiagnosticos = async (req, res, next) => {
   try {
     const data = await computeUserDiagnostics(userId, refDate);
     res.set("Cache-Control", "no-store");
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+};
+
+function parseOptimizationInput(src = {}) {
+  const refDate = isISODate(src.refDate) ? src.refDate : todayISO();
+  const estrategiaDivida = src.estrategia === "bola_de_neve" || src.estrategiaDivida === "bola_de_neve"
+    ? "bola_de_neve"
+    : "avalanche";
+
+  const rawAporte = src.aporteMensal;
+  let aporteMensal = null;
+  if (rawAporte !== undefined && rawAporte !== null && rawAporte !== "") {
+    const num = Number(rawAporte);
+    if (!Number.isFinite(num) || num < 0) {
+      return { error: "Informe um valor mensal disponível válido (>= 0)." };
+    }
+    aporteMensal = num;
+  }
+  return { refDate, aporteMensal, estrategiaDivida };
+}
+
+exports.obterOtimizacao = async (req, res, next) => {
+  const userId = req.user.userId;
+  const parsed = parseOptimizationInput(req.query);
+  if (parsed.error) return res.status(400).json({ error: parsed.error });
+
+  try {
+    const data = await computeUserOptimization(userId, parsed);
+    res.set("Cache-Control", "no-store");
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.simularOtimizacao = async (req, res, next) => {
+  const userId = req.user.userId;
+  const parsed = parseOptimizationInput(req.body || {});
+  if (parsed.error) return res.status(400).json({ error: parsed.error });
+
+  try {
+    const data = await computeUserOptimization(userId, parsed);
     res.json(data);
   } catch (err) {
     next(err);

@@ -51,6 +51,7 @@ import Objetivos from "./components/Objetivos";
 import AssistenteIA from "./components/AssistenteIA";
 import Diagnosticos from "./components/Diagnosticos";
 import Classificacao from "./components/Classificacao";
+import Otimizacao from "./components/Otimizacao";
 import Sidebar, { NAV_ITEMS, NavGroupsMenu, isNavItemActive } from "./components/Sidebar";
 import { PreferencesProvider, usePreferences } from "./context/PreferencesContext";
 import { todayInTimezone } from "./utils/formatters";
@@ -362,6 +363,14 @@ function AppShell() {
               element={
                 <PrivateRoute>
                   <Classificacao />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/otimizacao"
+              element={
+                <PrivateRoute>
+                  <Otimizacao />
                 </PrivateRoute>
               }
             />

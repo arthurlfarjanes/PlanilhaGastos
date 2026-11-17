@@ -12,6 +12,7 @@ import {
   Bell,
   Activity,
   Tags,
+  SlidersHorizontal,
   ShieldAlert,
   Settings,
   Lock,
@@ -56,6 +57,7 @@ export const NAV_GROUPS = [
     items: [
       { to: "/diagnosticos", label: "Diagnósticos", iconId: "diagnosticos" },
       { to: "/classificacao", label: "Classificação", iconId: "classificacao" },
+      { to: "/otimizacao", label: "Otimização", iconId: "otimizacao" },
       { to: "/assistente", label: "Teco · Assistente", iconId: "inteligencia" },
     ],
   },
@@ -145,6 +147,8 @@ export function NavIcon({ id, size = 18 }) {
       return <Activity size={size} className="shrink-0" />;
     case "classificacao":
       return <Tags size={size} className="shrink-0" />;
+    case "otimizacao":
+      return <SlidersHorizontal size={size} className="shrink-0" />;
     case "inteligencia":
       return <TecoOwlIcon size={size} />;
     case "admin":
