@@ -21,6 +21,8 @@ const notificacoesRoutes = require("./routes/notificacoesRoutes");
 const iaRoutes = require("./routes/iaRoutes");
 const inteligenciaRoutes = require("./routes/inteligenciaRoutes");
 const planejamentoRoutes = require("./routes/planejamentoRoutes");
+const relatoriosRoutes = require("./routes/relatoriosRoutes");
+const privacidadeRoutes = require("./routes/privacidadeRoutes");
 
 // Importação Cron
 const { iniciarAgendador } = require("./services/agendador");
@@ -104,6 +106,8 @@ app.use("/notificacoes", notificacoesRoutes);
 app.use("/ia", iaRoutes);
 app.use("/inteligencia", inteligenciaRoutes);
 app.use("/planejamento", planejamentoRoutes);
+app.use("/relatorios", relatoriosRoutes);
+app.use("/privacidade", privacidadeRoutes);
 
 // 5. Middleware global de tratamento de erros 
 app.use(errorHandler);

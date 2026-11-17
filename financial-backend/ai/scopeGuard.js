@@ -25,7 +25,7 @@ const OFF_TOPIC_PATTERNS = [
 ];
 
 const FINANCE_APP_PATTERNS = [
-  /\b(mefinance|teco|aplicativo|app|sistema|plataforma|dashboard|comparativo|extrato|configuracoes|notificac(ao|oes)|lembrete|alerta|provedor|cloudflare|groq|privacidade)\b/,
+  /\b(mefinance|teco|aplicativo|app|sistema|plataforma|dashboard|comparativo|extrato|configuracoes|notificac(ao|oes)|lembrete|alerta|provedor|cloudflare|groq|privacidade|relatorio(s)?|pdf|csv|exportar|portabilidade|lgpd|excluir conta)\b/,
   /\b(financas?|financeir[ao]s?|economi(a|as|zar|zei|zou)|poup(ar|ei|anca)|gast(o|os|ar|ei|ou|ando)|despes(a|as)|receit(a|as)|sald(o|os)|balanco|rend(a|as|imento|imentos)|salari(o|os)|dinheiro|reais|real|r\$)\b/,
   /\b(pag(ar|o|uei|amento|amentos)|venc(er|e|endo|imento|imentos)|conta fixa|contas fixas|assinatur(a|as)|recorren(te|tes|cia)|orcament(o|os)|categori(a|as))\b/,
   /\b(cart(ao|oes)|fatur(a|as)|limite|parcel(a|as|amento|ar|ei|ado)|divid(a|as)|emprestim(o|os)|financiament(o|os)|juros|amortiz(ar|acao|ei|ando)|quit(ar|acao|ei)|dev(o|endo|er))\b/,

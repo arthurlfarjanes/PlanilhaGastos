@@ -288,6 +288,7 @@ async function computeUserOptimization(
 }
 
 module.exports = {
+  collectFinancialSnapshot,
   computeUserDiagnostics,
   computeUserOptimization,
 };

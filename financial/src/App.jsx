@@ -53,6 +53,7 @@ import Diagnosticos from "./components/Diagnosticos";
 import Classificacao from "./components/Classificacao";
 import Otimizacao from "./components/Otimizacao";
 import Projecoes from "./components/Projecoes";
+import Relatorios from "./components/Relatorios";
 import Sidebar, { NAV_ITEMS, NavGroupsMenu, isNavItemActive } from "./components/Sidebar";
 import { PreferencesProvider, usePreferences } from "./context/PreferencesContext";
 import { todayInTimezone } from "./utils/formatters";
@@ -380,6 +381,14 @@ function AppShell() {
               element={
                 <PrivateRoute>
                   <Otimizacao />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/relatorios"
+              element={
+                <PrivateRoute>
+                  <Relatorios />
                 </PrivateRoute>
               }
             />

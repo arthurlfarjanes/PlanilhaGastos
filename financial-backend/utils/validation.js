@@ -35,6 +35,22 @@ function isValidRole(role) {
   return typeof role === "string" && VALID_ROLES.includes(role);
 }
 
+function isISODate(value) {
+  if (typeof value !== "string") return false;
+  const trimmed = value.trim();
+  const match = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return false;
+  const y = Number(match[1]);
+  const m = Number(match[2]);
+  const d = Number(match[3]);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  return (
+    dt.getUTCFullYear() === y &&
+    dt.getUTCMonth() + 1 === m &&
+    dt.getUTCDate() === d
+  );
+}
+
 module.exports = {
   VALID_ROLES,
   parseStrictPositiveInt,
@@ -42,4 +58,5 @@ module.exports = {
   isValidEmail,
   isValidPassword,
   isValidRole,
+  isISODate,
 };

@@ -14,6 +14,7 @@ import {
   Activity,
   Tags,
   SlidersHorizontal,
+  FileText,
   ShieldAlert,
   Settings,
   Lock,
@@ -61,6 +62,7 @@ export const NAV_GROUPS = [
       { to: "/diagnosticos", label: "Diagnósticos", iconId: "diagnosticos" },
       { to: "/classificacao", label: "Classificação", iconId: "classificacao" },
       { to: "/otimizacao", label: "Otimização", iconId: "otimizacao" },
+      { to: "/relatorios", label: "Relatórios", iconId: "relatorios" },
       { to: "/assistente", label: "Teco · Assistente", iconId: "inteligencia" },
     ],
   },
@@ -154,6 +156,8 @@ export function NavIcon({ id, size = 18 }) {
       return <Tags size={size} className="shrink-0" />;
     case "otimizacao":
       return <SlidersHorizontal size={size} className="shrink-0" />;
+    case "relatorios":
+      return <FileText size={size} className="shrink-0" />;
     case "inteligencia":
       return <TecoOwlIcon size={size} />;
     case "admin":

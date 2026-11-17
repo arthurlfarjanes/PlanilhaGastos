@@ -6,6 +6,7 @@ const {
   isValidEmail,
   isValidPassword,
   isValidRole,
+  isISODate,
 } = require("../utils/validation");
 const errorHandler = require("../middlewares/errorHandler");
 const authenticateToken = require("../middlewares/authMiddleware");
@@ -31,6 +32,11 @@ test("validation helpers rejeitam IDs malformados, roles arbitrárias e credenci
   assert.strictEqual(isValidRole("user"), true);
   assert.strictEqual(isValidRole("admin"), true);
   assert.strictEqual(isValidRole("superadmin"), false);
+
+  assert.strictEqual(isISODate("2026-11-17"), true);
+  assert.strictEqual(isISODate("2026-02-29"), false);
+  assert.strictEqual(isISODate("2026-13-01"), false);
+  assert.strictEqual(isISODate("17/11/2026"), false);
 });
 
 test("errorHandler nunca expõe stack trace nem details internos na resposta HTTP", async () => {

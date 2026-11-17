@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect, useCallback } from "react";
-import { useSearchParams, Link } from "react-router-dom";
+import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import {
   Palette,
   LayoutDashboard,
@@ -15,11 +15,15 @@ import {
   ArrowRight,
   Sparkles,
   Trash2,
+  ShieldCheck,
+  Download,
+  FileText,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { AuthContext } from "../App";
 import { usePreferences } from "../context/PreferencesContext";
 import { ModalTrocarSenha } from "./ModalTrocarSenha";
+import { Modal } from "./ui/Modal";
 import { formatCurrency, formatDate, todayInTimezone } from "../utils/formatters";
 import { AppTooltip } from "@/components/ui/Tooltip";
 
@@ -29,6 +33,7 @@ const TABS_BASE = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { id: "financeiro", label: "Preferências financeiras", icon: Wallet },
   { id: "ia", label: "Inteligência Artificial", icon: Sparkles },
+  { id: "privacidade", label: "Privacidade e dados", icon: ShieldCheck },
 ];
 
 const ACCENTS = [
@@ -112,7 +117,8 @@ function Switch({ checked, onChange, id }) {
 }
 
 export default function Configuracoes() {
-  const { username, role, token, API_URL } = useContext(AuthContext);
+  const { username, role, token, logout, API_URL } = useContext(AuthContext);
+  const navigate = useNavigate();
   const { prefs, loaded, updatePreferences, resetPreferences } = usePreferences();
   // A aba fica na URL: sobrevive à remontagem causada por mudança de moeda/data.
   const [params, setParams] = useSearchParams();
@@ -122,6 +128,14 @@ export default function Configuracoes() {
   const [loadingNotif, setLoadingNotif] = useState(false);
   const [iaStatus, setIaStatus] = useState(null);
   const [loadingIa, setLoadingIa] = useState(false);
+  const [privResumo, setPrivResumo] = useState(null);
+  const [loadingPriv, setLoadingPriv] = useState(false);
+  const [exportandoDados, setExportandoDados] = useState(false);
+  const [excluirModalOpen, setExcluirModalOpen] = useState(false);
+  const [delPassword, setDelPassword] = useState("");
+  const [delUsername, setDelUsername] = useState("");
+  const [delPhrase, setDelPhrase] = useState("");
+  const [excluindoConta, setExcluindoConta] = useState(false);
 
   const a = prefs.appearance;
   const d = prefs.dashboard;
@@ -185,6 +199,89 @@ export default function Configuracoes() {
   useEffect(() => {
     carregarStatusIA();
   }, [carregarStatusIA, prefs.ai]);
+
+  const carregarResumoPrivacidade = useCallback(async () => {
+    if (!token) return;
+    setLoadingPriv(true);
+    try {
+      const res = await fetch(`${API_URL}/privacidade/resumo`, {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      });
+      if (res.ok) setPrivResumo(await res.json());
+    } catch {
+      // silencioso
+    } finally {
+      setLoadingPriv(false);
+    }
+  }, [token, API_URL]);
+
+  useEffect(() => {
+    if (params.get("aba") === "privacidade" && !privResumo) {
+      carregarResumoPrivacidade();
+    }
+  }, [params, privResumo, carregarResumoPrivacidade]);
+
+  const exportarDadosConta = async () => {
+    if (!token) return;
+    setExportandoDados(true);
+    try {
+      const res = await fetch(`${API_URL}/privacidade/exportar`, {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => null);
+        throw new Error(j?.error || "Não foi possível exportar os dados.");
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `mefinance-dados-conta-${todayInTimezone(timezone)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast.success("Pacote completo dos seus dados (.json) baixado com sucesso.");
+    } catch (err) {
+      toast.error(err.message || "Falha ao exportar dados.");
+    } finally {
+      setExportandoDados(false);
+    }
+  };
+
+  const confirmarExcluirConta = async (e) => {
+    e.preventDefault();
+    if (!token) return;
+    setExcluindoConta(true);
+    try {
+      const res = await fetch(`${API_URL}/privacidade/conta`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          password: delPassword || undefined,
+          confirmUsername: delUsername,
+          confirmPhrase: delPhrase,
+        }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(json?.error || "Não foi possível excluir a conta.");
+      }
+      setExcluirModalOpen(false);
+      toast.success("Sua conta e todos os seus dados foram removidos permanentemente.");
+      logout();
+      navigate("/");
+    } catch (err) {
+      toast.error(err.message || "Erro ao excluir conta.");
+    } finally {
+      setExcluindoConta(false);
+    }
+  };
 
   const mostrarAbaNotificacoes =
     lembretesResumo.total > 0 ||
@@ -677,8 +774,202 @@ export default function Configuracoes() {
               </Section>
             </>
           )}
+
+          {tab === "privacidade" && (
+            <>
+              <Section
+                title="Dados armazenados na sua conta"
+                description="Transparência sobre os registros vinculados exclusivamente à sua conta no MeFinance (LGPD)."
+              >
+                {loadingPriv && !privResumo ? (
+                  <p className="text-sm text-slate-500 dark:text-graphite-300">Carregando resumo de dados...</p>
+                ) : privResumo?.contagens ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 text-xs">
+                    {[
+                      ["Transações", privResumo.contagens.transacoes],
+                      ["Categorias", privResumo.contagens.categorias],
+                      ["Contas fixas", privResumo.contagens.gastos_fixos],
+                      ["Orçamentos", privResumo.contagens.orcamentos],
+                      ["Cartões", privResumo.contagens.cartoes],
+                      ["Dívidas", privResumo.contagens.dividas],
+                      ["Patrimônio", privResumo.contagens.patrimonio_itens],
+                      ["Objetivos", privResumo.contagens.objetivos],
+                      ["Regras IA", privResumo.contagens.classificacao_regras],
+                      ["Mensagens Teco", privResumo.contagens.ai_messages],
+                    ].map(([lbl, qtd]) => (
+                      <div
+                        key={lbl}
+                        className="p-3 rounded-xl border border-slate-200 dark:border-graphite-600 bg-slate-50/70 dark:bg-graphite-900/50"
+                      >
+                        <p className="text-[11px] text-slate-500 dark:text-graphite-300">{lbl}</p>
+                        <p className="text-lg font-extrabold text-slate-900 dark:text-white mt-0.5">{qtd}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-slate-500 dark:text-graphite-300">
+                    Não foi possível carregar as contagens agora.
+                  </p>
+                )}
+
+                <div className="pt-2 border-t border-slate-100 dark:border-graphite-600 space-y-4">
+                  <Row
+                    label="Salvar histórico com o Teco"
+                    hint="Desative para manter conversas somente durante a sessão."
+                    htmlFor="priv-ai-history"
+                  >
+                    <Switch
+                      id="priv-ai-history"
+                      checked={aiPrefs.saveHistory !== false}
+                      onChange={(v) => setAI({ saveHistory: v })}
+                    />
+                  </Row>
+                  <Row
+                    label="Compartilhar descrições na IA"
+                    hint="Por padrão, apenas totais e categorias agregadas são consultados."
+                    htmlFor="priv-ai-details"
+                  >
+                    <Switch
+                      id="priv-ai-details"
+                      checked={Boolean(aiPrefs.shareTransactionDetails)}
+                      onChange={(v) => setAI({ shareTransactionDetails: v })}
+                    />
+                  </Row>
+                </div>
+              </Section>
+
+              <Section
+                title="Portabilidade e exportação de dados"
+                description="Baixe uma cópia completa dos seus registros financeiros em JSON estruturado ou gere relatórios executivos em PDF/CSV."
+              >
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={exportarDadosConta}
+                    disabled={exportandoDados}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--accent-strong)] text-white dark:text-graphite-950 text-sm font-bold cursor-pointer disabled:opacity-50"
+                  >
+                    <Download size={16} />
+                    {exportandoDados ? "Gerando arquivo..." : "Baixar meus dados completos (.json)"}
+                  </button>
+                  <Link
+                    to="/relatorios"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-graphite-600 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-graphite-700"
+                  >
+                    <FileText size={16} /> Abrir Relatórios (PDF / CSV)
+                  </Link>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-graphite-400">
+                  O arquivo JSON contém suas preferências, transações, orçamentos, cartões, dívidas, patrimônio, objetivos, regras de classificação e mensagens salvas — nunca inclui hashes de senha ou tokens de sessão.
+                </p>
+              </Section>
+
+              <Section
+                title="Excluir conta permanentemente"
+                description="Remove definitivamente seu usuário e todos os registros financeiros associados. Esta operação é irreversível."
+              >
+                <div className="p-4 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/25 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="text-xs text-red-800 dark:text-red-200 space-y-1">
+                    <p className="font-bold flex items-center gap-1.5">
+                      <AlertTriangle size={15} /> Ação irreversível (Zona de Perigo)
+                    </p>
+                    <p>
+                      Recomendamos baixar seus dados em JSON ou exportar um PDF/CSV antes de excluir sua conta.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDelPassword("");
+                      setDelUsername("");
+                      setDelPhrase("");
+                      setExcluirModalOpen(true);
+                    }}
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shrink-0 cursor-pointer"
+                  >
+                    <Trash2 size={14} /> Excluir minha conta
+                  </button>
+                </div>
+              </Section>
+            </>
+          )}
         </div>
       </div>
+
+      <Modal
+        isOpen={excluirModalOpen}
+        onClose={() => !excluindoConta && setExcluirModalOpen(false)}
+        title="Excluir conta permanentemente"
+        maxWidth="max-w-md"
+      >
+        <form onSubmit={confirmarExcluirConta} className="space-y-4 text-sm">
+          <div className="p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/25 text-xs text-red-700 dark:text-red-300">
+            Todos os seus lançamentos, cartões, faturas, dívidas, patrimônio, objetivos, orçamentos, regras e histórico com o Teco serão apagados definitivamente.
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
+              Confirme seu nome de usuário (<span className="font-bold">{username}</span>)
+            </label>
+            <input
+              type="text"
+              required
+              value={delUsername}
+              onChange={(e) => setDelUsername(e.target.value)}
+              placeholder={username}
+              className={field}
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
+              Digite <span className="font-bold text-red-600 dark:text-red-400">EXCLUIR</span> para confirmar
+            </label>
+            <input
+              type="text"
+              required
+              value={delPhrase}
+              onChange={(e) => setDelPhrase(e.target.value)}
+              placeholder="EXCLUIR"
+              className={field}
+            />
+          </div>
+
+          {privResumo?.conta?.hasLocalPassword !== false && (
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                Sua senha atual (ou deixe em branco apenas se a conta for exclusivamente Google)
+              </label>
+              <input
+                type="password"
+                required={Boolean(privResumo?.conta?.hasLocalPassword)}
+                value={delPassword}
+                onChange={(e) => setDelPassword(e.target.value)}
+                placeholder="••••••••"
+                className={field}
+              />
+            </div>
+          )}
+
+          <div className="flex justify-end gap-2 pt-2">
+            <button
+              type="button"
+              disabled={excluindoConta}
+              onClick={() => setExcluirModalOpen(false)}
+              className="px-4 py-2 rounded-xl border border-slate-200 dark:border-graphite-600 text-xs font-semibold text-slate-700 dark:text-slate-200 cursor-pointer"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={excluindoConta || delUsername.trim() !== username || delPhrase.trim().toUpperCase() !== "EXCLUIR"}
+              className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold cursor-pointer disabled:opacity-50"
+            >
+              {excluindoConta ? "Excluindo..." : "Confirmar exclusão definitiva"}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }
