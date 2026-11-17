@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext, useCallback } from "react";
 import { AuthContext } from "../App";
 import { usePreferences } from "../context/PreferencesContext";
+import TecoHint from "./teco/TecoHint";
 import {
   Landmark,
   PlusCircle,
@@ -560,7 +561,10 @@ export default function Dividas() {
         <div data-tour="dividas-resumo" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
             <div className="flex items-center justify-between text-xs font-medium text-slate-500 dark:text-slate-400">
-              <span>Saldo Devedor Total</span>
+              <span className="flex items-center gap-1.5">
+                Saldo Devedor Total
+                <TecoHint metricId="saldo_devedor" />
+              </span>
               <TrendingDown className="w-4 h-4 text-rose-500" />
             </div>
             <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-2">
@@ -586,7 +590,10 @@ export default function Dividas() {
 
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
             <div className="flex items-center justify-between text-xs font-medium text-slate-500 dark:text-slate-400">
-              <span>Comprometimento Mensal</span>
+              <span className="flex items-center gap-1.5">
+                Comprometimento Mensal
+                <TecoHint metricId="divida_comprometimento" />
+              </span>
               <DollarSign className="w-4 h-4 text-amber-500" />
             </div>
             <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-2">

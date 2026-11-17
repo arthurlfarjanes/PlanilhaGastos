@@ -205,5 +205,42 @@ function withDefaults(stored) {
   return out;
 }
 
-module.exports = { DEFAULTS, DASHBOARD_CARDS, validatePatch, withDefaults };
+module.exports = { DEFAULTS, DASHBOARD_CARDS, validatePatch, withDefaults, validateHelpFeedback };
+
+function validateHelpFeedback(body) {
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return { error: "Corpo de feedback inválido." };
+  }
+  const topicId = typeof body.topicId === "string" ? body.topicId.trim() : "";
+  const route = typeof body.route === "string" ? body.route.trim() : "";
+  const helpful = body.helpful;
+  const reason = typeof body.reason === "string" ? body.reason.trim() : helpful ? "helpful" : "not_helpful";
+  const rawNote = body.note == null ? null : typeof body.note === "string" ? body.note.trim() : null;
+
+  if (!/^[a-z0-9_-]{1,64}$/.test(topicId)) {
+    return { error: "Identificador de tópico inválido." };
+  }
+  if (!/^\/[a-z0-9-]{0,60}$/.test(route)) {
+    return { error: "Rota inválida." };
+  }
+  if (typeof helpful !== "boolean") {
+    return { error: "Campo helpful deve ser booleano." };
+  }
+  if (!["helpful", "not_helpful", "outdated"].includes(reason)) {
+    return { error: "Motivo de feedback inválido." };
+  }
+  if (rawNote && rawNote.length > 240) {
+    return { error: "Observação deve ter no máximo 240 caracteres." };
+  }
+
+  return {
+    value: {
+      topicId,
+      route,
+      helpful,
+      reason,
+      note: rawNote ? rawNote.slice(0, 240) : null,
+    },
+  };
+}
 

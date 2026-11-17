@@ -31,7 +31,7 @@ function isElementVisible(el) {
   return rect.width > 0 && rect.height > 0;
 }
 
-export function TecoTourProvider({ role = "user", children }) {
+export function TecoTourProvider({ role = "user", token = null, apiUrl = "", children }) {
   const { prefs, updatePreferences } = usePreferences();
   const navigate = useNavigate();
   const location = useLocation();
@@ -259,13 +259,60 @@ export function TecoTourProvider({ role = "user", children }) {
   }, [persistHelpPatch]);
 
   const askTeco = useCallback(
-    (origemPath = location.pathname) => {
+    (origemPath = location.pathname, topico = "") => {
       setHelpOpen(false);
       const cleanPath = (origemPath || "/comparativo").replace(/\/+$/, "") || "/comparativo";
-      const safeTarget = `/assistente?origem=${encodeURIComponent(cleanPath)}`;
-      navigateSafe(safeTarget);
+      const params = new URLSearchParams({ origem: cleanPath });
+      if (topico && /^[a-z0-9_-]{1,64}$/.test(topico)) {
+        params.set("topico", topico);
+      }
+      navigateSafe(`/assistente?${params.toString()}`);
     },
     [location.pathname, navigateSafe]
+  );
+
+  const dismissHint = useCallback(
+    (hintId) => {
+      if (!hintId || !/^[a-z0-9-]{1,64}$/.test(hintId)) return;
+      const prev = Array.isArray(helpPrefs.dismissedHints) ? helpPrefs.dismissedHints : [];
+      if (prev.includes(hintId)) return;
+      persistHelpPatch({ dismissedHints: [...prev, hintId] });
+    },
+    [helpPrefs.dismissedHints, persistHelpPatch]
+  );
+
+  const submitHelpFeedback = useCallback(
+    async ({ topicId, route = location.pathname, helpful, reason, note = "" }) => {
+      if (!token || !apiUrl) return false;
+      const cleanRoute = (route || "/comparativo").replace(/\/+$/, "") || "/comparativo";
+      try {
+        const res = await fetch(`${apiUrl}/preferencias/ajuda-feedback`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            topicId,
+            route: cleanRoute,
+            helpful: Boolean(helpful),
+            reason: reason || (helpful ? "helpful" : "not_helpful"),
+            note: note ? String(note).trim().slice(0, 240) : null,
+          }),
+        });
+        if (!res.ok) throw new Error();
+        toast.success(
+          reason === "outdated"
+            ? "Obrigado! Registramos seu aviso sobre instrução desatualizada."
+            : "Obrigado pelo feedback!"
+        );
+        return true;
+      } catch {
+        toast.error("Não foi possível enviar o feedback agora.");
+        return false;
+      }
+    },
+    [apiUrl, location.pathname, token]
   );
 
   // Resolver e acompanhar a posição do elemento alvo `[data-tour="..."]`
@@ -384,6 +431,18 @@ export function TecoTourProvider({ role = "user", children }) {
     [toursWithStatus]
   );
 
+  const shouldShowOnboardingBanner = useMemo(() => {
+    if (!token) return false;
+    if (helpPrefs.tipsEnabled === false) return false;
+    const completed = Array.isArray(helpPrefs.completedTours) ? helpPrefs.completedTours : [];
+    const dismissed = Array.isArray(helpPrefs.dismissedHints) ? helpPrefs.dismissedHints : [];
+    return (
+      !completed.includes("primeiros-passos") &&
+      !savedActiveTour &&
+      !dismissed.includes("onboarding-summary")
+    );
+  }, [helpPrefs.completedTours, helpPrefs.dismissedHints, helpPrefs.tipsEnabled, savedActiveTour, token]);
+
   const value = useMemo(
     () => ({
       helpOpen,
@@ -398,6 +457,7 @@ export function TecoTourProvider({ role = "user", children }) {
       recommendedTour,
       toursWithStatus,
       outdatedTours,
+      shouldShowOnboardingBanner,
       activeTour,
       stepIndex,
       currentStep,
@@ -414,6 +474,8 @@ export function TecoTourProvider({ role = "user", children }) {
       endTour,
       discardSavedTour,
       resetHelpProgress,
+      dismissHint,
+      submitHelpFeedback,
       askTeco,
       navigateSafe,
     }),
@@ -428,6 +490,7 @@ export function TecoTourProvider({ role = "user", children }) {
       recommendedTour,
       toursWithStatus,
       outdatedTours,
+      shouldShowOnboardingBanner,
       activeTour,
       stepIndex,
       currentStep,
@@ -443,6 +506,8 @@ export function TecoTourProvider({ role = "user", children }) {
       endTour,
       discardSavedTour,
       resetHelpProgress,
+      dismissHint,
+      submitHelpFeedback,
       askTeco,
       navigateSafe,
     ]

@@ -14,7 +14,9 @@ import {
 } from "lucide-react";
 import { useTecoTour } from "@/context/TecoTourContext";
 import TecoAvatar from "@/components/teco/TecoAvatar";
+import TecoHelpFeedbackBox from "@/components/teco/TecoHelpFeedbackBox";
 import { EXPLORE_FEATURE_GROUPS } from "@/data/teco/routeGuide";
+import { GUIDED_SHORTCUTS } from "@/data/teco/contextualCatalog";
 import { AppTooltip } from "@/components/ui/Tooltip";
 
 const TABS = [
@@ -308,6 +310,33 @@ export default function TecoHelpPanel() {
                 </button>
               </div>
 
+              {/* Atalhos guiados ("Como eu faço...?") */}
+              <section className="space-y-2">
+                <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  Atalhos guiados
+                </h3>
+                <div className="space-y-1.5">
+                  {GUIDED_SHORTCUTS.map((sc) => (
+                    <button
+                      key={sc.id}
+                      type="button"
+                      onClick={() => startTour(sc.tourId, 0)}
+                      className="flex w-full items-center justify-between gap-2 rounded-xl border border-slate-200/80 dark:border-slate-800 px-3 py-2 text-left hover:border-emerald-500/40 hover:bg-emerald-500/5 transition-colors cursor-pointer"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate text-xs font-semibold text-slate-800 dark:text-slate-100">
+                          {sc.question}
+                        </p>
+                        <p className="truncate text-[11px] text-slate-500 dark:text-slate-400">
+                          {sc.summary}
+                        </p>
+                      </div>
+                      <Play className="h-3.5 w-3.5 shrink-0 text-emerald-500" />
+                    </button>
+                  ))}
+                </div>
+              </section>
+
               {/* Preferências rápidas de ajuda */}
               <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-3.5 space-y-3">
                 <div className="flex items-center justify-between gap-3">
@@ -451,6 +480,13 @@ export default function TecoHelpPanel() {
                   Iniciar tour guiado desta tela
                 </button>
               )}
+
+              <div className="pt-3 border-t border-slate-200/80 dark:border-slate-800">
+                <TecoHelpFeedbackBox
+                  topicId={`guide_${(currentGuide.route || "/comparativo").replace(/\//g, "") || "home"}`}
+                  route={currentGuide.route || "/comparativo"}
+                />
+              </div>
             </div>
           )}
 

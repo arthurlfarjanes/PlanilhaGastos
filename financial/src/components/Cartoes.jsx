@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext, useCallback } from "react";
 import { AuthContext } from "../App";
 import { usePreferences } from "../context/PreferencesContext";
+import TecoHint from "./teco/TecoHint";
 import {
   CreditCard,
   PlusCircle,
@@ -445,7 +446,10 @@ export default function Cartoes() {
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{resumo.quantidade} cartão(ões) ativo(s)</p>
           </div>
           <div className={`${CARD_CLS} p-5`}>
-            <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Limite Utilizado (Total em Aberto)</p>
+            <p className="text-xs font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+              <span>Limite Utilizado (Total em Aberto)</span>
+              <TecoHint metricId="limite_usado" />
+            </p>
             <p className="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-2">{formatCurrency(resumo.limite_usado)}</p>
             {(() => {
               const resumoMes = resumo.limite_usado_mes ?? (resumo.faturas_do_mes_em_aberto ?? 0);
@@ -462,7 +466,10 @@ export default function Cartoes() {
             <p className="text-2xl font-bold text-emerald-600 dark:text-lime-spark mt-2">{formatCurrency(resumo.limite_disponivel)}</p>
           </div>
           <div className={`${CARD_CLS} p-5`}>
-            <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Faturas em Aberto no Mês</p>
+            <p className="text-xs font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+              <span>Faturas em Aberto no Mês</span>
+              <TecoHint metricId="faturas_aberto" />
+            </p>
             <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-2">{formatCurrency(resumo.faturas_do_mes_em_aberto)}</p>
           </div>
         </div>

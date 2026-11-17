@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useContext, useCallback, useRef } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect, useContext, useCallback, useRef, useMemo } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import {
   Send,
   Trash2,
@@ -13,10 +13,20 @@ import {
   Gauge,
   ChevronDown,
   Check,
+  Compass,
+  X,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { AuthContext } from "../App";
 import { usePreferences } from "../context/PreferencesContext";
+import { useTecoTour } from "../context/TecoTourContext";
+import { normalizeAllowedTecoRoute } from "../data/teco/allowedRoutes";
+import { getRouteGuide } from "../data/teco/routeGuide";
+import {
+  getContextPromptsForRoute,
+  getIndicatorExplanation,
+} from "../data/teco/contextualCatalog";
+import { extractSafeActionCards } from "../data/teco/actionCards";
 import ConfirmDialog from "./ui/ConfirmDialog";
 import MarkdownMessage from "./ui/MarkdownMessage";
 import { AppTooltip } from "@/components/ui/Tooltip";
@@ -30,14 +40,34 @@ const PERGUNTAS_SUGERIDAS = [
 ];
 
 export default function AssistenteIA() {
-  const { token, API_URL } = useContext(AuthContext);
+  const { token, role, API_URL } = useContext(AuthContext);
   const { prefs, updatePreferences } = usePreferences();
+  const { navigateSafe } = useTecoTour();
+  const [searchParams, setSearchParams] = useSearchParams();
   const timezone = prefs?.financial?.timezone || "America/Sao_Paulo";
+
+  const origemRaw = searchParams.get("origem") || "";
+  const topicoRaw = searchParams.get("topico") || "";
+  const origemRoute = useMemo(
+    () => normalizeAllowedTecoRoute(origemRaw, { role }),
+    [origemRaw, role],
+  );
+  const origemGuide = useMemo(
+    () => (origemRoute ? getRouteGuide(origemRoute.pathname) : null),
+    [origemRoute],
+  );
+  const topicoInfo = useMemo(() => getIndicatorExplanation(topicoRaw), [topicoRaw]);
+  const sugestoesAtivas = useMemo(() => {
+    const ctxPrompts = origemRoute ? getContextPromptsForRoute(origemRoute.pathname) : null;
+    if (!ctxPrompts?.length) return PERGUNTAS_SUGERIDAS;
+    return [...ctxPrompts, ...PERGUNTAS_SUGERIDAS.filter((p) => !ctxPrompts.includes(p))].slice(0, 4);
+  }, [origemRoute]);
 
   const [statusData, setStatusData] = useState(null);
   const [mensagens, setMensagens] = useState([]);
   const [loading, setLoading] = useState(true);
   const [pergunta, setPergunta] = useState("");
+  const lastPrefillRef = useRef("");
   const [enviando, setEnviando] = useState(false);
   const [trocandoProvedor, setTrocandoProvedor] = useState(false);
   const [confirmLimpar, setConfirmLimpar] = useState(false);
@@ -75,6 +105,14 @@ export default function AssistenteIA() {
   useEffect(() => {
     carregar();
   }, [carregar]);
+
+  useEffect(() => {
+    const key = `${origemRoute?.pathname || ""}:${topicoInfo?.id || ""}`;
+    if (topicoInfo?.suggestedQuestion && lastPrefillRef.current !== key) {
+      lastPrefillRef.current = key;
+      setPergunta(topicoInfo.suggestedQuestion);
+    }
+  }, [origemRoute?.pathname, topicoInfo]);
 
   useEffect(() => {
     fimChatRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -121,6 +159,7 @@ export default function AssistenteIA() {
         body: JSON.stringify({
           message: msg,
           refDate: todayInTimezone(timezone),
+          ...(origemRoute ? { contextRoute: origemRoute.pathname } : {}),
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -422,6 +461,55 @@ export default function AssistenteIA() {
         </div>
       )}
 
+      {/* Contexto de origem (quando usuário vem de outra tela/indicador) */}
+      {origemRoute && origemGuide && (
+        <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 px-4 py-3 space-y-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-xs">
+              <Compass size={15} className="text-emerald-600 dark:text-lime-spark shrink-0" />
+              <span className="text-slate-700 dark:text-slate-200">
+                Contexto ativo: <strong>{origemGuide.title}</strong>
+                {topicoInfo ? ` · Indicador: ${topicoInfo.title}` : ""}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => navigateSafe(origemRoute.full)}
+                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1 text-[11px] font-semibold text-slate-700 dark:text-slate-200 hover:border-emerald-500/50 cursor-pointer"
+              >
+                Voltar para {origemGuide.title}
+                <ArrowRight size={11} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setSearchParams({}, { replace: true })}
+                aria-label="Limpar contexto da tela de origem"
+                className="rounded-md p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          </div>
+
+          {mensagens.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {sugestoesAtivas.slice(0, 3).map((sug) => (
+                <button
+                  key={sug}
+                  type="button"
+                  disabled={!podePerguntar || enviando}
+                  onClick={() => setPergunta(sug)}
+                  className="rounded-lg border border-emerald-500/25 bg-white dark:bg-slate-900 px-2.5 py-1 text-[11px] font-medium text-slate-700 dark:text-slate-200 hover:border-emerald-500 cursor-pointer disabled:opacity-50"
+                >
+                  {sug}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Faixa discreta de privacidade */}
       <div className="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2 rounded-xl bg-slate-100/80 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 text-[11px] text-slate-600 dark:text-slate-300">
         <span className="inline-flex items-center gap-1.5">
@@ -460,7 +548,7 @@ export default function AssistenteIA() {
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-left">
-                {PERGUNTAS_SUGERIDAS.map((sug) => (
+                {sugestoesAtivas.map((sug) => (
                   <button
                     key={sug}
                     type="button"
@@ -543,6 +631,25 @@ export default function AssistenteIA() {
                     )}
                   </div>
                 )}
+                {m.role === "assistant" && m.model !== "guarda-de-escopo" && (() => {
+                  const cards = extractSafeActionCards(m.content, m.tools_used, { role });
+                  if (!cards.length) return null;
+                  return (
+                    <div className="flex flex-wrap gap-1.5 mt-2 pl-1 sm:pl-11 max-w-full">
+                      {cards.map((card) => (
+                        <button
+                          key={card.route}
+                          type="button"
+                          onClick={() => navigateSafe(card.route)}
+                          className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/5 hover:bg-emerald-500/15 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 transition-colors cursor-pointer"
+                        >
+                          <span>{card.label}</span>
+                          <ArrowRight size={11} />
+                        </button>
+                      ))}
+                    </div>
+                  );
+                })()}
               </div>
             ))
           )}

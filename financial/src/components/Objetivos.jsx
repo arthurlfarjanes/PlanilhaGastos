@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext, useCallback, useMemo } from "react";
 import { AuthContext } from "../App";
 import { usePreferences } from "../context/PreferencesContext";
+import TecoHint from "./teco/TecoHint";
 import {
   Flag,
   PlusCircle,
@@ -468,7 +469,10 @@ export default function Objetivos() {
             </p>
           </div>
           <div className={`${CARD_CLS} p-5`}>
-            <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Progresso Geral</p>
+            <p className="text-xs font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+              <span>Progresso Geral</span>
+              <TecoHint metricId="objetivos_progresso" />
+            </p>
             <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-2">
               {resumo.percentual_geral}%
             </p>

@@ -2,7 +2,7 @@ const test = require("node:test");
 const assert = require("node:assert");
 const path = require("path");
 
-const { validatePatch, withDefaults, DEFAULTS } = require("../utils/preferencias");
+const { validatePatch, withDefaults, validateHelpFeedback, DEFAULTS } = require("../utils/preferencias");
 
 test("validatePatch aceita patch parcial válido", () => {
   const r = validatePatch({
@@ -131,5 +131,32 @@ test("validatePatch valida seção help (Teco Ajuda) e rejeita valores inválido
   assert.ok(validatePatch({ help: { activeTour: { id: "ok", step: 0, version: 1, extra: true } } }).error);
   assert.ok(validatePatch({ help: { tipsEnabled: "sim" } }).error);
   assert.ok(validatePatch({ help: { tourVersion: { ok: "1" } } }).error);
+});
+
+test("validateHelpFeedback valida registro mínimo e rejeita payload inválido", () => {
+  const ok = validateHelpFeedback({
+    topicId: "taxa_economia",
+    route: "/comparativo",
+    helpful: true,
+    reason: "helpful",
+  });
+  assert.ok(ok.value);
+  assert.strictEqual(ok.value.topicId, "taxa_economia");
+  assert.strictEqual(ok.value.note, null);
+
+  const outdated = validateHelpFeedback({
+    topicId: "orcamentos",
+    route: "/orcamentos",
+    helpful: false,
+    reason: "outdated",
+    note: "Botão mudou de nome",
+  });
+  assert.ok(outdated.value);
+  assert.strictEqual(outdated.value.reason, "outdated");
+
+  assert.ok(validateHelpFeedback({ topicId: "bad!", route: "/comparativo", helpful: true }).error);
+  assert.ok(validateHelpFeedback({ topicId: "ok", route: "https://evil.com", helpful: true }).error);
+  assert.ok(validateHelpFeedback({ topicId: "ok", route: "/ok", helpful: "sim" }).error);
+  assert.ok(validateHelpFeedback({ topicId: "ok", route: "/ok", helpful: false, reason: "sql" }).error);
 });
 

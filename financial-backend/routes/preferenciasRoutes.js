@@ -8,6 +8,7 @@ router.use(authenticateToken);
 router.get("/", controller.obterPreferencias);
 router.put("/", controller.atualizarPreferencias);
 router.delete("/", controller.restaurarPadroes);
+router.post("/ajuda-feedback", controller.registrarFeedbackAjuda);
 
 module.exports = router;
 

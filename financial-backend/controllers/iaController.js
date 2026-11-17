@@ -8,6 +8,23 @@ const { evaluateMeFinanceScope } = require("../ai/scopeGuard");
 
 const isISODate = (s) => typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s);
 
+const CONTEXT_ROUTE_LABELS = new Map([
+  ["/comparativo", "Dashboard (Visão Geral)"],
+  ["/dashboard", "Transações"],
+  ["/gastos-fixos", "Transações Fixas"],
+  ["/cartoes", "Cartões de Crédito"],
+  ["/dividas", "Dívidas"],
+  ["/patrimonio", "Patrimônio"],
+  ["/orcamentos", "Orçamentos"],
+  ["/objetivos", "Objetivos"],
+  ["/projecoes", "Projeções"],
+  ["/diagnosticos", "Diagnósticos"],
+  ["/classificacao", "Classificação"],
+  ["/otimizacao", "Otimização"],
+  ["/relatorios", "Relatórios"],
+  ["/configuracoes", "Configurações"],
+]);
+
 const STYLE_INSTRUCTIONS = {
   direto: "Seja bem objetivo, use no máximo 4 a 6 tópicos curtos e destaque os principais números em reais ou percentual.",
   equilibrado: "Responda de forma clara e estruturada, combinando diagnóstico curto com 2 ou 3 sugestões práticas baseadas exclusivamente nos dados fornecidos.",
@@ -109,6 +126,9 @@ exports.enviarMensagemIA = async (req, res, next) => {
   const userId = req.user.userId;
   const rawMessage = typeof req.body?.message === "string" ? req.body.message.trim() : "";
   const refDate = isISODate(req.body?.refDate) ? req.body.refDate : todayISO();
+  const rawContextRoute =
+    typeof req.body?.contextRoute === "string" ? req.body.contextRoute.trim().replace(/\/+$/, "") : "";
+  const contextRoute = CONTEXT_ROUTE_LABELS.has(rawContextRoute) ? rawContextRoute : null;
 
   if (!rawMessage) {
     return res.status(400).json({ error: "Digite uma pergunta para o Assistente Financeiro." });
@@ -221,7 +241,10 @@ exports.enviarMensagemIA = async (req, res, next) => {
 
     const systemPrompt = buildSystemPrompt(prefs.ai.responseStyle, prefs.financial.currency);
     const contextJson = JSON.stringify(contextData);
-    const userPayload = `DADOS FINANCEIROS DETERMINÍSTICOS (${refDate}):\n${contextJson}\n\nPERGUNTA DO USUÁRIO:\n${rawMessage}`;
+    const originLine = contextRoute
+      ? `\nTELA DE ORIGEM DO USUÁRIO: ${CONTEXT_ROUTE_LABELS.get(contextRoute)} (${contextRoute}).\n`
+      : "\n";
+    const userPayload = `DADOS FINANCEIROS DETERMINÍSTICOS (${refDate}):\n${contextJson}${originLine}\nPERGUNTA DO USUÁRIO:\n${rawMessage}`;
 
     const aiRes = await provider.generateChat({
       messages: [

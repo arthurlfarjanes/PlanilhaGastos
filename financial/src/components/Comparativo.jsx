@@ -2,6 +2,7 @@ import React, { useEffect, useState, useContext, useMemo, memo } from "react";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../App";
 import { usePreferences } from "../context/PreferencesContext";
+import TecoHint from "./teco/TecoHint";
 import {
   PieChart,
   Pie,
@@ -398,6 +399,7 @@ function Comparativo() {
               <span className="flex items-center gap-1.5">
                 <PiggyBank size={15} className="text-emerald-500 dark:text-lime-spark" />
                 Taxa de Economia
+                <TecoHint metricId="taxa_economia" />
               </span>
               <span
                 className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
@@ -445,6 +447,7 @@ function Comparativo() {
               <span className="flex items-center gap-1.5">
                 <ShieldCheck size={15} className="text-sky-500" />
                 Comprometimento Fixo
+                <TecoHint metricId="comprometimento_fixo" />
               </span>
               <span
                 className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
@@ -483,6 +486,7 @@ function Comparativo() {
               <span className="flex items-center gap-1.5">
                 <Landmark size={15} className="text-indigo-500" />
                 Patrimônio Líquido
+                <TecoHint metricId="patrimonio_liquido" />
               </span>
               <Link
                 to="/patrimonio"
@@ -512,6 +516,7 @@ function Comparativo() {
               <span className="flex items-center gap-1.5">
                 <Target size={15} className="text-amber-500" />
                 Objetivos &amp; Lembretes
+                <TecoHint metricId="objetivos_progresso" />
               </span>
               <Link
                 to="/objetivos"

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
+import TecoHint from "./teco/TecoHint";
 import {
   Activity,
   AlertOctagon,
@@ -164,8 +165,9 @@ export default function Diagnosticos() {
             <div data-tour="diagnosticos-score" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs flex flex-col justify-between gap-4">
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                    Score de Saúde Financeira
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                    <span>Score de Saúde Financeira</span>
+                    <TecoHint metricId="diagnostico_score" />
                   </span>
                   <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${scoreMeta.pillCls}`}>
                     {scoreMeta.label}

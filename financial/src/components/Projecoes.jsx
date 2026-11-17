@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext, useCallback } from "react";
 import { Link } from "react-router-dom";
+import TecoHint from "./teco/TecoHint";
 import {
   AlertTriangle,
   ArrowRight,
@@ -460,8 +461,9 @@ export default function Projecoes() {
           {/* 4 KPIs Comparativos */}
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
-              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                Patrimônio Líquido em {horizonte}m (Simulado)
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                <span>Patrimônio Líquido em {horizonte}m (Simulado)</span>
+                <TecoHint metricId="projecao_patrimonio" />
               </span>
               <p className="text-2xl font-black text-emerald-600 dark:text-lime-spark mt-1">
                 {formatCurrency(resumoSim.patrimonio_liquido_final_nominal || 0)}
@@ -491,8 +493,9 @@ export default function Projecoes() {
             </div>
 
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
-              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                Fluxo Líquido Mensal Médio
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                <span>Fluxo Líquido Mensal Médio</span>
+                <TecoHint metricId="projecao_fluxo" />
               </span>
               <p
                 className={`text-2xl font-black mt-1 ${

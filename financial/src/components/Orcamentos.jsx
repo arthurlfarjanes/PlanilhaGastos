@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext, useCallback } from "react";
 import { AuthContext } from "../App";
 import { usePreferences } from "../context/PreferencesContext";
+import TecoHint from "./teco/TecoHint";
 import {
   Target,
   PlusCircle,
@@ -303,8 +304,9 @@ export default function Orcamentos() {
           <div className="flex items-center gap-2.5 bg-blue-50 dark:bg-blue-500/10 px-3.5 py-2.5 rounded-xl border border-blue-100 dark:border-blue-500/20">
             <DollarSign size={18} className="text-blue-500 shrink-0" />
             <div>
-              <p className="text-[10px] font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wide">
+              <p className="text-[10px] font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wide flex items-center gap-1">
                 Gasto no Mês ({resumo?.percentual_geral ?? 0}%)
+                <TecoHint metricId="orcamento_consumido" />
               </p>
               <p className="text-sm font-black text-blue-600 dark:text-blue-400">
                 {formatCurrency(totalGasto)}
@@ -333,8 +335,9 @@ export default function Orcamentos() {
           <div className="flex items-center gap-2.5 bg-amber-50 dark:bg-amber-500/10 px-3.5 py-2.5 rounded-xl border border-amber-100 dark:border-amber-500/20 text-amber-700 dark:text-amber-300">
             <Bell size={18} className="shrink-0" />
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wide opacity-80">
+              <p className="text-[10px] font-semibold uppercase tracking-wide opacity-80 flex items-center gap-1">
                 Categorias em Alerta
+                <TecoHint metricId="orcamento_alerta" />
               </p>
               <p className="text-sm font-black">
                 {alertasCount} de {resumo?.contagem?.ativos ?? 0}

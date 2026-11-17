@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../App";
 import { usePreferences } from "../context/PreferencesContext";
+import TecoHint from "./teco/TecoHint";
 import {
   Landmark,
   PlusCircle,
@@ -433,7 +434,10 @@ export default function Patrimonio() {
       {resumo && (
         <div data-tour="patrimonio-resumo" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className={`${CARD_CLS} p-5`}>
-            <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Patrimônio Líquido</p>
+            <p className="text-xs font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+              <span>Patrimônio Líquido</span>
+              <TecoHint metricId="patrimonio_liquido" />
+            </p>
             <p
               className={`text-2xl font-bold mt-2 ${
                 resumo.patrimonio_liquido >= 0
@@ -481,6 +485,7 @@ export default function Patrimonio() {
           <div className={`${CARD_CLS} p-5`}>
             <p className="text-xs font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1">
               <Droplets className="w-3.5 h-3.5 text-sky-500" /> Liquidez Imediata
+              <TecoHint metricId="liquidez_imediata" />
             </p>
             <p className="text-2xl font-bold text-sky-600 dark:text-sky-300 mt-2">
               {formatCurrency(resumo.liquidez_imediata)}

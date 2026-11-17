@@ -11,6 +11,13 @@ import {
   getTourStatus,
   getRecommendedTourForRoute,
 } from "./tourRegistry.js";
+import {
+  INDICATOR_EXPLANATIONS,
+  GUIDED_SHORTCUTS,
+  getIndicatorExplanation,
+  getContextPromptsForRoute,
+} from "./contextualCatalog.js";
+import { extractSafeActionCards } from "./actionCards.js";
 
 test("allowedRoutes permite apenas rotas internas válidas e bloqueia URLs externas", () => {
   assert.deepStrictEqual(normalizeAllowedTecoRoute("/comparativo"), {
@@ -104,4 +111,31 @@ test("todos os alvos [data-tour=...] do tourRegistry existem nos componentes Rea
       );
     }
   }
+});
+
+test("contextualCatalog usa somente rotas e tours válidos", () => {
+  for (const ind of Object.values(INDICATOR_EXPLANATIONS)) {
+    assert.ok(isAllowedTecoRoute(ind.nextRoute), `nextRoute inválida em ${ind.id}`);
+    assert.ok(ind.explanation && ind.title && ind.suggestedQuestion);
+  }
+  assert.ok(getIndicatorExplanation("taxa_economia"));
+  assert.ok(GUIDED_SHORTCUTS.length >= 5);
+  for (const sc of GUIDED_SHORTCUTS) {
+    assert.ok(isAllowedTecoRoute(sc.route), `route inválida em atalho ${sc.id}`);
+    assert.ok(getTourById(sc.tourId), `tour inválido em atalho ${sc.id}`);
+  }
+  assert.ok(getContextPromptsForRoute("/orcamentos")?.length >= 1);
+});
+
+test("extractSafeActionCards gera atalhos seguros e normaliza acentos sem expor URLs externas", () => {
+  const cards = extractSafeActionCards(
+    "Revise seus orçamentos de supermercado e veja suas projeções futuras em https://evil.example.",
+    [{ name: "obter_dividas", label: "Dívidas" }]
+  );
+  assert.ok(cards.length >= 2 && cards.length <= 3);
+  for (const card of cards) {
+    assert.ok(isAllowedTecoRoute(card.route), `card gerou rota inválida: ${card.route}`);
+  }
+  assert.ok(cards.some((c) => c.route === "/orcamentos"));
+  assert.ok(cards.some((c) => c.route === "/projecoes"));
 });

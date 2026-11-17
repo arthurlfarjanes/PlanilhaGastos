@@ -38,6 +38,7 @@ import { TecoTourProvider, useTecoTour } from "./context/TecoTourContext";
 import TecoHelpPanel from "./components/teco/TecoHelpPanel";
 import TecoTourOverlay from "./components/teco/TecoTourOverlay";
 import TecoHelpLauncher from "./components/teco/TecoHelpLauncher";
+import TecoOnboardingBanner from "./components/teco/TecoOnboardingBanner";
 import { AppTooltip, TooltipProvider } from "@/components/ui/Tooltip";
 import { ModalTrocarSenha } from "./components/ModalTrocarSenha";
 import Sidebar, { NAV_ITEMS, NavGroupsMenu, isNavItemActive } from "./components/Sidebar";
@@ -251,7 +252,7 @@ function AppShell() {
   };
 
   return (
-    <TecoTourProvider role={role}>
+    <TecoTourProvider role={role} token={token} apiUrl={API_URL}>
       <div
         className={`flex min-h-screen w-full bg-slate-50 dark:bg-graphite-900 text-slate-900 dark:text-slate-100 transition-colors duration-200 ${
           useSidebar ? "flex-col md:flex-row" : "flex-col"
@@ -293,6 +294,7 @@ function AppShell() {
           }
         >
           {token && !isLanding && !isAuthPage && <TecoHelpLauncher />}
+          {token && location.pathname === "/comparativo" && <TecoOnboardingBanner />}
           <Suspense
             fallback={
               <div className="flex items-center justify-center min-h-[50vh] text-sm font-medium text-slate-500 dark:text-slate-400">
