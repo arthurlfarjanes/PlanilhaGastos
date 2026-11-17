@@ -26,6 +26,13 @@ export const DEFAULT_PREFERENCES = {
     dateFormat: "locale",
     periodStartDay: 1,
   },
+  help: {
+    completedTours: [],
+    activeTour: null,
+    dismissedHints: [],
+    tipsEnabled: true,
+    tourVersion: {},
+  },
 };
 
 // Cache local APENAS para evitar "flash" de tema antes da resposta do servidor.

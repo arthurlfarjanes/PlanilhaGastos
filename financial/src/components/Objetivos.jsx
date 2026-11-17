@@ -457,7 +457,7 @@ export default function Objetivos() {
       </div>
 
       {resumo && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div data-tour="objetivos-resumo" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className={`${CARD_CLS} p-5`}>
             <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Acumulado em Metas</p>
             <p className="text-2xl font-bold text-emerald-600 dark:text-lime-spark mt-2">
@@ -655,7 +655,7 @@ export default function Objetivos() {
           Carregando objetivos...
         </div>
       ) : itensFiltrados.length === 0 ? (
-        <div className={`${CARD_CLS} p-10 text-center space-y-2`}>
+        <div data-tour="objetivos-lista" className={`${CARD_CLS} p-10 text-center space-y-2`}>
           <Flag className="w-8 h-8 text-slate-400 mx-auto" />
           <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
             Nenhum objetivo encontrado neste filtro.
@@ -665,7 +665,7 @@ export default function Objetivos() {
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div data-tour="objetivos-lista" className="space-y-4">
           {itensFiltrados.map((obj) => {
             const prio = PRIORIDADE_CFG[obj.prioridade] || PRIORIDADE_CFG.media;
             const prazoCfg = PRAZO_CFG[obj.situacao_prazo] || PRAZO_CFG.sem_prazo;

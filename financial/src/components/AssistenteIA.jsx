@@ -436,7 +436,7 @@ export default function AssistenteIA() {
       </div>
 
       {/* Área principal do Chat com maior aproveitamento vertical */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm flex flex-col min-h-[480px] max-h-[72vh]">
+      <div data-tour="assistente-chat" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm flex flex-col min-h-[480px] max-h-[72vh]">
         <div className="flex-1 overflow-y-auto p-5 space-y-4 custom-scrollbar">
           {loading ? (
             <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-10">

@@ -438,7 +438,7 @@ export default function Cartoes() {
       </div>
 
       {resumo && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div data-tour="cartoes-resumo" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className={`${CARD_CLS} p-5`}>
             <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Limite Total</p>
             <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-2">{formatCurrency(resumo.limite_total)}</p>
@@ -529,13 +529,13 @@ export default function Cartoes() {
       {loading ? (
         <div className={`${CARD_CLS} p-10 text-center text-sm text-slate-500 dark:text-slate-400`}>Carregando cartões...</div>
       ) : itens.length === 0 ? (
-        <div className={`${CARD_CLS} p-10 text-center space-y-2`}>
+        <div data-tour="cartoes-lista" className={`${CARD_CLS} p-10 text-center space-y-2`}>
           <CreditCard className="w-8 h-8 text-slate-400 mx-auto" />
           <p className="text-sm font-medium text-slate-700 dark:text-slate-300">Nenhum cartão cadastrado.</p>
           <p className="text-xs text-slate-500 dark:text-slate-400">Clique em &ldquo;Novo Cartão&rdquo; para começar.</p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div data-tour="cartoes-lista" className="space-y-4">
           {itens.map((item) => {
             const fcfg = FATURA_CFG[item.fatura.status] || FATURA_CFG.aberta;
             const pct = Math.min(100, Number(item.percentual_usado || 0));

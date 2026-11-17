@@ -222,6 +222,7 @@ export default function Projecoes() {
 
       {/* Presets Rápidos + Formulário de Premissas */}
       <form
+        data-tour="projecoes-controles"
         onSubmit={(e) => {
           e.preventDefault();
           executarSimulacao();
@@ -521,7 +522,7 @@ export default function Projecoes() {
           </div>
 
           {/* Gráfico Principal */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
+          <div data-tour="projecoes-grafico" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">

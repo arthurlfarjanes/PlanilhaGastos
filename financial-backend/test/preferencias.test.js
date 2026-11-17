@@ -105,3 +105,31 @@ test("persistência e isolamento entre usuários", async () => {
   assert.strictEqual(fake.rows.has(2), true);
 });
 
+test("validatePatch valida seção help (Teco Ajuda) e rejeita valores inválidos", () => {
+  const valid = validatePatch({
+    help: {
+      completedTours: ["primeiros-passos", "comparativo"],
+      activeTour: { id: "orcamentos", step: 2, version: 1 },
+      dismissedHints: ["hint-comparativo-saldo"],
+      tipsEnabled: false,
+      tourVersion: { "primeiros-passos": 1, comparativo: 2 },
+    },
+  });
+  assert.ok(valid.value);
+  assert.deepStrictEqual(valid.value.help.completedTours, ["primeiros-passos", "comparativo"]);
+  assert.strictEqual(valid.value.help.activeTour.step, 2);
+  assert.strictEqual(valid.value.help.tipsEnabled, false);
+
+  const clearActive = validatePatch({ help: { activeTour: null } });
+  assert.ok(clearActive.value);
+  assert.strictEqual(clearActive.value.help.activeTour, null);
+
+  assert.ok(validatePatch({ help: { completedTours: ["Inválido!"] } }).error);
+  assert.ok(validatePatch({ help: { completedTours: ["dup", "dup"] } }).error);
+  assert.ok(validatePatch({ help: { activeTour: { id: "ok", step: -1, version: 1 } } }).error);
+  assert.ok(validatePatch({ help: { activeTour: { id: "ok", step: 0, version: 0 } } }).error);
+  assert.ok(validatePatch({ help: { activeTour: { id: "ok", step: 0, version: 1, extra: true } } }).error);
+  assert.ok(validatePatch({ help: { tipsEnabled: "sim" } }).error);
+  assert.ok(validatePatch({ help: { tourVersion: { ok: "1" } } }).error);
+});
+

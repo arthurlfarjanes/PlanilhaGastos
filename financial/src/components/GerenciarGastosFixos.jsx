@@ -450,6 +450,7 @@ export default function GerenciarGastosFixos() {
 
       {/* Formulário */}
       <div
+        data-tour="fixas-form"
         className={`bg-white dark:bg-graphite-800 p-5 sm:p-6 rounded-2xl border shadow-xs transition-all ${
           gastoEditando
             ? "border-blue-300 dark:border-blue-500/40"
@@ -613,7 +614,7 @@ export default function GerenciarGastosFixos() {
       </div>
 
       {/* Tabela de Listagem */}
-      <div className="bg-white dark:bg-graphite-800 rounded-2xl border border-slate-200/80 dark:border-graphite-600 shadow-xs overflow-hidden">
+      <div data-tour="fixas-lista" className="bg-white dark:bg-graphite-800 rounded-2xl border border-slate-200/80 dark:border-graphite-600 shadow-xs overflow-hidden">
         <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-graphite-600 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-3">
             <h2 className="text-base font-bold text-slate-700 dark:text-slate-200">

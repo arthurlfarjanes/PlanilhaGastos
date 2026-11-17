@@ -280,11 +280,13 @@ function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-6 sm:gap-8 w-full items-start">
         {/* Painel Esquerdo */}
         <div className="flex flex-col gap-6 sm:gap-8">
-          <FormTransacao
-            onTransacaoAdicionada={handleSave}
-            categorias={categorias}
-            cartoes={cartoes}
-          />
+          <div data-tour="transacoes-form">
+            <FormTransacao
+              onTransacaoAdicionada={handleSave}
+              categorias={categorias}
+              cartoes={cartoes}
+            />
+          </div>
           <GerenciarCategorias
             categorias={categorias}
             onCategoriaChange={handleCategoriaSaved}
@@ -338,11 +340,13 @@ function Dashboard() {
 
           {abaAtiva === "extrato" ? (
             <>
-              <FiltroTransacoes
-                filtros={filtros}
-                setFiltros={setFiltros}
-                categorias={categorias}
-              />
+              <div data-tour="transacoes-filtros">
+                <FiltroTransacoes
+                  filtros={filtros}
+                  setFiltros={setFiltros}
+                  categorias={categorias}
+                />
+              </div>
 
               {loading && (
                 <div className="bg-white dark:bg-graphite-800 rounded-2xl p-8 text-center border border-slate-200/80 dark:border-graphite-600">
@@ -360,11 +364,13 @@ function Dashboard() {
               )}
 
               {!loading && !error && (
-                <ListaTransacoes
-                  transacoes={transacoes}
-                  onEdit={setTransacaoParaEditar}
-                  onDelete={(id) => setTransacaoParaDeletar(id)}
-                />
+                <div data-tour="transacoes-lista">
+                  <ListaTransacoes
+                    transacoes={transacoes}
+                    onEdit={setTransacaoParaEditar}
+                    onDelete={(id) => setTransacaoParaDeletar(id)}
+                  />
+                </div>
               )}
             </>
           ) : (

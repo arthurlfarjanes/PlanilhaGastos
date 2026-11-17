@@ -26,8 +26,10 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   ChevronDown,
+  HelpCircle,
 } from "lucide-react";
 import { AppTooltip } from "@/components/ui/Tooltip";
+import { useTecoTour } from "@/context/TecoTourContext";
 
 export const NAV_GROUPS = [
   {
@@ -176,12 +178,16 @@ export function NavGroupsMenu({
   compact = false,
   iconSize = 17,
 }) {
+  const { openHelp, savedActiveTour, outdatedTours } = useTecoTour();
+  const hasHelpBadge = Boolean(savedActiveTour || outdatedTours?.length > 0);
+
   return (
     <div className="flex flex-col gap-3">
       {NAV_GROUPS.map((group) => {
         const baseItems = group.items.filter((it) => !it.onlyWhenNotif || lembretesVisiveis > 0);
         const showAdmin = group.id === "sistema" && role === "admin";
-        if (baseItems.length === 0 && !group.comingSoon && !showAdmin) return null;
+        const showAjuda = group.id === "sistema";
+        if (baseItems.length === 0 && !group.comingSoon && !showAdmin && !showAjuda) return null;
 
         return (
           <div key={group.id} className="flex flex-col gap-1">
@@ -254,6 +260,29 @@ export function NavGroupsMenu({
               </div>
             )}
 
+            {showAjuda && (
+              <AppTooltip content={compact ? "Ajuda do Teco" : null} side="right">
+                <button
+                  type="button"
+                  onClick={() => openHelp("inicio")}
+                  className={`relative flex w-full items-center ${
+                    compact ? "justify-center px-2.5" : "gap-3 px-3.5"
+                  } py-2 rounded-xl text-sm font-medium transition-all text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-graphite-700 cursor-pointer`}
+                >
+                  <HelpCircle size={iconSize} className="shrink-0 text-emerald-500" />
+                  {!compact && <span className="truncate">Ajuda</span>}
+                  {hasHelpBadge && (
+                    <span
+                      className={`${
+                        compact ? "absolute top-1.5 right-1.5" : "ml-auto"
+                      } h-2 w-2 rounded-full bg-emerald-500`}
+                      aria-label="Tour em andamento ou atualização disponível"
+                    />
+                  )}
+                </button>
+              </AppTooltip>
+            )}
+
             {showAdmin && (
               <AppTooltip content={compact ? "Painel Admin" : null} side="right">
                 <Link
@@ -299,11 +328,16 @@ export default function Sidebar({
   const [mobileAberta, setMobileAberta] = useState(false);
   const [contaMenuAberto, setContaMenuAberto] = useState(false);
   const location = useLocation();
+  const { helpOpen } = useTecoTour();
 
   useEffect(() => {
     setMobileAberta(false);
     setContaMenuAberto(false);
   }, [location.pathname, location.search]);
+
+  useEffect(() => {
+    if (helpOpen) setMobileAberta(false);
+  }, [helpOpen]);
 
   useEffect(() => {
     if (!contaMenuAberto) return;

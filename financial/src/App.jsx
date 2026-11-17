@@ -27,12 +27,17 @@ import {
   Lock,
   Settings,
   Bell,
+  HelpCircle,
 } from "lucide-react";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { Toaster } from "react-hot-toast";
 import CookieBanner from "./components/CookieBanner";
 import Footer from "./components/Footer";
 import ScrollUpButton from "./components/ScrollUpButton";
+import { TecoTourProvider, useTecoTour } from "./context/TecoTourContext";
+import TecoHelpPanel from "./components/teco/TecoHelpPanel";
+import TecoTourOverlay from "./components/teco/TecoTourOverlay";
+import TecoHelpLauncher from "./components/teco/TecoHelpLauncher";
 import { AppTooltip, TooltipProvider } from "@/components/ui/Tooltip";
 import { ModalTrocarSenha } from "./components/ModalTrocarSenha";
 import Sidebar, { NAV_ITEMS, NavGroupsMenu, isNavItemActive } from "./components/Sidebar";
@@ -246,11 +251,12 @@ function AppShell() {
   };
 
   return (
-    <div
-      className={`flex min-h-screen w-full bg-slate-50 dark:bg-graphite-900 text-slate-900 dark:text-slate-100 transition-colors duration-200 ${
-        useSidebar ? "flex-col md:flex-row" : "flex-col"
-      }`}
-    >
+    <TecoTourProvider role={role}>
+      <div
+        className={`flex min-h-screen w-full bg-slate-50 dark:bg-graphite-900 text-slate-900 dark:text-slate-100 transition-colors duration-200 ${
+          useSidebar ? "flex-col md:flex-row" : "flex-col"
+        }`}
+      >
       {!isAuthPage && useSidebar && (
         <Sidebar
           username={username}
@@ -286,6 +292,7 @@ function AppShell() {
                 : "grow w-full px-3 py-4 sm:px-5 sm:py-5 lg:px-6"
           }
         >
+          {token && !isLanding && !isAuthPage && <TecoHelpLauncher />}
           <Suspense
             fallback={
               <div className="flex items-center justify-center min-h-[50vh] text-sm font-medium text-slate-500 dark:text-slate-400">
@@ -441,7 +448,10 @@ function AppShell() {
       {!isAuthPage && <ScrollUpButton />}
       <CookieBanner />
       <ModalTrocarSenha isOpen={modalSenhaOpen} onClose={() => setModalSenhaOpen(false)} />
+      {token && !isAuthPage && <TecoHelpPanel />}
+      {token && !isAuthPage && <TecoTourOverlay />}
     </div>
+    </TecoTourProvider>
   );
 }
 
@@ -454,6 +464,8 @@ function Header({
 }) {
   const { token, username, profilePic, role } = useContext(AuthContext);
   const { theme, toggleTheme } = useContext(ThemeContext);
+  const { openHelp, helpOpen, savedActiveTour, outdatedTours } = useTecoTour();
+  const hasHelpBadge = Boolean(savedActiveTour || outdatedTours?.length > 0);
   const location = useLocation();
   const [menuAberto, setMenuAberto] = useState(false);
   const [navDropdownAberto, setNavDropdownAberto] = useState(false);
@@ -485,12 +497,12 @@ function Header({
     };
   }, []);
 
-  // Fecha menus ao trocar de rota
+  // Fecha menus ao trocar de rota ou abrir a Central de Ajuda
   useEffect(() => {
     setMenuAberto(false);
     setNavDropdownAberto(false);
     setDropdownAberto(false);
-  }, [location]);
+  }, [location, helpOpen]);
 
   const handleLogout = () => {
     setDropdownAberto(false);
@@ -604,6 +616,27 @@ function Header({
               iconSize={17}
             />
           </nav>
+        )}
+
+        {/* Atalho Ajuda do Teco no desktop */}
+        {token && (
+          <AppTooltip content="Ajuda do Teco e tours guiados" side="bottom">
+            <button
+              type="button"
+              onClick={() => openHelp("inicio")}
+              aria-label="Abrir Central de Ajuda do Teco"
+              className="hidden md:inline-flex relative items-center justify-center gap-1.5 px-3 py-2 rounded-full bg-slate-100 dark:bg-graphite-900 hover:bg-slate-200 dark:hover:bg-graphite-700 border border-slate-200 dark:border-graphite-600 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
+            >
+              <HelpCircle size={16} className="text-emerald-500" />
+              <span>Ajuda</span>
+              {hasHelpBadge && (
+                <span
+                  className="h-2 w-2 rounded-full bg-emerald-500"
+                  aria-label="Tour em andamento ou atualização disponível"
+                />
+              )}
+            </button>
+          </AppTooltip>
         )}
 
         {/* Atalho sino de lembretes no desktop quando houver notificações */}
@@ -740,6 +773,20 @@ function Header({
 
               {/* Mobile: items expandidos diretamente */}
               <div className="md:hidden mt-2 flex flex-col gap-1 border-t border-slate-100 dark:border-graphite-600 pt-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    openHelp("inicio");
+                    setMenuAberto(false);
+                  }}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-graphite-700 transition-colors"
+                >
+                  <HelpCircle size={16} className="text-emerald-500 shrink-0" />
+                  <span>Ajuda do Teco</span>
+                  {hasHelpBadge && (
+                    <span className="ml-auto h-2 w-2 rounded-full bg-emerald-500" />
+                  )}
+                </button>
                 <Link
                   to="/configuracoes"
                   className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-graphite-700 transition-colors"

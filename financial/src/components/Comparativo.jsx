@@ -391,7 +391,7 @@ function Comparativo() {
     <div className="flex flex-col gap-6 sm:gap-8 w-full">
       {/* ── FAIXA DE INDICADORES CONSOLIDADOS ── */}
       {!loading && indicadores && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div data-tour="comparativo-cards" className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           {/* Taxa de Economia */}
           <div className="bg-white dark:bg-[#1E222B] rounded-2xl p-5 border border-slate-200/80 dark:border-[#2E3342] shadow-xs flex flex-col justify-between gap-2">
             <div className="flex items-center justify-between text-xs font-medium text-slate-500 dark:text-slate-400">
@@ -544,10 +544,10 @@ function Comparativo() {
       )}
 
       {/* ── LINHA 1: Resumo + Gráfico de Pizza ── */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 sm:gap-8">
+      <div data-tour="comparativo-graficos" className="grid grid-cols-1 xl:grid-cols-3 gap-6 sm:gap-8">
         {/* Card: Resumo Geral */}
         <div className={cardClass}>
-          <div className="flex justify-between items-center mb-5 sm:mb-6">
+          <div data-tour="comparativo-header" className="flex justify-between items-center mb-5 sm:mb-6">
             <h2 className="font-bold text-lg text-slate-800 dark:text-white">
               Resumo Geral
             </h2>

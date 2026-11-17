@@ -287,7 +287,7 @@ export default function Orcamentos() {
         </div>
 
         {/* Cards de Resumo */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div data-tour="orcamentos-resumo" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <div className="flex items-center gap-2.5 bg-slate-50 dark:bg-graphite-900 px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-graphite-600">
             <Target size={18} className="text-[var(--accent-strong)] dark:text-lime-spark shrink-0" />
             <div>
@@ -467,6 +467,7 @@ export default function Orcamentos() {
       </div>
 
       {/* Lista de Orçamentos */}
+      <div data-tour="orcamentos-lista">
       {itens.length === 0 ? (
         <div className="bg-white dark:bg-graphite-800 rounded-2xl border border-slate-200/80 dark:border-graphite-600 p-12 text-center flex flex-col items-center gap-2 text-slate-400 dark:text-graphite-300">
           <Target size={32} className="opacity-40" />
@@ -565,6 +566,7 @@ export default function Orcamentos() {
           })}
         </div>
       )}
+      </div>
 
       <ConfirmDialog
         isOpen={!!paraDeletar}

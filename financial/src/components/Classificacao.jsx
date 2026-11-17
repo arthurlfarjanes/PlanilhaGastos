@@ -305,7 +305,7 @@ export default function Classificacao() {
       {/* Grid Principal: Sugestões à esquerda + Regras & Simulador à direita */}
       <div className="grid grid-cols-1 xl:grid-cols-[1.25fr_1fr] gap-6 items-start">
         {/* Sugestões para aprovação explícita */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
+        <div data-tour="classificacao-pendencias" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
@@ -433,7 +433,7 @@ export default function Classificacao() {
         </div>
 
         {/* Coluna Direita: Simulador + Nova Regra + Lista de Regras */}
-        <div className="space-y-6">
+        <div data-tour="classificacao-regras" className="space-y-6">
           {/* Simulador rápido */}
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs space-y-3">
             <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">

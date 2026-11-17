@@ -161,7 +161,7 @@ export default function Diagnosticos() {
         <>
           {/* Score Geral + 6 Pilares */}
           <div className="grid grid-cols-1 xl:grid-cols-[340px_1fr] gap-6">
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs flex flex-col justify-between gap-4">
+            <div data-tour="diagnosticos-score" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs flex flex-col justify-between gap-4">
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
@@ -246,7 +246,7 @@ export default function Diagnosticos() {
           </div>
 
           {/* Lista de Diagnósticos Priorizados */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
+          <div data-tour="diagnosticos-alertas" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">

@@ -197,7 +197,7 @@ export default function Relatorios() {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 shrink-0">
+        <div data-tour="relatorios-export" className="flex flex-wrap items-center gap-2 shrink-0">
           <AppTooltip content="Atualizar pré-visualização">
             <button
               type="button"
@@ -259,7 +259,7 @@ export default function Relatorios() {
       </div>
 
       {/* Filtros de Período e Opções */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
+      <div data-tour="relatorios-filtros" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
             <Calendar size={14} className="text-emerald-600 dark:text-lime-spark" />

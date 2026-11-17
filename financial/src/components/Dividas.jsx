@@ -557,7 +557,7 @@ export default function Dividas() {
 
       {/* Cards de resumo */}
       {resumo && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div data-tour="dividas-resumo" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
             <div className="flex items-center justify-between text-xs font-medium text-slate-500 dark:text-slate-400">
               <span>Saldo Devedor Total</span>
@@ -933,7 +933,7 @@ export default function Dividas() {
           Carregando dívidas...
         </div>
       ) : itensFiltrados.length === 0 ? (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-10 text-center space-y-2">
+        <div data-tour="dividas-lista" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-10 text-center space-y-2">
           <Landmark className="w-8 h-8 text-slate-400 mx-auto" />
           <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
             Nenhuma dívida encontrada neste filtro.
@@ -943,7 +943,7 @@ export default function Dividas() {
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div data-tour="dividas-lista" className="space-y-4">
           {itensFiltrados.map((item) => {
             const cfg = STATUS_CFG[item.status] || STATUS_CFG.ativa;
             const isAvalancheTop = item.id === avalancheTopId;

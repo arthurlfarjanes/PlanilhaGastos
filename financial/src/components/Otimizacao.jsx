@@ -147,6 +147,7 @@ export default function Otimizacao() {
 
       {/* Painel Simulador Interativo */}
       <form
+        data-tour="otimizacao-simulador"
         onSubmit={(e) => handleSimular(e)}
         className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-4 items-end"
       >
@@ -405,7 +406,7 @@ export default function Otimizacao() {
               )}
             </div>
 
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
+            <div data-tour="otimizacao-sugestoes" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
               <div>
                 <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                   <Scissors size={16} className="text-emerald-600 dark:text-lime-spark" />

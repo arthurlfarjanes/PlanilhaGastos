@@ -359,7 +359,7 @@ export default function Configuracoes() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-6 items-start">
-        <nav aria-label="Seções de configurações" className="flex md:flex-col gap-1 overflow-x-auto pb-1 md:pb-0">
+        <nav data-tour="configuracoes-tabs" aria-label="Seções de configurações" className="flex md:flex-col gap-1 overflow-x-auto pb-1 md:pb-0">
           {tabsDisponiveis.map((item) => (
             <button
               key={item.id}
@@ -383,7 +383,7 @@ export default function Configuracoes() {
           ))}
         </nav>
 
-        <div className="flex flex-col gap-6 min-w-0">
+        <div data-tour="configuracoes-aparencia" className="flex flex-col gap-6 min-w-0">
           {tab === "perfil" && (
             <>
               <Section title="Perfil e conta">

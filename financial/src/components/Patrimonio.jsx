@@ -431,7 +431,7 @@ export default function Patrimonio() {
       </div>
 
       {resumo && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div data-tour="patrimonio-resumo" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className={`${CARD_CLS} p-5`}>
             <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Patrimônio Líquido</p>
             <p
@@ -721,7 +721,7 @@ export default function Patrimonio() {
           Carregando patrimônio...
         </div>
       ) : itens.length === 0 ? (
-        <div className={`${CARD_CLS} p-10 text-center space-y-2`}>
+        <div data-tour="patrimonio-lista" className={`${CARD_CLS} p-10 text-center space-y-2`}>
           <Landmark className="w-8 h-8 text-slate-400 mx-auto" />
           <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
             Nenhum ativo cadastrado ainda.
@@ -731,7 +731,7 @@ export default function Patrimonio() {
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div data-tour="patrimonio-lista" className="space-y-4">
           {itens.map((item) => {
             const liq = LIQUIDEZ_CFG[item.liquidez] || LIQUIDEZ_CFG.media;
             const aberto = histItemId === item.id;
