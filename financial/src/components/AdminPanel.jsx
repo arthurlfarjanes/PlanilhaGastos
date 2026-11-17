@@ -1,7 +1,15 @@
 import React, { useState, useEffect, useContext, useMemo } from "react";
 import { AuthContext } from "../App";
+import { usePreferences } from "../context/PreferencesContext";
 import toast from "react-hot-toast";
-import { formatCurrency } from "../utils/formatters";
+import {
+  formatCurrency,
+  formatDate,
+  formatDateTimeInTimezone,
+  dateKeyInTimezone,
+  extractCivilDateISO,
+  resolveSafeTimezone,
+} from "../utils/formatters";
 import { ShieldAlert, Users, Activity, FileText, Search, UserPlus, Power, Trash2, Mail, Lock, Shield, CheckCircle2, ChevronRight, Filter, Download, ArrowUpRight, ArrowDownRight, LayoutDashboard, SearchX, Copy, Loader2, UserX, RefreshCw, TrendingUp, Edit2, Terminal, AlertTriangle, AlertOctagon, Info, BarChart2 } from "lucide-react";
 import ConfirmDialog from "./ui/ConfirmDialog";
 import FiltroTransacoes from "./FiltroTransacoes";
@@ -58,6 +66,8 @@ function AdminPanel() {
   });
 
   const { API_URL, token } = useContext(AuthContext);
+  const { prefs } = usePreferences();
+  const adminTimezone = resolveSafeTimezone(prefs?.financial?.timezone);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -87,9 +97,11 @@ function AdminPanel() {
       if (logFilters.startDate) params.append("startDate", logFilters.startDate);
       if (logFilters.endDate) params.append("endDate", logFilters.endDate);
       if (logFilters.userId && logFilters.userId !== "all") params.append("userId", logFilters.userId);
+      if (adminTimezone) params.append("timezone", adminTimezone);
 
       const response = await fetch(`${API_URL}/admin/logs?${params.toString()}`, {
         headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
       });
       if (!response.ok) throw new Error("Falha ao buscar logs");
       const data = await response.json();
@@ -103,7 +115,7 @@ function AdminPanel() {
 
   useEffect(() => {
     if (token) fetchLogs();
-  }, [logFilters.startDate, logFilters.endDate, logFilters.userId]);
+  }, [logFilters.startDate, logFilters.endDate, logFilters.userId, adminTimezone]);
 
   const handleToggleStatus = async (password = null) => {
     const { userId, activeStatus, requirePassword } = confirmDialog;
@@ -295,8 +307,9 @@ function AdminPanel() {
       if (filtros.descricao && !t.descricao.toLowerCase().includes(filtros.descricao.toLowerCase())) return false;
       if (filtros.tipo && t.tipo !== filtros.tipo) return false;
       if (filtros.categoriaId && t.categoria_nome !== filtros.categoriaId) return false;
-      if (filtros.dataInicio && new Date(t.data) < new Date(filtros.dataInicio)) return false;
-      if (filtros.dataFim && new Date(t.data) > new Date(filtros.dataFim)) return false;
+      const civilDate = extractCivilDateISO(t.data);
+      if (filtros.dataInicio && civilDate && civilDate < filtros.dataInicio) return false;
+      if (filtros.dataFim && civilDate && civilDate > filtros.dataFim) return false;
       return true;
     });
   }, [userReport, filtros]);
@@ -320,9 +333,11 @@ function AdminPanel() {
         const catName = t.categoria_nome || "Outros";
         despesasPorCategoria[catName] = (despesasPorCategoria[catName] || 0) + valor;
 
-        // Line chart by date
-        const date = t.data.split('T')[0]; // simple format
-        gastosPorDia[date] = (gastosPorDia[date] || 0) + valor;
+        // Line chart by civil date (YYYY-MM-DD)
+        const date = extractCivilDateISO(t.data);
+        if (date) {
+          gastosPorDia[date] = (gastosPorDia[date] || 0) + valor;
+        }
       }
     });
 
@@ -332,7 +347,7 @@ function AdminPanel() {
 
     const lineData = Object.entries(gastosPorDia)
       .map(([date, value]) => ({ date, value }))
-      .sort((a, b) => new Date(a.date) - new Date(b.date));
+      .sort((a, b) => a.date.localeCompare(b.date));
 
     const maiorGasto = [...transacoesFiltradas].filter(t => t.tipo === "despesa").sort((a, b) => parseFloat(b.valor) - parseFloat(a.valor))[0];
 
@@ -352,8 +367,10 @@ function AdminPanel() {
     systemLogs.forEach(log => {
       if (log.level === 'error' || log.level === 'critical') {
         totalErrors++;
-        const date = log.created_at.split('T')[0];
-        errorsByDate[date] = (errorsByDate[date] || 0) + 1;
+        const date = dateKeyInTimezone(log.created_at, adminTimezone);
+        if (date) {
+          errorsByDate[date] = (errorsByDate[date] || 0) + 1;
+        }
 
         const userName = log.username || (log.user_id ? `ID: ${log.user_id}` : 'Sistema');
         errorsByUser[userName] = (errorsByUser[userName] || 0) + 1;
@@ -366,14 +383,14 @@ function AdminPanel() {
 
     const dateData = Object.entries(errorsByDate)
       .map(([date, count]) => ({ date, count }))
-      .sort((a, b) => new Date(a.date) - new Date(b.date));
+      .sort((a, b) => a.date.localeCompare(b.date));
 
     const userData = Object.entries(errorsByUser)
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value);
 
     return { dateData, userData, totalErrors, totalWarnings, totalInfos };
-  }, [systemLogs]);
+  }, [systemLogs, adminTimezone]);
 
   if (loading && users.length === 0) {
     return (
@@ -625,8 +642,8 @@ function AdminPanel() {
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={logsDashboardData.dateData}>
                           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" />
-                          <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#64748b' }} />
-                          <RechartsTooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                          <XAxis dataKey="date" tickFormatter={(d) => formatDate(d, { short: true })} tick={{ fontSize: 10, fill: '#64748b' }} />
+                          <RechartsTooltip labelFormatter={(d) => formatDate(d)} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
                           <Bar dataKey="count" fill="#ef4444" radius={[4, 4, 0, 0]} />
                         </BarChart>
                       </ResponsiveContainer>
@@ -661,9 +678,11 @@ function AdminPanel() {
                   ) : (
                     systemLogs.map(log => (
                       <tr key={log.id} className="border-t border-slate-100 dark:border-graphite-700/50 hover:bg-slate-50 dark:hover:bg-graphite-800/50">
-                        <td className="py-3 px-4 text-xs text-slate-500 whitespace-nowrap">
-                          {new Date(log.created_at).toLocaleString('pt-BR')}
-                        </td>
+                        <AppTooltip content={`Fuso: ${adminTimezone} · UTC: ${log.created_at}`}>
+                          <td className="py-3 px-4 text-xs text-slate-500 whitespace-nowrap">
+                            {formatDateTimeInTimezone(log.created_at, adminTimezone)}
+                          </td>
+                        </AppTooltip>
                         <td className="py-3 px-4">
                           <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold uppercase ${log.level === 'error' || log.level === 'critical' ? 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400' :
                             log.level === 'warning' ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400' :

@@ -3,14 +3,15 @@ const pool = require("../config/db");
 const bcrypt = require("bcryptjs");
 const { logSystemEvent } = require("../utils/logger");
 const {
+  DEFAULT_TIMEZONE,
   parseStrictPositiveInt,
   isValidUsername,
   isValidEmail,
   isValidPassword,
   isValidRole,
+  isISODate,
+  isValidTimezone,
 } = require("../utils/validation");
-
-const isISODate = (s) => typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s.trim());
 
 async function verifyAdminConfirmation(adminUserId, adminPassword) {
   if (!adminPassword || typeof adminPassword !== "string") {
@@ -352,13 +353,21 @@ exports.relatorioUsuario = async (req, res, next) => {
 
 // Obter os logs do sistema
 exports.getSystemLogs = async (req, res, next) => {
-  const { startDate, endDate, userId } = req.query;
+  const { startDate, endDate, userId, timezone } = req.query;
 
   if (startDate && !isISODate(startDate)) {
     return res.status(400).json({ error: "Parâmetro startDate inválido." });
   }
   if (endDate && !isISODate(endDate)) {
     return res.status(400).json({ error: "Parâmetro endDate inválido." });
+  }
+
+  let resolvedTimezone = DEFAULT_TIMEZONE;
+  if (timezone !== undefined && String(timezone).trim() !== "") {
+    if (!isValidTimezone(String(timezone))) {
+      return res.status(400).json({ error: "Parâmetro timezone inválido (use IANA, ex.: America/Sao_Paulo)." });
+    }
+    resolvedTimezone = String(timezone).trim();
   }
 
   let parsedUserId = null;
@@ -379,13 +388,17 @@ exports.getSystemLogs = async (req, res, next) => {
     const params = [];
 
     if (startDate) {
-      params.push(startDate.trim());
-      query += ` AND l.created_at >= $${params.length}::date`;
+      params.push(startDate.trim(), resolvedTimezone);
+      const dateParam = `$${params.length - 1}`;
+      const tzParam = `$${params.length}`;
+      query += ` AND l.created_at >= (${dateParam}::date::timestamp AT TIME ZONE ${tzParam})`;
     }
 
     if (endDate) {
-      params.push(endDate.trim());
-      query += ` AND l.created_at < ($${params.length}::date + INTERVAL '1 day')`;
+      params.push(endDate.trim(), resolvedTimezone);
+      const dateParam = `$${params.length - 1}`;
+      const tzParam = `$${params.length}`;
+      query += ` AND l.created_at < ((${dateParam}::date + INTERVAL '1 day')::timestamp AT TIME ZONE ${tzParam})`;
     }
 
     if (parsedUserId) {
@@ -396,7 +409,15 @@ exports.getSystemLogs = async (req, res, next) => {
     query += ` ORDER BY l.created_at DESC LIMIT 500`;
 
     const result = await pool.query(query, params);
-    res.json(result.rows);
+    const rows = result.rows.map((row) => ({
+      ...row,
+      created_at:
+        row.created_at instanceof Date
+          ? row.created_at.toISOString()
+          : row.created_at,
+    }));
+    res.set("Cache-Control", "no-store");
+    res.json(rows);
   } catch (err) {
     next(err);
   }

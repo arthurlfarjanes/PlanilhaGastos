@@ -3,6 +3,7 @@
  */
 
 const VALID_ROLES = Object.freeze(["user", "admin"]);
+const DEFAULT_TIMEZONE = "America/Sao_Paulo";
 
 function parseStrictPositiveInt(value) {
   if (typeof value === "number") {
@@ -51,12 +52,30 @@ function isISODate(value) {
   );
 }
 
+function isValidTimezone(tz) {
+  if (typeof tz !== "string" || tz.length > 64) return false;
+  const trimmed = tz.trim();
+  if (!trimmed) return false;
+  const isIanaShape =
+    trimmed === "UTC" ||
+    /^[A-Za-z_]+\/[A-Za-z0-9_+-]+(?:\/[A-Za-z0-9_+-]+)?$/.test(trimmed);
+  if (!isIanaShape) return false;
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: trimmed });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 module.exports = {
   VALID_ROLES,
+  DEFAULT_TIMEZONE,
   parseStrictPositiveInt,
   isValidUsername,
   isValidEmail,
   isValidPassword,
   isValidRole,
   isISODate,
+  isValidTimezone,
 };
