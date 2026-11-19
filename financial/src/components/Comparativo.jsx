@@ -159,11 +159,17 @@ const TabelaFiltrada = memo(({ transacoes }) => {
           <option value="todos">Todos os Tipos</option>
           <option value="receita">Receitas</option>
           <option value="despesa">Despesas</option>
+          <option value="aporte_patrimonio">Aporte em Patrimônio</option>
+          <option value="resgate_patrimonio">Resgate de Patrimônio</option>
         </select>
         <select
           value={filtroCategoria}
           onChange={(e) => setFiltroCategoria(e.target.value)}
-          disabled={filtroTipo === "receita"}
+          disabled={
+            filtroTipo === "receita" ||
+            filtroTipo === "aporte_patrimonio" ||
+            filtroTipo === "resgate_patrimonio"
+          }
           className={selectClass + " disabled:opacity-50"}
         >
           <option value="todas">Todas as Categorias</option>
@@ -189,7 +195,16 @@ const TabelaFiltrada = memo(({ transacoes }) => {
           </thead>
           <tbody className="text-slate-700 dark:text-slate-200 text-sm divide-y divide-slate-100 dark:divide-graphite-600">
             {transacoesFiltradas.length > 0 ? (
-              transacoesFiltradas.map((t) => (
+              transacoesFiltradas.map((t) => {
+                const isPat =
+                  t.tipo === "aporte_patrimonio" || t.tipo === "resgate_patrimonio";
+                const tipoText =
+                  t.tipo === "aporte_patrimonio"
+                    ? "Reserva"
+                    : t.tipo === "resgate_patrimonio"
+                      ? "Resgate"
+                      : t.tipo;
+                return (
                 <tr
                   key={t.id}
                   className="hover:bg-slate-50 dark:hover:bg-graphite-900/40 transition-colors"
@@ -201,7 +216,9 @@ const TabelaFiltrada = memo(({ transacoes }) => {
                     className={`p-4 font-bold ${
                       t.tipo === "receita"
                         ? "text-emerald-600 dark:text-lime-spark"
-                        : "text-red-500 dark:text-red-400"
+                        : isPat
+                          ? "text-sky-600 dark:text-sky-400"
+                          : "text-red-500 dark:text-red-400"
                     }`}
                   >
                     {formatCurrency(t.valor)}
@@ -211,17 +228,23 @@ const TabelaFiltrada = memo(({ transacoes }) => {
                       className={`px-2.5 py-1 text-[0.7rem] font-extrabold uppercase tracking-wide rounded-full ${
                         t.tipo === "receita"
                           ? "bg-emerald-100 dark:bg-lime-spark/15 text-emerald-700 dark:text-lime-spark"
-                          : "bg-red-100 dark:bg-red-500/15 text-red-600 dark:text-red-400"
+                          : isPat
+                            ? "bg-sky-100 dark:bg-sky-500/15 text-sky-700 dark:text-sky-300"
+                            : "bg-red-100 dark:bg-red-500/15 text-red-600 dark:text-red-400"
                       }`}
                     >
-                      {t.tipo}
+                      {tipoText}
                     </span>
                   </td>
                   <td className="p-4 text-slate-500 dark:text-graphite-300 text-xs sm:text-sm">
                     {formatDate(t.data)}
                   </td>
                   <td className="p-4 font-medium text-slate-500 dark:text-graphite-300 text-xs sm:text-sm">
-                    {t.categoria_nome ? (
+                    {isPat ? (
+                      <span className="text-sky-600 dark:text-sky-400 text-xs font-semibold">
+                        Patrimônio
+                      </span>
+                    ) : t.categoria_nome ? (
                       <span className="flex items-center gap-1.5">
                         <span
                           className="w-2 h-2 rounded-full shrink-0"
@@ -238,7 +261,8 @@ const TabelaFiltrada = memo(({ transacoes }) => {
                     )}
                   </td>
                 </tr>
-              ))
+                );
+              })
             ) : (
               <tr>
                 <td colSpan="5" className="p-10 text-center">
@@ -361,13 +385,14 @@ function Comparativo() {
   const fluxoDiario = useMemo(() => {
     const mapaDias = {};
     [...transacoes]
+      .filter((t) => t.tipo === "receita" || t.tipo === "despesa")
       .sort((a, b) => new Date(a.data) - new Date(b.data))
       .forEach((t) => {
         const dia = formatDate(t.data, { short: true });
         if (!mapaDias[dia])
           mapaDias[dia] = { name: dia, Receitas: 0, Despesas: 0 };
         if (t.tipo === "receita") mapaDias[dia].Receitas += parseFloat(t.valor);
-        else mapaDias[dia].Despesas += parseFloat(t.valor);
+        else if (t.tipo === "despesa") mapaDias[dia].Despesas += parseFloat(t.valor);
       });
     return Object.values(mapaDias);
   }, [transacoes]);
@@ -597,6 +622,39 @@ function Comparativo() {
                   {formatCurrency(comparativo.totalDespesas)}
                 </strong>
               </div>
+
+              {(Number(comparativo.totalAportesPatrimonio || 0) > 0 ||
+                Number(comparativo.totalResgatesPatrimonio || 0) > 0) && (
+                <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-sky-50 dark:bg-sky-500/10 border border-sky-100 dark:border-sky-500/20">
+                  <div className="flex items-center gap-2.5 text-sky-700 dark:text-sky-300 min-w-0">
+                    <Landmark size={16} className="shrink-0" />
+                    <div className="min-w-0">
+                      <span className="text-xs font-semibold block">Reservas / Patrimônio</span>
+                      <span className="text-[11px] opacity-85 block">
+                        Continua no seu patrimônio · Saldo no extrato:{" "}
+                        <strong>
+                          {formatCurrency(
+                            comparativo.saldoDisponivel ?? comparativo.balanco,
+                          )}
+                        </strong>
+                      </span>
+                    </div>
+                  </div>
+                  <strong className="text-sky-600 dark:text-sky-300 text-sm whitespace-nowrap shrink-0">
+                    {Number(comparativo.totalResgatesPatrimonio || 0) -
+                      Number(comparativo.totalAportesPatrimonio || 0) >=
+                    0
+                      ? "+"
+                      : "-"}{" "}
+                    {formatCurrency(
+                      Math.abs(
+                        Number(comparativo.totalResgatesPatrimonio || 0) -
+                          Number(comparativo.totalAportesPatrimonio || 0),
+                      ),
+                    )}
+                  </strong>
+                </div>
+              )}
 
               {/* Balanço */}
               <div

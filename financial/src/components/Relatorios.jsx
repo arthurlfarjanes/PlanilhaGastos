@@ -537,7 +537,13 @@ export default function Relatorios() {
                       {t.descricao}
                     </td>
                     <td className="py-2 pr-3 text-slate-600 dark:text-slate-300">
-                      {t.tipo === "receita" ? "Receita" : t.categoria_nome}
+                      {t.tipo === "receita"
+                        ? "Receita"
+                        : t.tipo === "aporte_patrimonio"
+                          ? "Patrimônio (Aporte)"
+                          : t.tipo === "resgate_patrimonio"
+                            ? "Patrimônio (Resgate)"
+                            : t.categoria_nome}
                     </td>
                     <td className="py-2 pr-3 text-slate-500 dark:text-slate-400">
                       {t.cartao_nome || (t.cartao_excluido_nome ? `Excluído (${t.cartao_excluido_nome})` : "—")}
@@ -546,10 +552,13 @@ export default function Relatorios() {
                       className={`py-2 text-right font-bold whitespace-nowrap ${
                         t.tipo === "receita"
                           ? "text-emerald-600 dark:text-lime-spark"
-                          : "text-rose-600 dark:text-rose-400"
+                          : t.tipo === "aporte_patrimonio" || t.tipo === "resgate_patrimonio"
+                            ? "text-sky-600 dark:text-sky-400"
+                            : "text-rose-600 dark:text-rose-400"
                       }`}
                     >
-                      {t.tipo === "receita" ? "+" : "-"} {formatCurrency(t.valor)}
+                      {t.tipo === "receita" || t.tipo === "resgate_patrimonio" ? "+" : "-"}{" "}
+                      {formatCurrency(t.valor)}
                     </td>
                   </tr>
                 ))}

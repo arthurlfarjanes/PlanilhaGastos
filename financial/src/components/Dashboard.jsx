@@ -208,15 +208,21 @@ function Dashboard() {
   const resumo = useMemo(() => {
     let rec = 0;
     let desp = 0;
+    let aportesPat = 0;
+    let resgatesPat = 0;
     transacoes.forEach((t) => {
       const val = parseFloat(t.valor) || 0;
       if (t.tipo === "receita") rec += val;
       else if (t.tipo === "despesa") desp += val;
+      else if (t.tipo === "aporte_patrimonio") aportesPat += val;
+      else if (t.tipo === "resgate_patrimonio") resgatesPat += val;
     });
     return {
       receitas: rec,
       despesas: desp,
-      balanco: rec - desp,
+      aportesPatrimonio: aportesPat,
+      resgatesPatrimonio: resgatesPat,
+      balanco: rec - desp - aportesPat + resgatesPat,
     };
   }, [transacoes]);
 
@@ -269,6 +275,14 @@ function Dashboard() {
             >
               {formatCurrency(resumo.balanco)}
             </p>
+            {(resumo.aportesPatrimonio > 0 || resumo.resgatesPatrimonio > 0) && (
+              <p className="text-[11px] text-sky-600 dark:text-sky-400 font-medium mt-0.5">
+                Patrimônio:{" "}
+                {resumo.aportesPatrimonio > 0 ? `-${formatCurrency(resumo.aportesPatrimonio)} reserva` : ""}
+                {resumo.aportesPatrimonio > 0 && resumo.resgatesPatrimonio > 0 ? " · " : ""}
+                {resumo.resgatesPatrimonio > 0 ? `+${formatCurrency(resumo.resgatesPatrimonio)} resgate` : ""}
+              </p>
+            )}
           </div>
           <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-graphite-900 text-slate-700 dark:text-lime-spark flex items-center justify-center border border-slate-200 dark:border-graphite-600">
             <DollarSign size={22} />

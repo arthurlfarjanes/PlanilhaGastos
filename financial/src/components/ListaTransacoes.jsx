@@ -1,5 +1,5 @@
 import React from "react";
-import { Edit2, Trash2, ArrowUpRight, ArrowDownRight, CreditCard } from "lucide-react";
+import { Edit2, Trash2, ArrowUpRight, ArrowDownRight, CreditCard, Landmark } from "lucide-react";
 
 import { formatCurrency, formatDate } from "../utils/formatters";
 import { AppTooltip } from "@/components/ui/Tooltip";
@@ -18,6 +18,10 @@ function ListaTransacoes({ transacoes, onEdit, onDelete }) {
     <div className="flex flex-col gap-3 max-h-228.75 overflow-y-auto pr-1 custom-scrollbar">
       {transacoes.map((t) => {
         const isReceita = t.tipo === "receita";
+        const isPatAporte = t.tipo === "aporte_patrimonio";
+        const isPatResgate = t.tipo === "resgate_patrimonio";
+        const isPatrimonio = isPatAporte || isPatResgate;
+        const isPositive = isReceita || isPatResgate;
 
         return (
           <div
@@ -25,7 +29,9 @@ function ListaTransacoes({ transacoes, onEdit, onDelete }) {
             className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-5 bg-white dark:bg-graphite-800 rounded-2xl shadow-xs border border-slate-200/80 dark:border-graphite-600 border-l-4 sm:border-l-[6px] transition-all duration-150 hover:shadow-md hover:translate-x-0.5 ${
               isReceita
                 ? "border-l-emerald-500 dark:border-l-lime-spark"
-                : "border-l-red-500"
+                : isPatrimonio
+                  ? "border-l-sky-500 dark:border-l-sky-400"
+                  : "border-l-red-500"
             }`}
           >
             {/* Informações da Transação */}
@@ -34,10 +40,14 @@ function ListaTransacoes({ transacoes, onEdit, onDelete }) {
                 className={`p-2.5 rounded-xl shrink-0 mt-0.5 ${
                   isReceita
                     ? "bg-emerald-50 dark:bg-lime-spark/10 text-emerald-600 dark:text-lime-spark"
-                    : "bg-red-50 dark:bg-red-500/10 text-red-500 dark:text-red-400"
+                    : isPatrimonio
+                      ? "bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400"
+                      : "bg-red-50 dark:bg-red-500/10 text-red-500 dark:text-red-400"
                 }`}
               >
-                {isReceita ? (
+                {isPatrimonio ? (
+                  <Landmark size={18} strokeWidth={2.3} />
+                ) : isReceita ? (
                   <ArrowUpRight size={18} strokeWidth={2.5} />
                 ) : (
                   <ArrowDownRight size={18} strokeWidth={2.5} />
@@ -53,6 +63,10 @@ function ListaTransacoes({ transacoes, onEdit, onDelete }) {
                   <span className="inline-flex items-center gap-1.5 text-[0.7rem] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-graphite-900 text-slate-600 dark:text-graphite-300 border border-slate-200 dark:border-graphite-600">
                     {isReceita ? (
                       "Receita"
+                    ) : isPatAporte ? (
+                      "Reserva · Patrimônio"
+                    ) : isPatResgate ? (
+                      "Resgate · Patrimônio"
                     ) : (
                       <>
                         <span
@@ -97,10 +111,12 @@ function ListaTransacoes({ transacoes, onEdit, onDelete }) {
                 className={`text-xl sm:text-xl font-black self-start sm:self-end ${
                   isReceita
                     ? "text-emerald-600 dark:text-lime-spark"
-                    : "text-red-500 dark:text-red-400"
+                    : isPatrimonio
+                      ? "text-sky-600 dark:text-sky-400"
+                      : "text-red-500 dark:text-red-400"
                 }`}
               >
-                {isReceita ? "+" : "-"} {formatCurrency(t.valor)}
+                {isPositive ? "+" : "-"} {formatCurrency(t.valor)}
               </span>
 
               <div className="flex gap-2 w-full sm:w-auto">

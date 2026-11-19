@@ -83,6 +83,9 @@ function ModalEditar({ transacao, onClose, onSave, categorias, cartoes = [] }) {
 
   if (!transacao) return null;
 
+  const ehMovPatrimonio =
+    formData.tipo === "aporte_patrimonio" || formData.tipo === "resgate_patrimonio";
+
   const inputClass =
     "w-full p-3 border border-slate-200 dark:border-[#2E3342] rounded-xl text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-[#14171F] focus:outline-none focus:border-[var(--color-lime-spark)] focus:ring-4 focus:ring-[var(--color-lime-spark)]/15 transition-all shadow-xs";
   const labelClass =
@@ -122,13 +125,19 @@ function ModalEditar({ transacao, onClose, onSave, categorias, cartoes = [] }) {
           <div>
             <label className={labelClass}>Valor</label>
             <CurrencyInput
-              className={inputClass}
+              className={`${inputClass} ${ehMovPatrimonio ? "opacity-60 cursor-not-allowed" : ""}`}
               value={formData.valor || ""}
               onValueChange={(val) => {
                 setFormData((prev) => ({ ...prev, valor: val }));
               }}
+              disabled={ehMovPatrimonio}
               required
             />
+            {ehMovPatrimonio && (
+              <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                Para alterar o valor, estorne e registre novamente na aba Patrimônio.
+              </p>
+            )}
           </div>
           <div>
             <label className={labelClass}>Data</label>
@@ -146,39 +155,47 @@ function ModalEditar({ transacao, onClose, onSave, categorias, cartoes = [] }) {
         {/* Tipo de Transação */}
         <div>
           <label className={labelClass}>Tipo</label>
-          <div className="grid grid-cols-2 bg-slate-100 dark:bg-graphite-900 p-1 rounded-xl border border-slate-200 dark:border-graphite-600">
-            <button
-              type="button"
-              onClick={() =>
-                setFormData((prev) => ({ ...prev, tipo: "despesa" }))
-              }
-              className={`py-2 text-xs sm:text-sm font-bold rounded-lg transition-all cursor-pointer ${
-                formData.tipo === "despesa"
-                  ? "bg-red-500 text-white shadow-xs"
-                  : "text-slate-500 dark:text-graphite-300"
-              }`}
-            >
-              Despesa
-            </button>
-            <button
-              type="button"
-              onClick={() =>
-                setFormData((prev) => ({
-                  ...prev,
-                  tipo: "receita",
-                  categoria_id: null,
-                  cartao_id: "",
-                }))
-              }
-              className={`py-2 text-xs sm:text-sm font-bold rounded-lg transition-all cursor-pointer ${
-                formData.tipo === "receita"
-                  ? "bg-lime-spark text-graphite-900 shadow-xs"
-                  : "text-slate-500 dark:text-graphite-300"
-              }`}
-            >
-              Receita
-            </button>
-          </div>
+          {ehMovPatrimonio ? (
+            <div className="p-3 rounded-xl bg-sky-50 dark:bg-sky-500/10 border border-sky-200 dark:border-sky-500/20 text-xs font-semibold text-sky-700 dark:text-sky-300">
+              {formData.tipo === "aporte_patrimonio"
+                ? "Aporte em Patrimônio / Reserva — descontado apenas do saldo disponível (não conta como despesa)."
+                : "Resgate de Patrimônio — devolvido ao saldo disponível (não conta como receita)."}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 bg-slate-100 dark:bg-graphite-900 p-1 rounded-xl border border-slate-200 dark:border-graphite-600">
+              <button
+                type="button"
+                onClick={() =>
+                  setFormData((prev) => ({ ...prev, tipo: "despesa" }))
+                }
+                className={`py-2 text-xs sm:text-sm font-bold rounded-lg transition-all cursor-pointer ${
+                  formData.tipo === "despesa"
+                    ? "bg-red-500 text-white shadow-xs"
+                    : "text-slate-500 dark:text-graphite-300"
+                }`}
+              >
+                Despesa
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    tipo: "receita",
+                    categoria_id: null,
+                    cartao_id: "",
+                  }))
+                }
+                className={`py-2 text-xs sm:text-sm font-bold rounded-lg transition-all cursor-pointer ${
+                  formData.tipo === "receita"
+                    ? "bg-lime-spark text-graphite-900 shadow-xs"
+                    : "text-slate-500 dark:text-graphite-300"
+                }`}
+              >
+                Receita
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Categoria */}

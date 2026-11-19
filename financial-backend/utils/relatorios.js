@@ -98,11 +98,24 @@ function buildRelatorioCsv(tipo, report) {
 
   if (tipo === "transacoes") {
     const headers = ["Data", "Tipo", "Descrição", "Categoria", "Cartão", "Valor (R$)"];
+    const tipoLabel = (tTipo) => {
+      if (tTipo === "receita") return "Receita";
+      if (tTipo === "aporte_patrimonio") return "Aporte em Patrimônio";
+      if (tTipo === "resgate_patrimonio") return "Resgate de Patrimônio";
+      return "Despesa";
+    };
+    const catLabel = (t) => {
+      if (t.tipo === "receita") return "Receita";
+      if (t.tipo === "aporte_patrimonio" || t.tipo === "resgate_patrimonio") {
+        return "Patrimônio (Reserva)";
+      }
+      return t.categoria_nome || "Sem categoria";
+    };
     const rows = (report.transacoes || []).map((t) => [
       formatDateBR(t.data),
-      t.tipo === "receita" ? "Receita" : "Despesa",
+      tipoLabel(t.tipo),
       t.descricao || "",
-      t.tipo === "receita" ? "Receita" : t.categoria_nome || "Sem categoria",
+      catLabel(t),
       t.cartao_nome || (t.cartao_excluido_nome ? `Cartão excluído (${t.cartao_excluido_nome})` : ""),
       Number(t.valor || 0),
     ]);
@@ -267,6 +280,9 @@ function gerarRelatorioPdfBuffer(report) {
         ["Receitas do Período", formatMoneyBRL(r.receitas)],
         ["Despesas do Período", formatMoneyBRL(r.despesas)],
         ["Resultado Líquido", formatMoneyBRL(r.economia)],
+        ...((r.aportes_patrimonio > 0 || r.resgates_patrimonio > 0)
+          ? [["Saldo Disponível (após reservas)", formatMoneyBRL(r.saldo_liquido)]]
+          : []),
         ["Taxa de Economia (período)", `${r.taxa_economia_pct ?? 0}%`],
         ["Comprometimento Fixo + Dívidas", `${ind.comprometimento_renda_pct ?? 0}% (${formatMoneyBRL(ind.comprometimento_mensal_total || 0)}/mês)`],
         ["Patrimônio Líquido Atual", formatMoneyBRL(ind.patrimonio_liquido || 0)],
@@ -434,13 +450,28 @@ function gerarRelatorioPdfBuffer(report) {
           for (const tx of slice) {
             ensureSpace(17);
             const y = doc.y;
-            const sinal = tx.tipo === "receita" ? "+" : "-";
+            const isPatAporte = tx.tipo === "aporte_patrimonio";
+            const isPatResgate = tx.tipo === "resgate_patrimonio";
+            const sinal = tx.tipo === "receita" || isPatResgate ? "+" : "-";
             const desc = `${formatDateBR(tx.data)} · ${tx.descricao || ""}`;
-            const cat = tx.tipo === "receita" ? "Receita" : tx.categoria_nome || "Sem categoria";
+            const cat =
+              tx.tipo === "receita"
+                ? "Receita"
+                : isPatAporte
+                  ? "Patrimônio (Aporte)"
+                  : isPatResgate
+                    ? "Patrimônio (Resgate)"
+                    : tx.categoria_nome || "Sem categoria";
+            const valorCor =
+              tx.tipo === "receita"
+                ? emerald
+                : isPatAporte || isPatResgate
+                  ? "#0284c7"
+                  : "#dc2626";
             doc.fillColor(slateDark).font("Helvetica").fontSize(8.5).text(desc, 48, y, { width: 255, lineBreak: false, ellipsis: true });
             doc.fillColor(slateMuted).font("Helvetica").fontSize(8.5).text(cat, 308, y, { width: 105, lineBreak: false, ellipsis: true });
             doc
-              .fillColor(tx.tipo === "receita" ? emerald : "#dc2626")
+              .fillColor(valorCor)
               .font("Helvetica-Bold")
               .fontSize(8.5)
               .text(`${sinal} ${formatMoneyBRL(tx.valor)}`, 418, y, { width: pageWidth - 374, align: "right" });
@@ -486,6 +517,8 @@ function gerarRelatorioPdfBuffer(report) {
 function summarizePeriodTransactions(transacoes = []) {
   let receitasCents = 0;
   let despesasCents = 0;
+  let aportesPatrimonioCents = 0;
+  let resgatesPatrimonioCents = 0;
   let qtdReceitas = 0;
   let qtdDespesas = 0;
   const catMap = new Map();
@@ -495,6 +528,10 @@ function summarizePeriodTransactions(transacoes = []) {
     if (t.tipo === "receita") {
       receitasCents += cents;
       qtdReceitas += 1;
+    } else if (t.tipo === "aporte_patrimonio") {
+      aportesPatrimonioCents += cents;
+    } else if (t.tipo === "resgate_patrimonio") {
+      resgatesPatrimonioCents += cents;
     } else {
       despesasCents += cents;
       qtdDespesas += 1;
@@ -512,6 +549,8 @@ function summarizePeriodTransactions(transacoes = []) {
   }
 
   const economiaCents = receitasCents - despesasCents;
+  const saldoLiquidoCents =
+    economiaCents - aportesPatrimonioCents + resgatesPatrimonioCents;
   const taxaEconomiaPct =
     receitasCents > 0 ? Number(((economiaCents * 100) / receitasCents).toFixed(1)) : 0;
 
@@ -530,7 +569,10 @@ function summarizePeriodTransactions(transacoes = []) {
     resumo_periodo: {
       receitas: fromCents(receitasCents),
       despesas: fromCents(despesasCents),
+      aportes_patrimonio: fromCents(aportesPatrimonioCents),
+      resgates_patrimonio: fromCents(resgatesPatrimonioCents),
       economia: fromCents(economiaCents),
+      saldo_liquido: fromCents(saldoLiquidoCents),
       taxa_economia_pct: taxaEconomiaPct,
       qtd_receitas: qtdReceitas,
       qtd_despesas: qtdDespesas,

@@ -64,7 +64,10 @@ exports.listarTransacoes = async (req, res, next) => {
   const params = [userId];
   let paramIndex = 2;
 
-  if (tipo && (tipo === "receita" || tipo === "despesa")) {
+  if (
+    tipo &&
+    ["receita", "despesa", "aporte_patrimonio", "resgate_patrimonio"].includes(tipo)
+  ) {
     query += ` AND t.tipo = $${paramIndex++}`;
     params.push(tipo);
   }
@@ -294,7 +297,7 @@ exports.editarTransacao = async (req, res, next) => {
     return res.status(400).json({ error: "O valor deve ser um número positivo." });
   }
 
-  if (tipo !== "receita" && tipo !== "despesa") {
+  if (!["receita", "despesa", "aporte_patrimonio", "resgate_patrimonio"].includes(tipo)) {
     return res.status(400).json({ error: "Tipo de transação inválido." });
   }
 
@@ -323,7 +326,7 @@ exports.editarTransacao = async (req, res, next) => {
   }
 
   try {
-    // Estado atual (isolado por usuário) para validar consistência com faturas de cartão
+    // Estado atual (isolado por usuário) para validar consistência com faturas de cartão e patrimônio
     const atualRes = await pool.query(
       "SELECT valor, tipo, data::text AS data, cartao_id FROM transacoes WHERE id = $1 AND user_id = $2",
       [transacaoId, userId],
@@ -332,6 +335,22 @@ exports.editarTransacao = async (req, res, next) => {
       return res.status(404).json({ error: "Transação não encontrada ou não autorizada." });
     }
     const atual = atualRes.rows[0];
+    const ehMovPatrimonio =
+      atual.tipo === "aporte_patrimonio" || atual.tipo === "resgate_patrimonio";
+    if (ehMovPatrimonio) {
+      if (
+        tipo !== atual.tipo ||
+        Math.round(Number(atual.valor) * 100) !== Math.round(numValor * 100)
+      ) {
+        return res.status(409).json({
+          error:
+            "Para alterar o valor ou tipo de uma movimentação de patrimônio, estorne e registre novamente na aba Patrimônio.",
+        });
+      }
+      finalCategoriaId = null;
+    } else if (tipo === "aporte_patrimonio" || tipo === "resgate_patrimonio") {
+      return res.status(400).json({ error: "Tipo de transação inválido." });
+    }
 
     // cartao_id ausente no corpo mantém o vínculo atual; null/"" remove; id vincula.
     const cartaoInformado = Object.prototype.hasOwnProperty.call(req.body, "cartao_id");
@@ -502,10 +521,15 @@ exports.obterComparativo = async (req, res, next) => {
   const userId = req.user.userId;
   const { dataInicio, dataFim } = req.query;
 
-  let queryReceitas =
-    "SELECT SUM(valor) AS total_receitas FROM transacoes WHERE user_id = $1 AND tipo = 'receita'";
-  let queryDespesas =
-    "SELECT SUM(valor) AS total_despesas FROM transacoes WHERE user_id = $1 AND tipo = 'despesa'";
+  let queryTotais = `
+    SELECT
+      COALESCE(SUM(CASE WHEN tipo = 'receita' THEN valor ELSE 0 END), 0) AS total_receitas,
+      COALESCE(SUM(CASE WHEN tipo = 'despesa' THEN valor ELSE 0 END), 0) AS total_despesas,
+      COALESCE(SUM(CASE WHEN tipo = 'aporte_patrimonio' THEN valor ELSE 0 END), 0) AS total_aportes_patrimonio,
+      COALESCE(SUM(CASE WHEN tipo = 'resgate_patrimonio' THEN valor ELSE 0 END), 0) AS total_resgates_patrimonio
+    FROM transacoes
+    WHERE user_id = $1
+  `;
   let queryCategorias = `
     SELECT c.nome, c.cor, SUM(t.valor) as total
     FROM transacoes t
@@ -518,8 +542,7 @@ exports.obterComparativo = async (req, res, next) => {
 
   if (dataInicio && dataFim && isValidDateString(dataInicio) && isValidDateString(dataFim)) {
     const dateFilter = ` AND data BETWEEN $${paramIndex} AND $${paramIndex + 1}`;
-    queryReceitas += dateFilter;
-    queryDespesas += dateFilter;
+    queryTotais += dateFilter;
     queryCategorias += dateFilter;
     params.push(dataInicio, dataFim);
   }
@@ -527,22 +550,32 @@ exports.obterComparativo = async (req, res, next) => {
   queryCategorias += " GROUP BY c.nome, c.cor";
 
   try {
-    const receitasResult = await pool.query(queryReceitas, params);
-    const despesasResult = await pool.query(queryDespesas, params);
-    const categoriasResult = await pool.query(queryCategorias, params);
+    const [totaisResult, categoriasResult] = await Promise.all([
+      pool.query(queryTotais, params),
+      pool.query(queryCategorias, params),
+    ]);
 
-    const totalReceitas = parseFloat(receitasResult.rows[0].total_receitas || 0);
-    const totalDespesas = parseFloat(despesasResult.rows[0].total_despesas || 0);
+    const row = totaisResult.rows[0] || {};
+    const totalReceitas = parseFloat(row.total_receitas || 0);
+    const totalDespesas = parseFloat(row.total_despesas || 0);
+    const totalAportesPatrimonio = parseFloat(row.total_aportes_patrimonio || 0);
+    const totalResgatesPatrimonio = parseFloat(row.total_resgates_patrimonio || 0);
+    // Balanço financeiro considera apenas entradas/saídas reais; saldoDisponivel reflete transferências para reservas.
     const balanco = totalReceitas - totalDespesas;
+    const saldoDisponivel =
+      balanco - totalAportesPatrimonio + totalResgatesPatrimonio;
 
     res.json({
       totalReceitas: totalReceitas.toFixed(2),
       totalDespesas: totalDespesas.toFixed(2),
+      totalAportesPatrimonio: totalAportesPatrimonio.toFixed(2),
+      totalResgatesPatrimonio: totalResgatesPatrimonio.toFixed(2),
       balanco: balanco.toFixed(2),
-      gastosPorCategoria: categoriasResult.rows.map((row) => ({
-        name: row.nome,
-        value: parseFloat(row.total),
-        cor: row.cor || "#10b981",
+      saldoDisponivel: saldoDisponivel.toFixed(2),
+      gastosPorCategoria: categoriasResult.rows.map((r) => ({
+        name: r.nome,
+        value: parseFloat(r.total),
+        cor: r.cor || "#10b981",
       })),
     });
   } catch (err) {

@@ -403,7 +403,6 @@ exports.registrarMovimentacao = async (req, res, next) => {
     novo_saldo,
     data_movimentacao = todayISO(),
     lancar_transacao = false,
-    categoria_id = null,
     observacao = "",
   } = req.body;
 
@@ -471,37 +470,21 @@ exports.registrarMovimentacao = async (req, res, next) => {
     let transacaoId = null;
     if (lancar_transacao && tipo !== "ajuste") {
       if (tipo === "aporte") {
-        if (!categoria_id) {
-          await client.query("ROLLBACK");
-          return res.status(400).json({
-            error: "Selecione uma categoria de despesa para registrar o aporte no extrato.",
-          });
-        }
-        const catIdNum = parseInt(categoria_id, 10);
-        const catCheck = await client.query(
-          "SELECT id FROM categorias WHERE id = $1 AND user_id = $2",
-          [catIdNum, userId],
-        );
-        if (catCheck.rowCount === 0) {
-          await client.query("ROLLBACK");
-          return res.status(403).json({ error: "Categoria inválida ou não autorizada." });
-        }
         const tx = await client.query(
           `INSERT INTO transacoes (user_id, descricao, valor, tipo, data, categoria_id)
-           VALUES ($1,$2,$3,'despesa',$4,$5) RETURNING id`,
+           VALUES ($1,$2,$3,'aporte_patrimonio',$4,NULL) RETURNING id`,
           [
             userId,
             `Aporte patrimônio: ${item.nome}`.substring(0, 150),
             fromCents(movValorCents),
             data_movimentacao,
-            catIdNum,
           ],
         );
         transacaoId = tx.rows[0].id;
       } else {
         const tx = await client.query(
           `INSERT INTO transacoes (user_id, descricao, valor, tipo, data, categoria_id)
-           VALUES ($1,$2,$3,'receita',$4,NULL) RETURNING id`,
+           VALUES ($1,$2,$3,'resgate_patrimonio',$4,NULL) RETURNING id`,
           [
             userId,
             `Resgate patrimônio: ${item.nome}`.substring(0, 150),

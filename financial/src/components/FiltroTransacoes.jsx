@@ -75,6 +75,8 @@ function FiltroTransacoes({ filtros, setFiltros, categorias }) {
             <option value="">Todos</option>
             <option value="receita">Receita</option>
             <option value="despesa">Despesa</option>
+            <option value="aporte_patrimonio">Aporte em Patrimônio</option>
+            <option value="resgate_patrimonio">Resgate de Patrimônio</option>
           </select>
         </div>
 
@@ -86,7 +88,11 @@ function FiltroTransacoes({ filtros, setFiltros, categorias }) {
             className={inputClass}
             value={filtros.categoriaId}
             onChange={handleInputChange}
-            disabled={filtros.tipo === "receita"}
+            disabled={
+              filtros.tipo === "receita" ||
+              filtros.tipo === "aporte_patrimonio" ||
+              filtros.tipo === "resgate_patrimonio"
+            }
           >
             <option value="">Todas</option>
             {categorias.map((cat) => (

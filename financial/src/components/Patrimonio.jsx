@@ -120,7 +120,6 @@ export default function Patrimonio() {
 
   const [resumo, setResumo] = useState(null);
   const [itens, setItens] = useState([]);
-  const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [showForm, setShowForm] = useState(false);
@@ -136,8 +135,7 @@ export default function Patrimonio() {
     tipo: "aporte",
     valor: "",
     data_movimentacao: hoje,
-    lancar_transacao: false,
-    categoria_id: "",
+    lancar_transacao: true,
     observacao: "",
   });
   const [savingMov, setSavingMov] = useState(false);
@@ -172,22 +170,9 @@ export default function Patrimonio() {
     }
   }, [API_URL, authHeaders]);
 
-  const carregarCategorias = useCallback(async () => {
-    try {
-      const res = await fetch(`${API_URL}/categorias?tipo=gasto`, { headers: authHeaders() });
-      if (res.ok) {
-        const data = await res.json();
-        setCategorias(Array.isArray(data) ? data : []);
-      }
-    } catch {
-      // silencioso
-    }
-  }, [API_URL, authHeaders]);
-
   useEffect(() => {
     carregar();
-    carregarCategorias();
-  }, [carregar, carregarCategorias]);
+  }, [carregar]);
 
   const carregarHistorico = async (itemId) => {
     if (histItemId === itemId) {
@@ -312,8 +297,7 @@ export default function Patrimonio() {
       tipo: "aporte",
       valor: "",
       data_movimentacao: todayInTimezone(timezone),
-      lancar_transacao: false,
-      categoria_id: categorias[0]?.id != null ? String(categorias[0].id) : "",
+      lancar_transacao: true,
       observacao: "",
     });
   };
@@ -323,9 +307,6 @@ export default function Patrimonio() {
     if (!movTarget) return;
     if (movForm.valor === "" || (movForm.tipo !== "ajuste" && Number(movForm.valor) <= 0)) {
       return toast.error("Informe um valor válido.");
-    }
-    if (movForm.lancar_transacao && movForm.tipo === "aporte" && !movForm.categoria_id) {
-      return toast.error("Selecione uma categoria de despesa para lançar no extrato.");
     }
 
     setSavingMov(true);
@@ -337,10 +318,6 @@ export default function Patrimonio() {
           : { valor: Number(movForm.valor) }),
         data_movimentacao: movForm.data_movimentacao,
         lancar_transacao: movForm.tipo === "ajuste" ? false : movForm.lancar_transacao,
-        categoria_id:
-          movForm.lancar_transacao && movForm.tipo === "aporte" && movForm.categoria_id
-            ? parseInt(movForm.categoria_id, 10)
-            : null,
         observacao: movForm.observacao.trim(),
       };
 
@@ -987,35 +964,22 @@ export default function Patrimonio() {
             </div>
 
             {movForm.tipo !== "ajuste" && (
-              <div className="space-y-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60">
-                <label className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-200 cursor-pointer">
+              <div className="space-y-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60">
+                <label className="flex items-center gap-2 text-xs font-medium text-slate-700 dark:text-slate-200 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={movForm.lancar_transacao}
                     onChange={(e) => setMovForm({ ...movForm, lancar_transacao: e.target.checked })}
                   />
                   {movForm.tipo === "aporte"
-                    ? "Registrar saída no extrato (Transações)"
-                    : "Registrar entrada como receita no extrato"}
+                    ? "Descontar do saldo no extrato (reserva de patrimônio)"
+                    : "Devolver ao saldo no extrato (resgate de patrimônio)"}
                 </label>
-                {movForm.lancar_transacao && movForm.tipo === "aporte" && (
-                  <div>
-                    <label className={LABEL_CLS}>Categoria da despesa *</label>
-                    <select
-                      className={INPUT_CLS}
-                      value={movForm.categoria_id}
-                      onChange={(e) => setMovForm({ ...movForm, categoria_id: e.target.value })}
-                      required
-                    >
-                      <option value="">Selecione...</option>
-                      {categorias.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.nome}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed pl-5">
+                  {movForm.tipo === "aporte"
+                    ? "O valor é descontado apenas do seu saldo disponível e somado ao patrimônio, sem contar como saída (despesa) nem entrada."
+                    : "O valor retorna ao seu saldo disponível e é abatido do patrimônio, sem contar como entrada (receita) nem saída."}
+                </p>
               </div>
             )}
 
